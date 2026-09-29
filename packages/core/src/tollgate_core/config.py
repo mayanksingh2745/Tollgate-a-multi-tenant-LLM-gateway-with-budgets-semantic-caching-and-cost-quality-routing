@@ -1,3 +1,4 @@
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +21,38 @@ class Settings(BaseSettings):
     redis_host: str = "redis"
     redis_port: int = 6379
     redis_url: str = "redis://redis:6379/0"
+
+    # Reliability & Retry Settings
+    max_retries: int = Field(
+        3, validation_alias=AliasChoices("TOLLGATE_MAX_RETRIES", "max_retries")
+    )
+    retry_base_delay: float = Field(
+        0.25, validation_alias=AliasChoices("TOLLGATE_RETRY_BASE_DELAY", "retry_base_delay")
+    )
+    retry_max_delay: float = Field(
+        5.0, validation_alias=AliasChoices("TOLLGATE_RETRY_MAX_DELAY", "retry_max_delay")
+    )
+    retry_jitter: bool = Field(
+        True, validation_alias=AliasChoices("TOLLGATE_RETRY_JITTER", "retry_jitter")
+    )
+    request_timeout_seconds: float = Field(
+        60.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_REQUEST_TIMEOUT_SECONDS", "request_timeout_seconds"
+        ),
+    )
+    provider_timeout_seconds: float = Field(
+        30.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_PROVIDER_TIMEOUT_SECONDS", "provider_timeout_seconds"
+        ),
+    )
+    provider_cooldown_seconds: float = Field(
+        30.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_PROVIDER_COOLDOWN_SECONDS", "provider_cooldown_seconds"
+        ),
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
