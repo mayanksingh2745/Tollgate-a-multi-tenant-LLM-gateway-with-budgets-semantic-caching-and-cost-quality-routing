@@ -42,6 +42,16 @@ def test_rate_limiter_backend():
     rate_limiter.backend = original_backend
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_budget_manager_backend():
+    from gateway.src.budgets.manager import InMemoryBudgetBackend, budget_manager
+
+    original_backend = budget_manager.backend
+    budget_manager.backend = InMemoryBudgetBackend()
+    yield
+    budget_manager.backend = original_backend
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:

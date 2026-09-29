@@ -5,6 +5,14 @@ from fastapi import APIRouter, Depends, Header, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.auth.dependencies import get_current_api_key
+from gateway.src.budgets import (
+    BudgetExceededError,
+    budget_manager,
+    estimate_prompt_tokens,
+    estimate_request_cost,
+    pricing_service,
+)
+from gateway.src.db import get_db
 from gateway.src.providers.base import ProviderException
 from gateway.src.ratelimit import RateLimitResult, rate_limit_dependency
 from gateway.src.schemas.chat import (
@@ -13,7 +21,9 @@ from gateway.src.schemas.chat import (
     OpenAIErrorDetail,
     OpenAIErrorResponse,
 )
+from gateway.src.services.budget_service import get_effective_budget_limits
 from gateway.src.services.gateway_service import gateway_service
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["Chat Completions"])
 
@@ -25,6 +35,7 @@ router = APIRouter(tags=["Chat Completions"])
         200: {"description": "Successful chat completion (JSON or text/event-stream)"},
         400: {"model": OpenAIErrorResponse, "description": "Invalid request parameter"},
         401: {"description": "Authentication failure"},
+        402: {"model": OpenAIErrorResponse, "description": "Budget exceeded"},
         404: {"model": OpenAIErrorResponse, "description": "Unknown or unconfigured model"},
         429: {"model": OpenAIErrorResponse, "description": "Rate limit exceeded"},
         502: {"model": OpenAIErrorResponse, "description": "Upstream provider failure"},
@@ -37,6 +48,7 @@ async def create_chat_completion(
     raw_request: Request,
     ctx: AuthenticatedContext = Depends(get_current_api_key),
     rate_limit: RateLimitResult = Depends(rate_limit_dependency),
+    db: AsyncSession = Depends(get_db),
     x_request_id: Optional[str] = Header(None, alias="X-Request-ID"),
 ):
     """
@@ -51,6 +63,25 @@ async def create_chat_completion(
         **rate_limit.headers,
     }
 
+    # 2. Atomic Budget Reservation (Multi-scope: Tenant + Project)
+    limits = await get_effective_budget_limits(
+        db=db, tenant_id=ctx.tenant_id, project_id=ctx.project_id
+    )
+    estimated_cost = estimate_request_cost(request)
+
+    reservation = await budget_manager.reserve(
+        tenant_id=ctx.tenant_id,
+        project_id=ctx.project_id,
+        estimated_cost=estimated_cost,
+        limits=limits,
+        reservation_id=request_id,
+    )
+    if not reservation.allowed:
+        raise BudgetExceededError(
+            f"Budget exceeded for {reservation.scope or 'account'}. Insufficient spending balance.",
+            scope=reservation.scope,
+        )
+
     try:
         if request.stream:
             # SSE streaming response
@@ -62,13 +93,42 @@ async def create_chat_completion(
                     "X-Accel-Buffering": "no",
                 }
             )
-            generator = gateway_service.stream_completion(
+            raw_generator = gateway_service.stream_completion(
                 request=request,
                 ctx=ctx,
                 request_id=request_id,
             )
+
+            async def stream_with_budget():
+                prompt_tokens = estimate_prompt_tokens(request.messages)
+                output_tokens = 0
+                chunks_emitted = 0
+                try:
+                    async for chunk in raw_generator:
+                        chunks_emitted += 1
+                        output_tokens += 1
+                        yield chunk
+
+                    actual_cost = pricing_service.calculate_cost(
+                        model=request.model,
+                        input_tokens=prompt_tokens,
+                        output_tokens=output_tokens,
+                    )
+                    await budget_manager.settle(reservation.reservation_id, actual_cost)
+                except Exception:
+                    if chunks_emitted == 0:
+                        await budget_manager.release(reservation.reservation_id)
+                    else:
+                        actual_cost = pricing_service.calculate_cost(
+                            model=request.model,
+                            input_tokens=prompt_tokens,
+                            output_tokens=output_tokens,
+                        )
+                        await budget_manager.settle(reservation.reservation_id, actual_cost)
+                    raise
+
             return StreamingResponse(
-                generator,
+                stream_with_budget(),
                 media_type="text/event-stream",
                 headers=headers,
             )
@@ -79,6 +139,18 @@ async def create_chat_completion(
                 ctx=ctx,
                 request_id=request_id,
             )
+
+            # Calculate actual usage and settle reservation
+            actual_in = response.usage.prompt_tokens if response.usage else 0
+            actual_out = response.usage.completion_tokens if response.usage else 0
+            actual_cost = pricing_service.calculate_cost(
+                model=request.model,
+                input_tokens=actual_in,
+                output_tokens=actual_out,
+                provider=metadata.final_provider,
+            )
+            await budget_manager.settle(reservation.reservation_id, actual_cost)
+
             if metadata.final_provider:
                 headers["X-Tollgate-Provider"] = metadata.final_provider
             headers["X-Tollgate-Attempts"] = str(metadata.total_attempts)
@@ -90,6 +162,7 @@ async def create_chat_completion(
             )
 
     except ProviderException as pe:
+        await budget_manager.release(reservation.reservation_id)
         return JSONResponse(
             status_code=pe.status_code,
             headers=headers,
@@ -102,6 +175,7 @@ async def create_chat_completion(
             ).model_dump(),
         )
     except Exception:
+        await budget_manager.release(reservation.reservation_id)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             headers=headers,
