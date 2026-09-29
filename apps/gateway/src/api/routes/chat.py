@@ -13,6 +13,8 @@ from gateway.src.budgets import (
     estimate_request_cost,
     pricing_service,
 )
+from gateway.src.cache import Canonicalizer, exact_cache
+from gateway.src.config import settings
 from gateway.src.db import get_db
 from gateway.src.providers.base import ProviderException
 from gateway.src.ratelimit import RateLimitResult, rate_limit_dependency
@@ -57,6 +59,7 @@ async def create_chat_completion(
     """
     OpenAI-compatible chat completion gateway endpoint.
     Supports both non-streaming responses and incremental SSE streaming.
+    Integrates rate limiting, exact response caching, budget enforcement, and usage accounting.
     """
     # 1. Resolve or generate Request ID
     request_id = x_request_id or f"req_{uuid.uuid4().hex[:16]}"
@@ -66,26 +69,50 @@ async def create_chat_completion(
         **rate_limit.headers,
     }
 
-    # 2. Atomic Budget Reservation (Multi-scope: Tenant + Project)
-    limits = await get_effective_budget_limits(
-        db=db, tenant_id=ctx.tenant_id, project_id=ctx.project_id
-    )
-    estimated_cost = estimate_request_cost(request)
-
-    reservation = await budget_manager.reserve(
-        tenant_id=ctx.tenant_id,
-        project_id=ctx.project_id,
-        estimated_cost=estimated_cost,
-        limits=limits,
-        reservation_id=request_id,
-    )
-    if not reservation.allowed:
-        raise BudgetExceededError(
-            f"Budget exceeded for {reservation.scope or 'account'}. Insufficient spending balance.",
-            scope=reservation.scope,
-        )
-
+    reservation = None
     try:
+        # Resolve deterministic primary provider
+        route = gateway_service.registry.get_route(request.model)
+        provider_name = route.primary.provider_name if route and route.primary else "openai"
+
+        # 2. Exact Cache Lookup (evaluated before budget reservation to avoid consuming budget on hit)
+        cached_response = await exact_cache.get(
+            request=request,
+            tenant_id=ctx.tenant_id,
+            project_id=ctx.project_id,
+            provider=provider_name,
+        )
+        if cached_response is not None:
+            if settings.cache_header_enabled:
+                headers["X-Tollgate-Cache"] = "HIT"
+            headers["X-Tollgate-Provider"] = provider_name
+            return JSONResponse(
+                content=cached_response.model_dump(exclude_none=True),
+                headers=headers,
+            )
+
+        if settings.cache_header_enabled:
+            is_cacheable, _ = Canonicalizer.is_cacheable(request)
+            headers["X-Tollgate-Cache"] = "BYPASS" if not is_cacheable else "MISS"
+
+        # 3. Atomic Budget Reservation (Multi-scope: Tenant + Project)
+        limits = await get_effective_budget_limits(
+            db=db, tenant_id=ctx.tenant_id, project_id=ctx.project_id
+        )
+        estimated_cost = estimate_request_cost(request)
+
+        reservation = await budget_manager.reserve(
+            tenant_id=ctx.tenant_id,
+            project_id=ctx.project_id,
+            estimated_cost=estimated_cost,
+            limits=limits,
+            reservation_id=request_id,
+        )
+        if not reservation.allowed:
+            raise BudgetExceededError(
+                f"Budget exceeded for {reservation.scope or 'account'}. Insufficient spending balance.",
+                scope=reservation.scope,
+            )
         if request.stream:
             # SSE streaming response
             headers.update(
@@ -208,6 +235,15 @@ async def create_chat_completion(
             )
             await budget_manager.settle(reservation.reservation_id, actual_cost)
 
+            # Store in exact response cache
+            await exact_cache.set(
+                request=request,
+                response=response,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                provider=metadata.final_provider or provider_name,
+            )
+
             # Publish usage event to Redis Stream (non-blocking, asynchronous)
             usage_event = UsageEventPayload(
                 request_id=request_id,
@@ -240,8 +276,13 @@ async def create_chat_completion(
                 headers=headers,
             )
 
+    except BudgetExceededError:
+        if reservation and reservation.allowed:
+            await budget_manager.release(reservation.reservation_id)
+        raise
     except ProviderException as pe:
-        await budget_manager.release(reservation.reservation_id)
+        if reservation and reservation.allowed:
+            await budget_manager.release(reservation.reservation_id)
         return JSONResponse(
             status_code=pe.status_code,
             headers=headers,
@@ -254,7 +295,8 @@ async def create_chat_completion(
             ).model_dump(),
         )
     except Exception:
-        await budget_manager.release(reservation.reservation_id)
+        if reservation and reservation.allowed:
+            await budget_manager.release(reservation.reservation_id)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             headers=headers,

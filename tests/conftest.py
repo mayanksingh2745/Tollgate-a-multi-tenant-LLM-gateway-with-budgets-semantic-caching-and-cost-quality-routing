@@ -66,6 +66,16 @@ def test_usage_publisher():
     usage_publisher._redis_client = original_client
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_exact_cache_backend():
+    from gateway.src.cache import InMemoryCacheBackend, exact_cache
+
+    original_backend = exact_cache.backend
+    exact_cache.backend = InMemoryCacheBackend()
+    yield
+    exact_cache.backend = original_backend
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:
@@ -81,7 +91,8 @@ async def db_session():
 @pytest_asyncio.fixture(scope="function")
 async def async_client(db_session: AsyncSession):
     async def _override_get_db():
-        yield db_session
+        async with TestAsyncSessionLocal() as session:
+            yield session
 
     app.dependency_overrides[get_db] = _override_get_db
     transport = ASGITransport(app=app)

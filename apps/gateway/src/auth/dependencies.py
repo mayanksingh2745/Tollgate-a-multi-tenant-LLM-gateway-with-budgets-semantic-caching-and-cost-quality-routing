@@ -41,9 +41,15 @@ async def get_optional_api_key(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    api_key, project, tenant = result
+    api_key, project, tenant, user = result
+    role = user.role if user else "admin"
+    user_id = user.id if user else None
     return AuthenticatedContext(
-        api_key_id=api_key.id, project_id=project.id, tenant_id=tenant.id, role="admin"
+        api_key_id=api_key.id,
+        user_id=user_id,
+        project_id=project.id,
+        tenant_id=tenant.id,
+        role=role,
     )
 
 

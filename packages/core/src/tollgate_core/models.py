@@ -88,6 +88,9 @@ class User(Base):
     )
 
     tenant: Mapped[Tenant] = relationship("Tenant", back_populates="users")
+    api_keys: Mapped[List["APIKey"]] = relationship(
+        "APIKey", back_populates="user", passive_deletes=True
+    )
 
 
 class Project(Base):
@@ -134,6 +137,7 @@ class APIKey(Base):
         Index("idx_api_keys_key_prefix", "key_prefix"),
         Index("idx_api_keys_tenant_id", "tenant_id"),
         Index("idx_api_keys_project_id", "project_id"),
+        Index("idx_api_keys_user_id", "user_id"),
         Index("idx_api_keys_prefix_status", "key_prefix", "status"),
     )
 
@@ -143,6 +147,9 @@ class APIKey(Base):
     )
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     key_prefix: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -159,6 +166,7 @@ class APIKey(Base):
 
     tenant: Mapped[Tenant] = relationship("Tenant", back_populates="api_keys")
     project: Mapped[Project] = relationship("Project", back_populates="api_keys")
+    user: Mapped[Optional[User]] = relationship("User", back_populates="api_keys")
 
 
 class UsageEvent(Base):

@@ -166,6 +166,30 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("TOLLGATE_USAGE_BLOCK_MS", "usage_block_ms"),
     )
 
+    # Phase 7 Exact Response Cache Settings
+    cache_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_CACHE_ENABLED", "cache_enabled"),
+    )
+    cache_ttl_seconds: int = Field(
+        300,
+        validation_alias=AliasChoices("TOLLGATE_CACHE_TTL_SECONDS", "cache_ttl_seconds"),
+    )
+    cache_max_response_bytes: int = Field(
+        524288,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CACHE_MAX_RESPONSE_BYTES", "cache_max_response_bytes"
+        ),
+    )
+    cache_redis_prefix: str = Field(
+        "tg:cache",
+        validation_alias=AliasChoices("TOLLGATE_CACHE_REDIS_PREFIX", "cache_redis_prefix"),
+    )
+    cache_header_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_CACHE_HEADER_ENABLED", "cache_header_enabled"),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 

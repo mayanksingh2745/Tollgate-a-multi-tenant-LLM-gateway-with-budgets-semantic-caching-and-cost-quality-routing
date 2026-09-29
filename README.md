@@ -26,6 +26,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ Background worker
 - ✓ PostgreSQL usage records
 - ✓ Daily/monthly cost rollups
+- ✓ Exact response caching
 
 ## Implemented Phases
 
@@ -36,6 +37,36 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 4 — Distributed Rate Limiting**: Distributed, concurrency-safe token bucket rate limiting using Redis and an atomic Lua script, burst capacity, continuous token refill, explicit fail-open/fail-closed modes, standard `X-RateLimit-*` headers, and HTTP 429 enforcement.
 - **Phase 5 — Budget Reservation & Settlement**: Atomic two-phase budget reservation and settlement, multi-scope spending limits (Tenant & Project daily/monthly), integer microdollar arithmetic ($1.00 = 1,000,000), pre-request cost estimation, idempotent settlement with refunding, and HTTP 402 enforcement.
 - **Phase 6 — Usage Pipeline & Cost Accounting**: Asynchronous, durable usage ingestion via Redis Streams (`tg:usage:events`), consumer group background workers, crash recovery with `XAUTOCLAIM`, PostgreSQL event persistence, idempotent daily & monthly rollups, and paginated tenant-isolated usage query APIs.
+- **Phase 7 — Exact Response Cache**: High-performance, tenant-isolated exact-match response caching in Redis with SHA-256 canonicalization, O(1) project cache invalidation via generation counters, fail-open resilience, zero budget/usage overhead on hit, and `X-Tollgate-Cache` observability headers.
+
+---
+
+## Exact Response Cache
+
+Tollgate intercepts identical chat completion requests in Redis to eliminate upstream provider latency and cost while preserving strict tenant isolation:
+
+```text
+Client Request
+      ↓
+API Key Authentication
+      ↓
+Distributed Rate Limiting (Token Bucket)
+      ↓
+Exact Response Cache Lookup
+      ├── HIT  ──► Return Cached Response + X-Tollgate-Cache: HIT
+      │            ($0.00 provider cost, zero budget reservation)
+      └── MISS ──► Budget Reservation ──► Upstream Provider ──► Cache Write ──► Usage Event
+```
+
+### Key Capabilities
+- **Deterministic SHA-256 Canonicalization**: Preserves message order and semantic whitespace while sorting object keys and normalizing default sampling parameters (`temperature`, `top_p`, `seed`, `max_tokens`).
+- **Strict Tenant & Project Isolation**: Keys are scoped to `tg:cache:{tenant_id}:{project_id}:{version}:{digest}`. Overages, entries, or invalidations in one tenant or project never cross isolation boundaries.
+- **O(1) Project-Wide Invalidation**: Invalidation increments a Redis generation counter (`tg:cache:ver:{tenant_id}:{project_id}`). All previous entries for that project immediately become unreachable in $O(1)$ time with zero Redis key scanning.
+- **Safe Bypass Policy**: Requests with `stream: true`, tool definitions (`tools`), or explicit non-deterministic configurations automatically bypass caching with `X-Tollgate-Cache: BYPASS`.
+- **Zero Budget & Token Consumption on Hits**: Cache hits do not reserve or settle budgets, emit fake provider usage events, or incur upstream costs.
+- **Fail-Open Resilience**: Any Redis network failure or payload corruption fails open, immediately routing the request to the upstream provider without client disruption.
+
+See [`docs/exact-cache.md`](docs/exact-cache.md) for complete architecture, canonicalization rules, and benchmark measurements.
 
 ---
 
@@ -229,6 +260,9 @@ See [`docs/gateway.md`](docs/gateway.md) for full endpoint specifications, strea
 - `GET /api/v1/usage` — Paginated list of usage records (cursor-based, filtered by tenant, project, date range, provider, model)
 - `GET /api/v1/usage/rollups/daily` — Aggregated daily usage & cost rollups
 - `GET /api/v1/usage/rollups/monthly` — Aggregated monthly usage & cost rollups
+
+### Exact Response Cache (Phase 7)
+- `DELETE /api/v1/projects/{project_id}/cache` — Invalidate project cache (O(1) generation counter increment, requires `owner` or `admin` role)
 
 ---
 
