@@ -91,6 +91,33 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Budget Reservation & Settlement Settings
+    budget_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_BUDGET_ENABLED", "budget_enabled"),
+    )
+    budget_reservation_ttl_seconds: int = Field(
+        120,
+        validation_alias=AliasChoices(
+            "TOLLGATE_BUDGET_RESERVATION_TTL_SECONDS",
+            "budget_reservation_ttl_seconds",
+        ),
+    )
+    budget_default_max_output_tokens: int = Field(
+        4096,
+        validation_alias=AliasChoices(
+            "TOLLGATE_DEFAULT_MAX_OUTPUT_TOKENS",
+            "budget_default_max_output_tokens",
+        ),
+    )
+    budget_redis_timeout_seconds: float = Field(
+        1.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_BUDGET_REDIS_TIMEOUT_SECONDS",
+            "budget_redis_timeout_seconds",
+        ),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 

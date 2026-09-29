@@ -82,6 +82,24 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     )
 
 
+from gateway.src.budgets import BudgetExceededError
+
+
+# BudgetExceededError exception handler returning HTTP 402 Payment Required
+@app.exception_handler(BudgetExceededError)
+async def budget_exceeded_handler(request: Request, exc: BudgetExceededError):
+    return JSONResponse(
+        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        content=OpenAIErrorResponse(
+            error=OpenAIErrorDetail(
+                message=str(exc) or "Budget exceeded. Insufficient spending balance.",
+                type="budget_error",
+                code="budget_exceeded",
+            )
+        ).model_dump(),
+    )
+
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
@@ -91,12 +109,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from gateway.src.api.routes.budgets import router as budgets_router
+
 # Include routers
 app.include_router(health_router)
 app.include_router(tenants_router)
 app.include_router(users_router)
 app.include_router(projects_router)
 app.include_router(api_keys_router)
+app.include_router(budgets_router)
 app.include_router(chat_router)
 
 
@@ -104,7 +125,7 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "4 - Distributed Rate Limiting",
+        "phase": "5 - Budget Reservation & Settlement",
         "status": "online",
         "docs_url": "/docs",
     }

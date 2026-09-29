@@ -16,6 +16,37 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 2 — OpenAI-Compatible LLM Gateway**: `/v1/chat/completions` proxy supporting standard OpenAI client SDKs, non-streaming & SSE streaming, provider abstraction, request tracking, and timeouts.
 - **Phase 3 — Provider Reliability, Retries & Failover**: Centralized failure classification, exponential backoff with bounded jitter, overall request deadlines, deterministic fallback chains, streaming failure safety, and lightweight provider health tracking.
 - **Phase 4 — Distributed Rate Limiting**: Distributed, concurrency-safe token bucket rate limiting using Redis and an atomic Lua script, burst capacity, continuous token refill, explicit fail-open/fail-closed modes, standard `X-RateLimit-*` headers, and HTTP 429 enforcement.
+- **Phase 5 — Budget Reservation & Settlement**: Atomic two-phase budget reservation and settlement, multi-scope spending limits (Tenant & Project daily/monthly), integer microdollar arithmetic ($1.00 = 1,000,000), pre-request cost estimation, idempotent settlement with refunding, and HTTP 402 enforcement.
+
+---
+
+## Budgets & Spending Controls
+
+Tollgate enforces strict monetary spending limits to prevent runaway provider costs, even under massive concurrent request volume:
+
+```
+Request arrives
+    ↓
+Estimate maximum cost
+    ↓
+Atomically reserve budget (Redis Lua)
+    ↓
+Call upstream provider
+    ↓
+Receive actual token usage
+    ↓
+Settle reservation & refund unused budget
+```
+
+### Key Capabilities
+- **Atomic Two-Phase Protocol**: Pre-reserves maximum estimated cost before provider invocation; settles actual usage and refunds the difference post-completion.
+- **Multi-Scope Hierarchy**: Enforces limits across Tenant Daily, Tenant Monthly, Project Daily, and Project Monthly budgets simultaneously in a single atomic Lua transaction.
+- **Exact Monetary Precision**: Zero floating-point drift. All values are represented in integer microdollars ($1.00 = 1,000,000).
+- **Leak-Proof Lease Expiration**: Stale reservations from crashed workers expire automatically after lease TTL and return reserved capacity to the pool.
+- **Idempotent Settlement**: Settle operations can be safely retried without double-charging accounts.
+- **Differentiated Error Handling**: Returns HTTP 402 Payment Required for exhausted budgets, strictly separating spending limits from HTTP 429 rate limits.
+
+See [`docs/budgets.md`](docs/budgets.md) for complete architecture, pricing models, and Lua script designs.
 
 ---
 

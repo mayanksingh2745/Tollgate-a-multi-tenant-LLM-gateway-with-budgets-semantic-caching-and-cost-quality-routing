@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -28,6 +28,12 @@ class Tenant(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    monthly_budget_microdollars: Mapped[Optional[int]] = mapped_column(
+        BigInteger, nullable=True, default=None
+    )
+    daily_budget_microdollars: Mapped[Optional[int]] = mapped_column(
+        BigInteger, nullable=True, default=None
     )
 
     users: Mapped[List["User"]] = relationship(
@@ -98,6 +104,12 @@ class Project(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    monthly_budget_microdollars: Mapped[Optional[int]] = mapped_column(
+        BigInteger, nullable=True, default=None
+    )
+    daily_budget_microdollars: Mapped[Optional[int]] = mapped_column(
+        BigInteger, nullable=True, default=None
     )
 
     tenant: Mapped[Tenant] = relationship("Tenant", back_populates="projects")
