@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from gateway.src.db import check_db_health
 from gateway.src.redis import check_redis_health
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -42,13 +43,15 @@ async def readyz():
             detail={
                 "status": "unhealthy",
                 "database": "ok" if db_ok else "unreachable",
-                "redis": "ok" if redis_ok else "unreachable"
-            }
+                "redis": "ok" if redis_ok else "unreachable",
+            },
         )
     return {"status": "ready", "database": "ok", "redis": "ok"}
 
 
-@router.get("/api/v1/health", response_model=SystemHealthResponse, summary="Detailed System Health Status")
+@router.get(
+    "/api/v1/health", response_model=SystemHealthResponse, summary="Detailed System Health Status"
+)
 async def detailed_health():
     import time
 
@@ -67,27 +70,25 @@ async def detailed_health():
             name="gateway",
             status="healthy",
             latency_ms=0.5,
-            details="FastAPI Gateway Engine Operational"
+            details="FastAPI Gateway Engine Operational",
         ),
         ComponentStatus(
             name="postgresql",
             status="healthy" if db_ok else "unhealthy",
             latency_ms=round(db_latency, 2),
-            details="PostgreSQL Database Operational" if db_ok else "Connection failed"
+            details="PostgreSQL Database Operational" if db_ok else "Connection failed",
         ),
         ComponentStatus(
             name="redis",
             status="healthy" if redis_ok else "unhealthy",
             latency_ms=round(redis_latency, 2),
-            details="Redis Cache & Queue Operational" if redis_ok else "Connection failed"
-        )
+            details="Redis Cache & Queue Operational" if redis_ok else "Connection failed",
+        ),
     ]
 
     all_healthy = db_ok and redis_ok
     overall_status = "healthy" if all_healthy else "degraded"
 
     return SystemHealthResponse(
-        status=overall_status,
-        timestamp=datetime.now(timezone.utc).isoformat(),
-        services=services
+        status=overall_status, timestamp=datetime.now(timezone.utc).isoformat(), services=services
     )

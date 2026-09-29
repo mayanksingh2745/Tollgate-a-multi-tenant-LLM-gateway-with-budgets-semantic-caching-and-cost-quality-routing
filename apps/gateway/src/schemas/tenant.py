@@ -1,11 +1,18 @@
 from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TenantCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=128, description="Name of the tenant")
-    slug: str = Field(..., min_length=1, max_length=64, pattern="^[a-z0-9-]+$", description="Unique URL-friendly slug")
+    slug: str = Field(
+        ...,
+        min_length=1,
+        max_length=64,
+        pattern="^[a-z0-9-]+$",
+        description="Unique URL-friendly slug",
+    )
 
 
 class TenantResponse(BaseModel):

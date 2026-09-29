@@ -11,15 +11,20 @@ for p in [str(root_dir), str(core_src), str(gateway_src)]:
         sys.path.insert(0, p)
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from gateway.src.api.health import router as health_router
+from gateway.src.api.routes.api_keys import router as api_keys_router
+from gateway.src.api.routes.chat import router as chat_router
+from gateway.src.api.routes.projects import router as projects_router
 from gateway.src.api.routes.tenants import router as tenants_router
 from gateway.src.api.routes.users import router as users_router
-from gateway.src.api.routes.projects import router as projects_router
-from gateway.src.api.routes.api_keys import router as api_keys_router
 from gateway.src.config import settings
 from gateway.src.redis import close_redis_connection
+from gateway.src.schemas.chat import OpenAIErrorDetail, OpenAIErrorResponse
 
 
 @asynccontextmanager
@@ -34,10 +39,28 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Tollgate LLM Gateway API",
-    description="Multi-tenant LLM gateway identity & API key management.",
-    version="0.1.0",
-    lifespan=lifespan
+    description="Multi-tenant LLM gateway identity, API key management, and OpenAI-compatible proxy.",
+    version="0.2.0",
+    lifespan=lifespan,
 )
+
+
+# Custom validation exception handler to produce OpenAI-compatible errors for 400s
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    first_error = exc.errors()[0] if exc.errors() else {"msg": "Validation failed", "loc": []}
+    field = ".".join(str(loc) for loc in first_error.get("loc", []))
+    msg = first_error.get("msg", "Invalid parameter")
+    error_payload = OpenAIErrorResponse(
+        error=OpenAIErrorDetail(
+            message=f"{field}: {msg}",
+            type="invalid_request_error",
+            param=field,
+            code="invalid_parameter",
+        )
+    )
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=error_payload.model_dump())
+
 
 # CORS configuration
 app.add_middleware(
@@ -54,23 +77,22 @@ app.include_router(tenants_router)
 app.include_router(users_router)
 app.include_router(projects_router)
 app.include_router(api_keys_router)
+app.include_router(chat_router)
 
 
 @app.get("/", summary="Root Endpoint")
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "1 - Multi-Tenancy & API Key Authentication",
+        "phase": "2 - OpenAI-Compatible LLM Gateway",
         "status": "online",
-        "docs_url": "/docs"
+        "docs_url": "/docs",
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
-        "gateway.src.main:app",
-        host=settings.gateway_host,
-        port=settings.gateway_port,
-        reload=True
+        "gateway.src.main:app", host=settings.gateway_host, port=settings.gateway_port, reload=True
     )

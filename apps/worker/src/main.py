@@ -10,12 +10,11 @@ core_src = root_dir / "packages" / "core" / "src"
 if str(core_src) not in sys.path:
     sys.path.insert(0, str(core_src))
 
-from tollgate_core.config import settings
 import redis.asyncio as aioredis
+from tollgate_core.config import settings
 
 logging.basicConfig(
-    level=settings.log_level,
-    format="%(asctime)s [%(levelname)s] [Worker] %(message)s"
+    level=settings.log_level, format="%(asctime)s [%(levelname)s] [Worker] %(message)s"
 )
 logger = logging.getLogger("tollgate.worker")
 
@@ -35,7 +34,7 @@ async def heartbeat_loop(redis_client: aioredis.Redis):
 async def main():
     logger.info(f"Initializing Tollgate Worker Service [{settings.environment}]...")
     redis_client = aioredis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
-    
+
     # Test Redis connection
     try:
         ping = await redis_client.ping()

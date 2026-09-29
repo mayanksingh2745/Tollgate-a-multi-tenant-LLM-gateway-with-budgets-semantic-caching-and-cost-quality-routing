@@ -1,8 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi import APIRouter, Depends, HTTPException, status
 from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.auth.dependencies import get_optional_api_key
 from gateway.src.auth.permissions import verify_role_permissions
@@ -18,6 +17,7 @@ from gateway.src.services.api_key_service import (
     revoke_api_key,
     rotate_api_key,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["API Keys"])
 
@@ -26,13 +26,13 @@ router = APIRouter(tags=["API Keys"])
     "/api/v1/projects/{project_id}/api-keys",
     response_model=APIKeyCreateResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create API Key"
+    summary="Create API Key",
 )
 async def create_api_key_endpoint(
     project_id: UUID,
     data: APIKeyCreate,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key),
 ):
     """
     Generates a new API key for the project.
@@ -44,6 +44,7 @@ async def create_api_key_endpoint(
     else:
         from sqlalchemy import select
         from tollgate_core.models import Project
+
         res = await db.execute(select(Project).where(Project.id == project_id))
         proj = res.scalar_one_or_none()
         if not proj:
@@ -56,12 +57,12 @@ async def create_api_key_endpoint(
 @router.get(
     "/api/v1/projects/{project_id}/api-keys",
     response_model=List[APIKeyResponse],
-    summary="List API Keys"
+    summary="List API Keys",
 )
 async def list_api_keys_endpoint(
     project_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key),
 ):
     """Lists metadata for all API keys under the project (excludes raw secret keys)."""
     if ctx:
@@ -69,6 +70,7 @@ async def list_api_keys_endpoint(
     else:
         from sqlalchemy import select
         from tollgate_core.models import Project
+
         res = await db.execute(select(Project).where(Project.id == project_id))
         proj = res.scalar_one_or_none()
         if not proj:
@@ -79,14 +81,12 @@ async def list_api_keys_endpoint(
 
 
 @router.delete(
-    "/api/v1/api-keys/{api_key_id}",
-    response_model=APIKeyResponse,
-    summary="Revoke API Key"
+    "/api/v1/api-keys/{api_key_id}", response_model=APIKeyResponse, summary="Revoke API Key"
 )
 async def revoke_api_key_endpoint(
     api_key_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key),
 ):
     """Revokes an API key, disabling future authentication attempts."""
     if ctx:
@@ -95,6 +95,7 @@ async def revoke_api_key_endpoint(
     else:
         from sqlalchemy import select
         from tollgate_core.models import APIKey
+
         res = await db.execute(select(APIKey).where(APIKey.id == api_key_id))
         key_obj = res.scalar_one_or_none()
         if not key_obj:
@@ -107,12 +108,12 @@ async def revoke_api_key_endpoint(
 @router.post(
     "/api/v1/api-keys/{api_key_id}/rotate",
     response_model=APIKeyCreateResponse,
-    summary="Rotate API Key"
+    summary="Rotate API Key",
 )
 async def rotate_api_key_endpoint(
     api_key_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key),
 ):
     """
     Rotates an API key: immediately revokes the old key and generates a new active key.
@@ -124,6 +125,7 @@ async def rotate_api_key_endpoint(
     else:
         from sqlalchemy import select
         from tollgate_core.models import APIKey
+
         res = await db.execute(select(APIKey).where(APIKey.id == api_key_id))
         key_obj = res.scalar_one_or_none()
         if not key_obj:
