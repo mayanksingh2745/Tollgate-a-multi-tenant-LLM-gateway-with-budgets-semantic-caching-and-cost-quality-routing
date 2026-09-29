@@ -77,6 +77,9 @@ services:
       REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tollgate}:${POSTGRES_PASSWORD:-tollgate_secret_pass}@postgres:5432/${POSTGRES_DB:-tollgate_db}
+      TOLLGATE_USAGE_STREAM: ${TOLLGATE_USAGE_STREAM:-tg:usage:events}
+      TOLLGATE_USAGE_CONSUMER_GROUP: ${TOLLGATE_USAGE_CONSUMER_GROUP:-tg-usage-workers}
+      TOLLGATE_USAGE_DEAD_LETTER_STREAM: ${TOLLGATE_USAGE_DEAD_LETTER_STREAM:-tg:usage:dead-letter}
     depends_on:
       postgres:
         condition: service_healthy

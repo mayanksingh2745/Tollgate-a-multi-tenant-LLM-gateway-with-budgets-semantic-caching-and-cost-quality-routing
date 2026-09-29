@@ -52,6 +52,20 @@ def test_budget_manager_backend():
     budget_manager.backend = original_backend
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_usage_publisher():
+    from unittest.mock import AsyncMock
+
+    from gateway.src.usage.publisher import usage_publisher
+
+    original_client = usage_publisher._redis_client
+    mock_redis = AsyncMock()
+    mock_redis.xadd = AsyncMock(return_value="mock-stream-msg-1")
+    usage_publisher._redis_client = mock_redis
+    yield
+    usage_publisher._redis_client = original_client
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:

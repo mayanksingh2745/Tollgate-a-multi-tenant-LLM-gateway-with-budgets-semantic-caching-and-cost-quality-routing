@@ -9,6 +9,24 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 
 ---
 
+---
+
+## Feature Status
+
+- ✓ Multi-tenancy
+- ✓ API key authentication
+- ✓ OpenAI-compatible API
+- ✓ Streaming
+- ✓ Provider retries
+- ✓ Provider failover
+- ✓ Distributed rate limiting
+- ✓ Atomic budget reservation
+- ✓ Usage event pipeline
+- ✓ Redis Streams
+- ✓ Background worker
+- ✓ PostgreSQL usage records
+- ✓ Daily/monthly cost rollups
+
 ## Implemented Phases
 
 - **Phase 0 — Engineering Foundation**: FastAPI, AsyncPG, Redis, React Dashboard, Docker Compose, Alembic.
@@ -17,6 +35,50 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 3 — Provider Reliability, Retries & Failover**: Centralized failure classification, exponential backoff with bounded jitter, overall request deadlines, deterministic fallback chains, streaming failure safety, and lightweight provider health tracking.
 - **Phase 4 — Distributed Rate Limiting**: Distributed, concurrency-safe token bucket rate limiting using Redis and an atomic Lua script, burst capacity, continuous token refill, explicit fail-open/fail-closed modes, standard `X-RateLimit-*` headers, and HTTP 429 enforcement.
 - **Phase 5 — Budget Reservation & Settlement**: Atomic two-phase budget reservation and settlement, multi-scope spending limits (Tenant & Project daily/monthly), integer microdollar arithmetic ($1.00 = 1,000,000), pre-request cost estimation, idempotent settlement with refunding, and HTTP 402 enforcement.
+- **Phase 6 — Usage Pipeline & Cost Accounting**: Asynchronous, durable usage ingestion via Redis Streams (`tg:usage:events`), consumer group background workers, crash recovery with `XAUTOCLAIM`, PostgreSQL event persistence, idempotent daily & monthly rollups, and paginated tenant-isolated usage query APIs.
+
+---
+
+## Usage Pipeline & Cost Accounting
+
+Tollgate uses an asynchronous Redis Stream and consumer-group pipeline to record request usage and financial accounting without burdening the synchronous gateway request path:
+
+```text
+Gateway Request Path                   Asynchronous Worker Path
+────────────────────                   ────────────────────────
+Client Request
+      ↓
+Authentication & Rate Limit
+      ↓
+Budget Reservation
+      ↓
+Upstream Provider Execution
+      ↓
+Response Completion / Settlement
+      ↓
+Emit Usage Event ──(XADD)──► Redis Stream (tg:usage:events)
+                                       ↓
+                             Consumer Group (tg-usage-workers)
+                                       ↓
+                             Background Worker
+                                       ↓
+                             Atomic PostgreSQL Transaction
+                               ├─ usage_events (ON CONFLICT DO NOTHING)
+                               ├─ usage_daily_rollups
+                               └─ usage_monthly_rollups
+                                       ↓
+                             XACK Message
+```
+
+### Key Capabilities
+- **Decoupled Persistence**: No synchronous database writes in the critical gateway request path.
+- **Redis Streams & Consumer Groups**: Workload distributed among worker replicas with pending entry tracking (PEL).
+- **Crash Recovery & Reclaims**: Unacknowledged messages from crashed workers are reclaimed via `XAUTOCLAIM`.
+- **Database-Level Idempotency**: `UNIQUE(event_id)` and conditional rollup updates guarantee rollups never double-count duplicate deliveries.
+- **Dead-Letter Quarantine**: Permanently malformed events are moved to `tg:usage:dead-letter` without blocking stream progress.
+- **Tenant-Isolated Analytics**: Paginated `GET /api/v1/usage` with cursor pagination, plus daily and monthly rollup query endpoints.
+
+See [`docs/usage-pipeline.md`](docs/usage-pipeline.md) for detailed schema specifications and consistency boundaries.
 
 ---
 
@@ -162,6 +224,11 @@ See [`docs/gateway.md`](docs/gateway.md) for full endpoint specifications, strea
 - `GET /api/v1/projects/{project_id}/api-keys` — List API key metadata
 - `DELETE /api/v1/api-keys/{api_key_id}` — Revoke API key
 - `POST /api/v1/api-keys/{api_key_id}/rotate` — Rotate API key
+
+### Usage & Cost Accounting (Phase 6)
+- `GET /api/v1/usage` — Paginated list of usage records (cursor-based, filtered by tenant, project, date range, provider, model)
+- `GET /api/v1/usage/rollups/daily` — Aggregated daily usage & cost rollups
+- `GET /api/v1/usage/rollups/monthly` — Aggregated monthly usage & cost rollups
 
 ---
 

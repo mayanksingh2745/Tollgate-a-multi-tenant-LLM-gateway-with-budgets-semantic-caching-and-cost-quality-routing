@@ -110,6 +110,7 @@ app.add_middleware(
 )
 
 from gateway.src.api.routes.budgets import router as budgets_router
+from gateway.src.api.routes.usage import router as usage_router
 
 # Include routers
 app.include_router(health_router)
@@ -118,6 +119,7 @@ app.include_router(users_router)
 app.include_router(projects_router)
 app.include_router(api_keys_router)
 app.include_router(budgets_router)
+app.include_router(usage_router)
 app.include_router(chat_router)
 
 
@@ -125,7 +127,7 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "5 - Budget Reservation & Settlement",
+        "phase": "6 - Usage Pipeline & Cost Accounting",
         "status": "online",
         "docs_url": "/docs",
     }
