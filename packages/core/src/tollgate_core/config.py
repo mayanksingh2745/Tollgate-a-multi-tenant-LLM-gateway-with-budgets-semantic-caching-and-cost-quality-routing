@@ -54,6 +54,43 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Distributed Rate Limiting Settings
+    rate_limit_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_RATE_LIMIT_ENABLED", "rate_limit_enabled"),
+    )
+    rate_limit_requests_per_second: float = Field(
+        10.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_RATE_LIMIT_REQUESTS_PER_SECOND",
+            "rate_limit_requests_per_second",
+        ),
+    )
+    rate_limit_burst: int = Field(
+        20,
+        validation_alias=AliasChoices("TOLLGATE_RATE_LIMIT_BURST", "rate_limit_burst"),
+    )
+    rate_limit_redis_prefix: str = Field(
+        "tg:ratelimit",
+        validation_alias=AliasChoices(
+            "TOLLGATE_RATE_LIMIT_REDIS_PREFIX", "rate_limit_redis_prefix"
+        ),
+    )
+    rate_limit_redis_timeout_seconds: float = Field(
+        1.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_RATE_LIMIT_REDIS_TIMEOUT_SECONDS",
+            "rate_limit_redis_timeout_seconds",
+        ),
+    )
+    rate_limit_redis_failure_mode: str = Field(
+        "closed",
+        validation_alias=AliasChoices(
+            "TOLLGATE_RATE_LIMIT_REDIS_FAILURE_MODE",
+            "rate_limit_redis_failure_mode",
+        ),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 

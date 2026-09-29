@@ -15,6 +15,32 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 1 — Multi-Tenancy & API Key Authentication**: Tenant & Project hierarchy, RBAC (`owner`, `admin`, `viewer`), secure API key generation & constant-time hash verification.
 - **Phase 2 — OpenAI-Compatible LLM Gateway**: `/v1/chat/completions` proxy supporting standard OpenAI client SDKs, non-streaming & SSE streaming, provider abstraction, request tracking, and timeouts.
 - **Phase 3 — Provider Reliability, Retries & Failover**: Centralized failure classification, exponential backoff with bounded jitter, overall request deadlines, deterministic fallback chains, streaming failure safety, and lightweight provider health tracking.
+- **Phase 4 — Distributed Rate Limiting**: Distributed, concurrency-safe token bucket rate limiting using Redis and an atomic Lua script, burst capacity, continuous token refill, explicit fail-open/fail-closed modes, standard `X-RateLimit-*` headers, and HTTP 429 enforcement.
+
+---
+
+## Rate Limiting
+
+Tollgate enforces distributed, concurrency-safe rate limits using Redis before requests consume upstream LLM capacity:
+
+```
+Client Request
+      ↓
+API Key Authentication
+      ↓
+Atomic Redis Token Bucket (Lua)
+      ├─ Sufficient tokens → Decrement token → Forward to Provider
+      └─ Bucket exhausted  → Reject with HTTP 429 Too Many Requests
+```
+
+### Key Capabilities
+- **Redis Token Bucket**: Supports continuous token refills at sustained rate ($R$) while accommodating instantaneous burst bursts ($B$).
+- **Atomic Lua Evaluation**: Check, refill, consumption, and expiration happen atomically in Redis, preventing race conditions across multiple gateway instances.
+- **Rate Limit Headers**: Injects `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` into all 200 and 429 responses, plus `Retry-After` on 429s.
+- **API Key Scoped Isolation**: Buckets are scoped strictly per authenticated API key ID (`tg:ratelimit:apikey:{id}`). Overages on one key never affect others.
+- **Configurable Redis Failure Modes**: Supports both `closed` (rejects requests on Redis unavailability to protect upstream costs) and `open` (permits requests during outages to prioritize availability).
+
+See [`docs/rate_limiting.md`](docs/rate_limiting.md) for detailed formulas, Lua script logic, and configuration options.
 
 ---
 
