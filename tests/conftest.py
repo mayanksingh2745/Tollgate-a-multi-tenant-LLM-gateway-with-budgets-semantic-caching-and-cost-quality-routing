@@ -4,9 +4,10 @@ from pathlib import Path
 # Setup pathing for pytest discovery
 root_dir = Path(__file__).resolve().parents[1]
 core_src = root_dir / "packages" / "core" / "src"
-gateway_src = root_dir / "apps" / "gateway"
+apps_dir = root_dir / "apps"
+gateway_dir = root_dir / "apps" / "gateway"
 
-for p in [str(root_dir), str(core_src), str(gateway_src)]:
+for p in [str(root_dir), str(apps_dir), str(core_src), str(gateway_dir)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 

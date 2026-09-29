@@ -46,7 +46,8 @@ async def test_api_key_lifecycle_flow(async_client: AsyncClient, db_session: Asy
     assert raw_key.startswith("tg_live_")
 
     # 4. Verify raw key is NOT stored in database
-    db_key = await db_session.get(APIKey, key_id)
+    from uuid import UUID
+    db_key = await db_session.get(APIKey, UUID(key_id))
     assert db_key is not None
     assert db_key.key_hash != raw_key
     assert raw_key not in db_key.key_hash

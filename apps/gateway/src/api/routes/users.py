@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from gateway.src.auth.context import AuthenticatedContext
-from gateway.src.auth.dependencies import get_current_api_key
+from gateway.src.auth.dependencies import get_optional_api_key
 from gateway.src.auth.permissions import verify_role_permissions
 from gateway.src.db import get_db
 from gateway.src.schemas.user import UserCreate, UserResponse
@@ -18,7 +18,7 @@ async def create_user_endpoint(
     tenant_id: UUID,
     data: UserCreate,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_current_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
 ):
     """Create a user within the specified tenant with RBAC & tenant isolation."""
     if ctx:
@@ -33,7 +33,7 @@ async def create_user_endpoint(
 async def list_users_endpoint(
     tenant_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_current_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
 ):
     """List all users belonging to the specified tenant."""
     if ctx and ctx.tenant_id != tenant_id:

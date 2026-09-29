@@ -27,6 +27,10 @@ async def create_api_key(
 
     raw_key, key_prefix, key_hash = generate_api_key()
 
+    expires_at_val = data.expires_at
+    if isinstance(expires_at_val, str):
+        expires_at_val = datetime.fromisoformat(expires_at_val)
+
     api_key = APIKey(
         project_id=project_id,
         tenant_id=tenant_id,
@@ -34,7 +38,7 @@ async def create_api_key(
         key_prefix=key_prefix,
         key_hash=key_hash,
         status="active",
-        expires_at=data.expires_at,
+        expires_at=expires_at_val,
     )
     db.add(api_key)
     await db.commit()
@@ -144,12 +148,15 @@ async def verify_and_authenticate_key(
     for api_key, project, tenant in records:
         if verify_api_key_hash(raw_key, api_key.key_hash):
             # Expiration check
-            if api_key.expires_at and api_key.expires_at <= now:
-                # Mark as expired in DB
-                api_key.status = "expired"
-                await db.commit()
-                logger.info(f"Audit Log: event=api_key.expired tenant_id={tenant.id} api_key_id={api_key.id}")
-                return None
+            if api_key.expires_at:
+                exp_at = api_key.expires_at
+                if exp_at.tzinfo is None:
+                    exp_at = exp_at.replace(tzinfo=timezone.utc)
+                if exp_at <= now:
+                    api_key.status = "expired"
+                    await db.commit()
+                    logger.info(f"Audit Log: event=api_key.expired tenant_id={tenant.id} api_key_id={api_key.id}")
+                    return None
 
             # Update last_used_at
             api_key.last_used_at = now

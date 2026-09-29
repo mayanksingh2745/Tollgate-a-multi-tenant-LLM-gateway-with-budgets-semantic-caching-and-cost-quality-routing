@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from gateway.src.auth.context import AuthenticatedContext
-from gateway.src.auth.dependencies import get_current_api_key
+from gateway.src.auth.dependencies import get_optional_api_key
 from gateway.src.auth.permissions import verify_role_permissions
 from gateway.src.db import get_db
 from gateway.src.schemas.api_key import (
@@ -18,7 +18,6 @@ from gateway.src.services.api_key_service import (
     revoke_api_key,
     rotate_api_key,
 )
-from gateway.src.services.project_service import get_project
 
 router = APIRouter(tags=["API Keys"])
 
@@ -33,7 +32,7 @@ async def create_api_key_endpoint(
     project_id: UUID,
     data: APIKeyCreate,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_current_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
 ):
     """
     Generates a new API key for the project.
@@ -43,7 +42,6 @@ async def create_api_key_endpoint(
         verify_role_permissions(ctx, ["owner", "admin"])
         tenant_id = ctx.tenant_id
     else:
-        # If created via administrative direct call without key context, look up project's tenant
         from sqlalchemy import select
         from tollgate_core.models import Project
         res = await db.execute(select(Project).where(Project.id == project_id))
@@ -63,7 +61,7 @@ async def create_api_key_endpoint(
 async def list_api_keys_endpoint(
     project_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_current_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
 ):
     """Lists metadata for all API keys under the project (excludes raw secret keys)."""
     if ctx:
@@ -88,7 +86,7 @@ async def list_api_keys_endpoint(
 async def revoke_api_key_endpoint(
     api_key_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_current_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
 ):
     """Revokes an API key, disabling future authentication attempts."""
     if ctx:
@@ -114,7 +112,7 @@ async def revoke_api_key_endpoint(
 async def rotate_api_key_endpoint(
     api_key_id: UUID,
     db: AsyncSession = Depends(get_db),
-    ctx: Optional[AuthenticatedContext] = Depends(get_current_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
 ):
     """
     Rotates an API key: immediately revokes the old key and generates a new active key.
