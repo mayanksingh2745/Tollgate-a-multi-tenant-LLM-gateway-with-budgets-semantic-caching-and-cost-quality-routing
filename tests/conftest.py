@@ -11,13 +11,12 @@ for p in [str(root_dir), str(apps_dir), str(core_src), str(gateway_dir)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import pytest
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from tollgate_core.models import Base
-from gateway.src.main import app
 from gateway.src.db import get_db
+from gateway.src.main import app
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from tollgate_core.models import Base
 
 # SQLite in-memory engine for fast, isolated async testing
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -25,13 +24,11 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,
-    connect_args={"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {}
+    connect_args={"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {},
 )
 
 TestAsyncSessionLocal = async_sessionmaker(
-    bind=test_engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    bind=test_engine, class_=AsyncSession, expire_on_commit=False
 )
 
 

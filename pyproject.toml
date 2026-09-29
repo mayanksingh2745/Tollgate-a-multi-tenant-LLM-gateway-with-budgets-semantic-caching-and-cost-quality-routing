@@ -32,18 +32,18 @@ dev = [
     "aiosqlite>=0.20.0"
 ]
 
-[tool.ruff]
-target-version = "py311"
-line-length = 100
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
     "F",  # pyflakes
     "I",  # isort
-    "C",  # convention
     "B",  # flake8-bugbear
 ]
-ignore = ["E501"]
+ignore = ["E501", "E402", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.black]
 line-length = 100

@@ -1,18 +1,18 @@
 import logging
 from typing import Optional
-from fastapi import Depends, Header, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi import Depends, Header, HTTPException, status
 from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.db import get_db
 from gateway.src.services.api_key_service import verify_and_authenticate_key
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger("tollgate.auth")
 
 
 async def get_optional_api_key(
     authorization: Optional[str] = Header(None, alias="Authorization"),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Optional[AuthenticatedContext]:
     """
     FastAPI dependency for optional Bearer API key authentication.
@@ -28,7 +28,7 @@ async def get_optional_api_key(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired API key",
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     raw_key = parts[1]
@@ -38,20 +38,17 @@ async def get_optional_api_key(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired API key",
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     api_key, project, tenant = result
     return AuthenticatedContext(
-        api_key_id=api_key.id,
-        project_id=project.id,
-        tenant_id=tenant.id,
-        role="admin"
+        api_key_id=api_key.id, project_id=project.id, tenant_id=tenant.id, role="admin"
     )
 
 
 async def get_current_api_key(
-    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key)
+    ctx: Optional[AuthenticatedContext] = Depends(get_optional_api_key),
 ) -> AuthenticatedContext:
     """
     FastAPI dependency for required Bearer API key authentication.
@@ -62,6 +59,6 @@ async def get_current_api_key(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired API key",
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return ctx

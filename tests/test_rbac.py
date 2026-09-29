@@ -1,14 +1,16 @@
 import pytest
-from httpx import AsyncClient
+from fastapi import HTTPException
 from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.auth.permissions import verify_role_permissions
-from fastapi import HTTPException
+from httpx import AsyncClient
 
 
 def test_rbac_hierarchy():
     owner_ctx = AuthenticatedContext(tenant_id="00000000-0000-0000-0000-000000000000", role="owner")
     admin_ctx = AuthenticatedContext(tenant_id="00000000-0000-0000-0000-000000000000", role="admin")
-    viewer_ctx = AuthenticatedContext(tenant_id="00000000-0000-0000-0000-000000000000", role="viewer")
+    viewer_ctx = AuthenticatedContext(
+        tenant_id="00000000-0000-0000-0000-000000000000", role="viewer"
+    )
 
     # Owner can access owner, admin, viewer endpoints
     verify_role_permissions(owner_ctx, ["owner"])
@@ -37,7 +39,12 @@ async def test_user_creation_and_roles(async_client: AsyncClient):
     # Create Owner user
     u1 = await async_client.post(
         f"/api/v1/tenants/{tenant_id}/users",
-        json={"name": "Alice Owner", "email": "ALICE@EXAMPLE.COM", "password": "SecretPassword123!", "role": "owner"}
+        json={
+            "name": "Alice Owner",
+            "email": "ALICE@EXAMPLE.COM",
+            "password": "SecretPassword123!",
+            "role": "owner",
+        },
     )
     assert u1.status_code == 201
     assert u1.json()["email"] == "alice@example.com"  # Normalized lowercase!
@@ -46,7 +53,12 @@ async def test_user_creation_and_roles(async_client: AsyncClient):
     # Create Viewer user
     u2 = await async_client.post(
         f"/api/v1/tenants/{tenant_id}/users",
-        json={"name": "Bob Viewer", "email": "bob@example.com", "password": "SecretPassword123!", "role": "viewer"}
+        json={
+            "name": "Bob Viewer",
+            "email": "bob@example.com",
+            "password": "SecretPassword123!",
+            "role": "viewer",
+        },
     )
     assert u2.status_code == 201
     assert u2.json()["role"] == "viewer"

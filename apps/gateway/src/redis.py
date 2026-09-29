@@ -1,4 +1,5 @@
 from typing import Optional
+
 import redis.asyncio as aioredis
 from gateway.src.config import settings
 
@@ -9,9 +10,7 @@ async def get_redis_client() -> aioredis.Redis:
     global redis_client
     if redis_client is None:
         redis_client = aioredis.from_url(
-            settings.redis_url,
-            encoding="utf-8",
-            decode_responses=True
+            settings.redis_url, encoding="utf-8", decode_responses=True
         )
     return redis_client
 

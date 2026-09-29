@@ -5,7 +5,7 @@ from typing import Tuple
 
 try:
     from argon2 import PasswordHasher
-    from argon2.exceptions import VerifyMismatchError
+
     _ph = PasswordHasher()
 except ImportError:
     _ph = None
@@ -46,10 +46,10 @@ PREFIX_LENGTH = 16  # tg_live_ (8) + 8 hex chars = 16 chars total for database l
 def generate_api_key() -> Tuple[str, str, str]:
     """
     Generates a cryptographically secure API key.
-    
+
     Returns:
         (raw_key, key_prefix, key_hash)
-        
+
     Example:
         raw_key: "tg_live_a8f3d91c92b4e7..."
         key_prefix: "tg_live_a8f3d91c"
@@ -57,10 +57,10 @@ def generate_api_key() -> Tuple[str, str, str]:
     """
     random_secret = secrets.token_urlsafe(32)  # 256 bits entropy
     raw_key = f"{API_KEY_PREFIX}{random_secret}"
-    
+
     key_prefix = raw_key[:PREFIX_LENGTH]
     key_hash = hash_api_key(raw_key)
-    
+
     return raw_key, key_prefix, key_hash
 
 

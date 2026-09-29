@@ -2,12 +2,18 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, Sequence, Tuple
 from uuid import UUID
+
 from fastapi import HTTPException, status
-from sqlalchemy import select, update
+from gateway.src.schemas.api_key import APIKeyCreate, APIKeyCreateResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tollgate_core.models import APIKey, Project, Tenant
-from tollgate_core.security import generate_api_key, verify_api_key_hash, API_KEY_PREFIX, PREFIX_LENGTH
-from gateway.src.schemas.api_key import APIKeyCreate, APIKeyCreateResponse
+from tollgate_core.security import (
+    API_KEY_PREFIX,
+    PREFIX_LENGTH,
+    generate_api_key,
+    verify_api_key_hash,
+)
 
 logger = logging.getLogger("tollgate.api_key_service")
 
@@ -20,10 +26,7 @@ async def create_api_key(
     p_res = await db.execute(p_query)
     project = p_res.scalar_one_or_none()
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
 
     raw_key, key_prefix, key_hash = generate_api_key()
 
@@ -61,17 +64,12 @@ async def create_api_key(
     )
 
 
-async def list_api_keys(
-    db: AsyncSession, project_id: UUID, tenant_id: UUID
-) -> Sequence[APIKey]:
+async def list_api_keys(db: AsyncSession, project_id: UUID, tenant_id: UUID) -> Sequence[APIKey]:
     # Verify project belongs to tenant
     p_query = select(Project).where(Project.id == project_id, Project.tenant_id == tenant_id)
     p_res = await db.execute(p_query)
     if not p_res.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
 
     query = select(APIKey).where(APIKey.project_id == project_id, APIKey.tenant_id == tenant_id)
     result = await db.execute(query)
@@ -84,10 +82,7 @@ async def revoke_api_key(db: AsyncSession, api_key_id: UUID, tenant_id: UUID) ->
     api_key = result.scalar_one_or_none()
 
     if not api_key:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API Key not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API Key not found.")
 
     if api_key.status != "revoked":
         api_key.status = "revoked"
@@ -95,7 +90,9 @@ async def revoke_api_key(db: AsyncSession, api_key_id: UUID, tenant_id: UUID) ->
         await db.commit()
         await db.refresh(api_key)
 
-        logger.info(f"Audit Log: event=api_key.revoked tenant_id={tenant_id} api_key_id={api_key_id}")
+        logger.info(
+            f"Audit Log: event=api_key.revoked tenant_id={tenant_id} api_key_id={api_key_id}"
+        )
 
     return api_key
 
@@ -107,10 +104,7 @@ async def rotate_api_key(
     old_key = await revoke_api_key(db, api_key_id, tenant_id)
 
     # Generate new key for same project and tenant
-    create_data = APIKeyCreate(
-        name=f"{old_key.name} (Rotated)",
-        expires_at=old_key.expires_at
-    )
+    create_data = APIKeyCreate(name=f"{old_key.name} (Rotated)", expires_at=old_key.expires_at)
     new_key_response = await create_api_key(db, old_key.project_id, tenant_id, create_data)
 
     logger.info(
@@ -137,7 +131,7 @@ async def verify_and_authenticate_key(
             APIKey.key_prefix == prefix,
             APIKey.status == "active",
             Project.status == "active",
-            Tenant.status == "active"
+            Tenant.status == "active",
         )
     )
     result = await db.execute(query)
@@ -155,7 +149,9 @@ async def verify_and_authenticate_key(
                 if exp_at <= now:
                     api_key.status = "expired"
                     await db.commit()
-                    logger.info(f"Audit Log: event=api_key.expired tenant_id={tenant.id} api_key_id={api_key.id}")
+                    logger.info(
+                        f"Audit Log: event=api_key.expired tenant_id={tenant.id} api_key_id={api_key.id}"
+                    )
                     return None
 
             # Update last_used_at

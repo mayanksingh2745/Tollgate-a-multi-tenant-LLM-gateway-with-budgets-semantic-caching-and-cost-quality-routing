@@ -1,11 +1,12 @@
 import logging
 from typing import Sequence
 from uuid import UUID
+
 from fastapi import HTTPException, status
+from gateway.src.schemas.project import ProjectCreate
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tollgate_core.models import Project, Tenant
-from gateway.src.schemas.project import ProjectCreate
 
 logger = logging.getLogger("tollgate.project_service")
 
@@ -16,10 +17,7 @@ async def create_project(db: AsyncSession, tenant_id: UUID, data: ProjectCreate)
     t_res = await db.execute(t_query)
     tenant = t_res.scalar_one_or_none()
     if not tenant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found.")
 
     # Check unique slug within tenant
     p_query = select(Project).where(Project.tenant_id == tenant_id, Project.slug == data.slug)
@@ -27,20 +25,17 @@ async def create_project(db: AsyncSession, tenant_id: UUID, data: ProjectCreate)
     if p_res.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Project slug '{data.slug}' already exists in tenant."
+            detail=f"Project slug '{data.slug}' already exists in tenant.",
         )
 
-    project = Project(
-        tenant_id=tenant_id,
-        name=data.name,
-        slug=data.slug,
-        status="active"
-    )
+    project = Project(tenant_id=tenant_id, name=data.name, slug=data.slug, status="active")
     db.add(project)
     await db.commit()
     await db.refresh(project)
 
-    logger.info(f"Audit Log: event=project.created tenant_id={tenant_id} project_id={project.id} slug={project.slug}")
+    logger.info(
+        f"Audit Log: event=project.created tenant_id={tenant_id} project_id={project.id} slug={project.slug}"
+    )
     return project
 
 
@@ -56,8 +51,5 @@ async def get_project(db: AsyncSession, tenant_id: UUID, project_id: UUID) -> Pr
     project = result.scalar_one_or_none()
 
     if not project or project.status == "suspended":
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
     return project
