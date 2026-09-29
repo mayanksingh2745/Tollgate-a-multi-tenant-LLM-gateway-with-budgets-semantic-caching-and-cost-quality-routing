@@ -2,7 +2,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
+    JSON,
     BigInteger,
     Boolean,
     DateTime,
@@ -11,6 +13,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -297,3 +300,46 @@ class UsageMonthlyRollup(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+class SemanticCacheEntry(Base):
+    __tablename__ = "semantic_cache_entries"
+    __table_args__ = (
+        Index(
+            "idx_semantic_cache_lookup",
+            "tenant_id",
+            "project_id",
+            "provider",
+            "model",
+            "expires_at",
+        ),
+        Index("idx_semantic_cache_fingerprint", "request_fingerprint"),
+        Index("idx_semantic_cache_expires_at", "expires_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(64), nullable=False)
+    model: Mapped[str] = mapped_column(String(128), nullable=False)
+    request_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    semantic_representation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    embedding: Mapped[list[float]] = mapped_column(Vector(1536), nullable=False)
+    embedding_model: Mapped[str] = mapped_column(String(64), nullable=False)
+    embedding_version: Mapped[str] = mapped_column(String(32), nullable=False, default="v1")
+    response_cache_key: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_hit_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    hit_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    entry_metadata: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+    tenant: Mapped[Tenant] = relationship("Tenant")
+    project: Mapped[Project] = relationship("Project")

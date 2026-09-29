@@ -76,6 +76,23 @@ def test_exact_cache_backend():
     exact_cache.backend = original_backend
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_semantic_cache_backend():
+    from gateway.src.cache.semantic import (
+        InMemorySemanticCacheBackend,
+        MockEmbeddingProvider,
+        semantic_cache,
+    )
+
+    original_backend = semantic_cache.backend
+    original_provider = semantic_cache._embedding_provider
+    semantic_cache.backend = InMemorySemanticCacheBackend()
+    semantic_cache.embedding_provider = MockEmbeddingProvider()
+    yield
+    semantic_cache.backend = original_backend
+    semantic_cache._embedding_provider = original_provider
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:

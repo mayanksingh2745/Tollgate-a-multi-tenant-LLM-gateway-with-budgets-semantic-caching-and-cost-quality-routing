@@ -27,6 +27,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ PostgreSQL usage records
 - ✓ Daily/monthly cost rollups
 - ✓ Exact response caching
+- ✓ Semantic response caching
 
 ## Implemented Phases
 
@@ -38,6 +39,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 5 — Budget Reservation & Settlement**: Atomic two-phase budget reservation and settlement, multi-scope spending limits (Tenant & Project daily/monthly), integer microdollar arithmetic ($1.00 = 1,000,000), pre-request cost estimation, idempotent settlement with refunding, and HTTP 402 enforcement.
 - **Phase 6 — Usage Pipeline & Cost Accounting**: Asynchronous, durable usage ingestion via Redis Streams (`tg:usage:events`), consumer group background workers, crash recovery with `XAUTOCLAIM`, PostgreSQL event persistence, idempotent daily & monthly rollups, and paginated tenant-isolated usage query APIs.
 - **Phase 7 — Exact Response Cache**: High-performance, tenant-isolated exact-match response caching in Redis with SHA-256 canonicalization, O(1) project cache invalidation via generation counters, fail-open resilience, zero budget/usage overhead on hit, and `X-Tollgate-Cache` observability headers.
+- **Phase 8 — Semantic Response Cache**: Conservative, tenant-isolated vector response caching using PostgreSQL + pgvector (HNSW cosine index) and decoupled Redis response storage, tiered lookup (Exact L1 -> Semantic L2 -> Upstream L3), deterministic message representation, strict safety bypasses (`stream=true`, `tools`), shadow evaluation mode, offline evaluation harness, and zero budget/usage overhead on hit.
 
 ---
 
@@ -67,6 +69,39 @@ Exact Response Cache Lookup
 - **Fail-Open Resilience**: Any Redis network failure or payload corruption fails open, immediately routing the request to the upstream provider without client disruption.
 
 See [`docs/exact-cache.md`](docs/exact-cache.md) for complete architecture, canonicalization rules, and benchmark measurements.
+
+---
+
+## Semantic Response Cache
+
+Tollgate **Phase 8** introduces a conservative semantic response cache combining **PostgreSQL + pgvector** (HNSW cosine similarity index) for metadata and embeddings, with decoupled **Redis** storage for cached response bodies:
+
+```text
+Client Request
+      ↓
+Authentication & Distributed Rate Limit
+      ↓
+[Tier 1] Exact Response Cache Lookup (Redis SHA-256 hash, ~0.05ms)
+      ├── HIT  ──► Return Cached Response (X-Tollgate-Cache: HIT)
+      └── MISS
+            ↓
+[Tier 2] Semantic Response Cache Lookup (PostgreSQL + pgvector, ~37ms)
+      ├── HIT  ──► Return Cached Response (X-Tollgate-Cache: SEMANTIC_HIT)
+      └── MISS
+            ↓
+[Tier 3] Budget Reservation ──► Upstream Provider ──► Dual-Write (L1+L2) ──► Usage Event
+```
+
+### Key Capabilities
+- **Tiered Lookup Optimization**: Sub-millisecond exact cache check (~0.05 ms) runs before semantic vector lookup (~37 ms), avoiding unnecessary embedding generation when exact matches exist.
+- **Decoupled Storage**: PostgreSQL stores embeddings, metadata, and Redis response references (`response_cache_key`). Large LLM response bodies remain strictly in Redis.
+- **Conservative Safety Filtering**: Vector proximity alone never triggers a cache hit. Verification requires matching `tenant_id`, `project_id`, `provider`, `model`, and generation controls (`temperature`, `top_p`, `max_tokens`, `stop`, `response_format`).
+- **Safety Bypass Policy**: Streaming requests (`stream=true`), requests with tool definitions (`tools`), or sampling multiplicity (`n > 1`) strictly bypass semantic caching.
+- **Fail-Open Resilience**: Embedding timeouts, database connection errors, and missing/corrupted Redis entries automatically fail open, forwarding requests to the upstream provider without client-facing 500 errors.
+- **Zero Budget & Provider Usage Overhead**: Semantic cache hits consume $0.00 provider budget and emit zero false provider usage events.
+- **Offline ML Evaluation Harness**: Includes an evaluation suite (`evaluation/semantic_cache/`) and benchmark runner to empirically sweep similarity thresholds and measure precision, recall, and false-positive rates.
+
+See [`docs/semantic-cache.md`](docs/semantic-cache.md) for full architectural specifications and [`docs/semantic-cache-benchmarks.md`](docs/semantic-cache-benchmarks.md) for empirical benchmark and evaluation results.
 
 ---
 
@@ -261,14 +296,15 @@ See [`docs/gateway.md`](docs/gateway.md) for full endpoint specifications, strea
 - `GET /api/v1/usage/rollups/daily` — Aggregated daily usage & cost rollups
 - `GET /api/v1/usage/rollups/monthly` — Aggregated monthly usage & cost rollups
 
-### Exact Response Cache (Phase 7)
-- `DELETE /api/v1/projects/{project_id}/cache` — Invalidate project cache (O(1) generation counter increment, requires `owner` or `admin` role)
+### Response Cache (Phases 7 & 8)
+- `DELETE /api/v1/projects/{project_id}/cache` — Invalidate project cache (O(1) generation counter increment for exact cache, and purges semantic cache entries)
+- `GET /api/v1/projects/{project_id}/cache/semantic` — List semantic cache entry metadata for project (entry ID, model, provider, expiration, hit count)
 
 ---
 
 ## Quick Start (Docker Compose)
 
-Launch the complete stack (FastAPI + PostgreSQL + Redis + Worker + React Dashboard) with a single command:
+Launch the complete stack (FastAPI + PostgreSQL with pgvector + Redis + Worker + React Dashboard) with a single command:
 
 ```bash
 docker compose up --build
@@ -281,4 +317,10 @@ docker compose up --build
 ```bash
 # Run complete test suite (unit + integration + OpenAI SDK compatibility)
 pytest
+
+# Run semantic cache latency benchmark (1,000 iterations)
+python benchmarks/benchmark_semantic_cache.py
+
+# Run offline semantic cache evaluation harness
+python evaluation/semantic_cache/runner.py
 ```
