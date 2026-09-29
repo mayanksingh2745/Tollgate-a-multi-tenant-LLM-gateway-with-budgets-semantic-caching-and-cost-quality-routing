@@ -1,0 +1,92 @@
+[
+  {
+    "category": "positive",
+    "query_a": "How does TCP congestion control work?",
+    "query_b": "Can you explain the mechanism behind TCP congestion control?",
+    "expected_same_intent": true
+  },
+  {
+    "category": "positive",
+    "query_a": "What is asynchronous programming in Python?",
+    "query_b": "Can you explain the concepts behind asynchronous programming in Python?",
+    "expected_same_intent": true
+  },
+  {
+    "category": "positive",
+    "query_a": "How do I configure Redis replication?",
+    "query_b": "Can you guide me on how to set up Redis replication?",
+    "expected_same_intent": true
+  },
+  {
+    "category": "positive",
+    "query_a": "What is the purpose of database indexes?",
+    "query_b": "Can you describe how database indexing works?",
+    "expected_same_intent": true
+  },
+  {
+    "category": "positive",
+    "query_a": "How do I reset my account password?",
+    "query_b": "Can you explain how to reset my password?",
+    "expected_same_intent": true
+  },
+  {
+    "category": "positive",
+    "query_a": "How to implement rate limiting in FastAPI?",
+    "query_b": "Can you explain implementing rate limiting with FastAPI?",
+    "expected_same_intent": true
+  },
+  {
+    "category": "negative",
+    "query_a": "How does TCP congestion control work?",
+    "query_b": "How does TCP connection establishment work?",
+    "expected_same_intent": false
+  },
+  {
+    "category": "negative",
+    "query_a": "How do I configure Redis replication?",
+    "query_b": "What is PostgreSQL logical replication?",
+    "expected_same_intent": false
+  },
+  {
+    "category": "negative",
+    "query_a": "Explain bubble sort algorithm in Python",
+    "query_b": "Explain quicksort algorithm in Python",
+    "expected_same_intent": false
+  },
+  {
+    "category": "negative",
+    "query_a": "How do I create a Docker container?",
+    "query_b": "How do I configure Kubernetes ingress?",
+    "expected_same_intent": false
+  },
+  {
+    "category": "dangerous_near_match",
+    "query_a": "How do I delete a database?",
+    "query_b": "How do I create a database?",
+    "expected_same_intent": false
+  },
+  {
+    "category": "dangerous_near_match",
+    "query_a": "How do I reset my password?",
+    "query_b": "How do I reset my router?",
+    "expected_same_intent": false
+  },
+  {
+    "category": "dangerous_near_match",
+    "query_a": "Can you drop the user table in database?",
+    "query_b": "Can you create the user table in database?",
+    "expected_same_intent": false
+  },
+  {
+    "category": "dangerous_near_match",
+    "query_a": "Explain how to grant admin privileges",
+    "query_b": "Explain how to revoke admin privileges",
+    "expected_same_intent": false
+  },
+  {
+    "category": "dangerous_near_match",
+    "query_a": "How do I start the gateway service?",
+    "query_b": "How do I stop the gateway service?",
+    "expected_same_intent": false
+  }
+]

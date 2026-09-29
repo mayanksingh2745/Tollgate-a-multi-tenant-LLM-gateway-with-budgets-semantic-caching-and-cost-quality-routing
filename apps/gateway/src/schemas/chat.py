@@ -29,6 +29,7 @@ class ChatCompletionRequest(BaseModel):
     frequency_penalty: Optional[float] = Field(default=None, ge=-2.0, le=2.0)
     response_format: Optional[ResponseFormat] = None
     seed: Optional[int] = None
+    n: Optional[int] = Field(default=1, ge=1)
     tools: Optional[List[Dict[str, Any]]] = None
     tool_choice: Optional[Union[str, Dict[str, Any]]] = None
     user: Optional[str] = None

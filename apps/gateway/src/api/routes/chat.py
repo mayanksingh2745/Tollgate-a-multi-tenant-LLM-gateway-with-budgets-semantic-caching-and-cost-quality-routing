@@ -13,7 +13,7 @@ from gateway.src.budgets import (
     estimate_request_cost,
     pricing_service,
 )
-from gateway.src.cache import Canonicalizer, exact_cache
+from gateway.src.cache import Canonicalizer, exact_cache, semantic_cache
 from gateway.src.config import settings
 from gateway.src.db import get_db
 from gateway.src.providers.base import ProviderException
@@ -88,6 +88,23 @@ async def create_chat_completion(
             headers["X-Tollgate-Provider"] = provider_name
             return JSONResponse(
                 content=cached_response.model_dump(exclude_none=True),
+                headers=headers,
+            )
+
+        # 2b. Semantic Cache Lookup (evaluated when exact cache misses)
+        semantic_response, _ = await semantic_cache.get(
+            request=request,
+            tenant_id=ctx.tenant_id,
+            project_id=ctx.project_id,
+            provider=provider_name,
+            session=db,
+        )
+        if semantic_response is not None:
+            if settings.cache_header_enabled:
+                headers["X-Tollgate-Cache"] = "SEMANTIC_HIT"
+            headers["X-Tollgate-Provider"] = provider_name
+            return JSONResponse(
+                content=semantic_response.model_dump(exclude_none=True),
                 headers=headers,
             )
 
@@ -236,12 +253,30 @@ async def create_chat_completion(
             await budget_manager.settle(reservation.reservation_id, actual_cost)
 
             # Store in exact response cache
+            final_prov = metadata.final_provider or provider_name
             await exact_cache.set(
                 request=request,
                 response=response,
                 tenant_id=ctx.tenant_id,
                 project_id=ctx.project_id,
-                provider=metadata.final_provider or provider_name,
+                provider=final_prov,
+            )
+
+            # Index in semantic response cache
+            response_key = await exact_cache.build_cache_key(
+                request=request,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                provider=final_prov,
+            )
+            await semantic_cache.set(
+                request=request,
+                response=response,
+                response_cache_key=response_key,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                provider=final_prov,
+                session=db,
             )
 
             # Publish usage event to Redis Stream (non-blocking, asynchronous)

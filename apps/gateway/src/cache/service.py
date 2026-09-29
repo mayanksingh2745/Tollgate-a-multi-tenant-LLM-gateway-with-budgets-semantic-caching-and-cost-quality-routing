@@ -142,6 +142,20 @@ class ExactResponseCache:
             f"{settings.cache_redis_prefix}:res:{tenant_id}:{project_id}:{version}:{request_hash}"
         )
 
+    async def build_cache_key(
+        self,
+        request: ChatCompletionRequest,
+        tenant_id: UUID,
+        project_id: UUID,
+        provider: str,
+    ) -> str:
+        return await self._build_cache_key(
+            request=request,
+            tenant_id=tenant_id,
+            project_id=project_id,
+            provider=provider,
+        )
+
     async def get(
         self,
         request: ChatCompletionRequest,

@@ -190,6 +190,73 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("TOLLGATE_CACHE_HEADER_ENABLED", "cache_header_enabled"),
     )
 
+    # Phase 8 Semantic Response Cache Settings
+    semantic_cache_enabled: bool = Field(
+        False,
+        validation_alias=AliasChoices("TOLLGATE_SEMANTIC_CACHE_ENABLED", "semantic_cache_enabled"),
+    )
+    semantic_cache_shadow_mode: bool = Field(
+        False,
+        validation_alias=AliasChoices(
+            "TOLLGATE_SEMANTIC_CACHE_SHADOW_MODE", "semantic_cache_shadow_mode"
+        ),
+    )
+    embedding_provider: str = Field(
+        "mock",
+        validation_alias=AliasChoices("TOLLGATE_EMBEDDING_PROVIDER", "embedding_provider"),
+    )
+    embedding_model: str = Field(
+        "text-embedding-3-small",
+        validation_alias=AliasChoices("TOLLGATE_EMBEDDING_MODEL", "embedding_model"),
+    )
+    embedding_dimension: int = Field(
+        1536,
+        validation_alias=AliasChoices("TOLLGATE_EMBEDDING_DIMENSION", "embedding_dimension"),
+    )
+    embedding_timeout_seconds: float = Field(
+        3.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_EMBEDDING_TIMEOUT_SECONDS", "embedding_timeout_seconds"
+        ),
+    )
+    embedding_api_key: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("TOLLGATE_EMBEDDING_API_KEY", "embedding_api_key"),
+    )
+    embedding_api_base: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("TOLLGATE_EMBEDDING_API_BASE", "embedding_api_base"),
+    )
+    semantic_cache_threshold: float = Field(
+        0.85,
+        validation_alias=AliasChoices(
+            "TOLLGATE_SEMANTIC_CACHE_THRESHOLD", "semantic_cache_threshold"
+        ),
+    )
+    semantic_cache_top_k: int = Field(
+        5,
+        validation_alias=AliasChoices("TOLLGATE_SEMANTIC_CACHE_TOP_K", "semantic_cache_top_k"),
+    )
+    semantic_cache_max_candidates: int = Field(
+        10,
+        validation_alias=AliasChoices(
+            "TOLLGATE_SEMANTIC_CACHE_MAX_CANDIDATES", "semantic_cache_max_candidates"
+        ),
+    )
+    semantic_cache_ttl_seconds: int = Field(
+        3600,
+        validation_alias=AliasChoices(
+            "TOLLGATE_SEMANTIC_CACHE_TTL_SECONDS", "semantic_cache_ttl_seconds"
+        ),
+    )
+    semantic_cache_lookup_timeout_seconds: float = Field(
+        1.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_SEMANTIC_CACHE_LOOKUP_TIMEOUT_SECONDS",
+            "semantic_cache_lookup_timeout_seconds",
+        ),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
