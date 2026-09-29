@@ -70,11 +70,16 @@ async def create_chat_completion(
             )
         else:
             # Standard non-streaming response
-            response = await gateway_service.chat_completion(
+            response, metadata = await gateway_service.chat_completion(
                 request=request,
                 ctx=ctx,
                 request_id=request_id,
             )
+            if metadata.final_provider:
+                headers["X-Tollgate-Provider"] = metadata.final_provider
+            headers["X-Tollgate-Attempts"] = str(metadata.total_attempts)
+            headers["X-Tollgate-Fallback"] = "true" if metadata.fallback_used else "false"
+
             return JSONResponse(
                 content=response.model_dump(exclude_none=True),
                 headers=headers,

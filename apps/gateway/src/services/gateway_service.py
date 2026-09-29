@@ -1,12 +1,11 @@
-import asyncio
-import json
 import logging
 import time
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional, Tuple
 
 from gateway.src.auth.context import AuthenticatedContext
-from gateway.src.providers.base import LLMProvider
 from gateway.src.providers.registry import provider_registry
+from gateway.src.reliability.executor import ExecutionMetadata, ReliableExecutor
+from gateway.src.reliability.policy import ReliabilityPolicy
 from gateway.src.schemas.chat import (
     ChatCompletionRequest,
     ChatCompletionResponse,
@@ -16,25 +15,31 @@ logger = logging.getLogger("tollgate.gateway_service")
 
 
 class GatewayService:
-    def __init__(self, registry=None):
+    def __init__(self, registry=None, executor=None):
         self.registry = registry or provider_registry
+        self.executor = executor or ReliableExecutor()
 
     async def chat_completion(
         self,
         request: ChatCompletionRequest,
         ctx: AuthenticatedContext,
         request_id: str,
-    ) -> ChatCompletionResponse:
+        policy: Optional[ReliabilityPolicy] = None,
+    ) -> Tuple[ChatCompletionResponse, ExecutionMetadata]:
         t0 = time.perf_counter()
 
-        resolution = self.registry.resolve_model(request.model)
-        provider: LLMProvider = resolution.provider
+        # Resolve deterministic primary and fallback route
+        route = self.registry.get_route(request.model)
+        providers_map = self.registry.get_all_providers()
 
         try:
-            response = await provider.chat(
+            response, metadata = await self.executor.execute_chat(
                 request=request,
-                resolved_model=resolution.upstream_model,
+                route=route,
+                providers_map=providers_map,
+                ctx=ctx,
                 request_id=request_id,
+                policy=policy,
             )
             latency_ms = (time.perf_counter() - t0) * 1000.0
 
@@ -42,17 +47,19 @@ class GatewayService:
             logger.info(
                 f"Gateway Request Completed: request_id={request_id} tenant_id={ctx.tenant_id} "
                 f"project_id={ctx.project_id} api_key_id={ctx.api_key_id} model={request.model} "
-                f"provider={provider.name} stream=false latency_ms={latency_ms:.2f} status=200"
+                f"provider={metadata.final_provider} attempts={metadata.total_attempts} "
+                f"fallback_used={metadata.fallback_used} stream=false latency_ms={latency_ms:.2f} status=200"
             )
 
-            return response
+            return response, metadata
+
         except Exception as e:
             latency_ms = (time.perf_counter() - t0) * 1000.0
             status_code = getattr(e, "status_code", 500)
             logger.warning(
                 f"Gateway Request Failed: request_id={request_id} tenant_id={ctx.tenant_id} "
-                f"project_id={ctx.project_id} model={request.model} provider={provider.name} "
-                f"stream=false latency_ms={latency_ms:.2f} status={status_code} error={e}"
+                f"project_id={ctx.project_id} model={request.model} stream=false "
+                f"latency_ms={latency_ms:.2f} status={status_code} error={e}"
             )
             raise
 
@@ -61,59 +68,27 @@ class GatewayService:
         request: ChatCompletionRequest,
         ctx: AuthenticatedContext,
         request_id: str,
+        policy: Optional[ReliabilityPolicy] = None,
     ) -> AsyncIterator[str]:
-        t0 = time.perf_counter()
+        route = self.registry.get_route(request.model)
+        providers_map = self.registry.get_all_providers()
 
-        resolution = self.registry.resolve_model(request.model)
-        provider: LLMProvider = resolution.provider
+        generator = self.executor.execute_stream(
+            request=request,
+            route=route,
+            providers_map=providers_map,
+            ctx=ctx,
+            request_id=request_id,
+            policy=policy,
+        )
 
-        chunk_count = 0
-        try:
-            stream_gen = provider.stream(
-                request=request,
-                resolved_model=resolution.upstream_model,
-                request_id=request_id,
-            )
-
-            async for chunk in stream_gen:
-                chunk_count += 1
-                chunk_json = chunk.model_dump_json(exclude_none=True)
-                yield f"data: {chunk_json}\n\n"
-
-            # Terminal SSE token
-            yield "data: [DONE]\n\n"
-
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            logger.info(
-                f"Gateway Stream Completed: request_id={request_id} tenant_id={ctx.tenant_id} "
-                f"project_id={ctx.project_id} api_key_id={ctx.api_key_id} model={request.model} "
-                f"provider={provider.name} stream=true chunks={chunk_count} latency_ms={latency_ms:.2f} status=200"
-            )
-        except asyncio.CancelledError:
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            logger.info(
-                f"Gateway Stream Disconnected: Client cancelled request_id={request_id} "
-                f"after {chunk_count} chunks latency_ms={latency_ms:.2f}"
-            )
-            raise
-        except Exception as e:
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            status_code = getattr(e, "status_code", 500)
-            logger.warning(
-                f"Gateway Stream Failed: request_id={request_id} tenant_id={ctx.tenant_id} "
-                f"model={request.model} provider={provider.name} latency_ms={latency_ms:.2f} "
-                f"status={status_code} error={e}"
-            )
-            # Emit error chunk or let HTTP layer handle
-            error_payload = {
-                "error": {
-                    "message": str(e),
-                    "type": getattr(e, "error_type", "provider_error"),
-                    "code": getattr(e, "code", "provider_error"),
-                }
-            }
-            yield f"data: {json.dumps(error_payload)}\n\n"
-            yield "data: [DONE]\n\n"
+        async for chunk in generator:
+            yield chunk
 
 
-gateway_service = GatewayService()
+from gateway.src.reliability.health import health_tracker
+from gateway.src.reliability.metrics import metrics
+
+gateway_service = GatewayService(
+    executor=ReliableExecutor(health=health_tracker, metric_recorder=metrics)
+)
