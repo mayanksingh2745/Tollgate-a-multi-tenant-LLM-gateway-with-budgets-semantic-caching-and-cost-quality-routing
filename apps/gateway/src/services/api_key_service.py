@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from gateway.src.schemas.api_key import APIKeyCreate, APIKeyCreateResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from tollgate_core.models import APIKey, Project, Tenant
+from tollgate_core.models import APIKey, Project, Tenant, User
 from tollgate_core.security import (
     API_KEY_PREFIX,
     PREFIX_LENGTH,
@@ -28,6 +28,18 @@ async def create_api_key(
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
 
+    if data.user_id is not None:
+        u_query = select(User).where(User.id == data.user_id, User.tenant_id == tenant_id)
+        u_res = await db.execute(u_query)
+        user = u_res.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+        if user.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot create API key for inactive user.",
+            )
+
     raw_key, key_prefix, key_hash = generate_api_key()
 
     expires_at_val = data.expires_at
@@ -37,6 +49,7 @@ async def create_api_key(
     api_key = APIKey(
         project_id=project_id,
         tenant_id=tenant_id,
+        user_id=data.user_id,
         name=data.name,
         key_prefix=key_prefix,
         key_hash=key_hash,
@@ -48,13 +61,14 @@ async def create_api_key(
     await db.refresh(api_key)
 
     logger.info(
-        f"Audit Log: event=api_key.created tenant_id={tenant_id} project_id={project_id} api_key_id={api_key.id}"
+        f"Audit Log: event=api_key.created tenant_id={tenant_id} project_id={project_id} api_key_id={api_key.id} user_id={api_key.user_id}"
     )
 
     return APIKeyCreateResponse(
         id=api_key.id,
         project_id=api_key.project_id,
         tenant_id=api_key.tenant_id,
+        user_id=api_key.user_id,
         name=api_key.name,
         key=raw_key,  # Raw key returned ONLY once!
         key_prefix=api_key.key_prefix,
@@ -104,7 +118,11 @@ async def rotate_api_key(
     old_key = await revoke_api_key(db, api_key_id, tenant_id)
 
     # Generate new key for same project and tenant
-    create_data = APIKeyCreate(name=f"{old_key.name} (Rotated)", expires_at=old_key.expires_at)
+    create_data = APIKeyCreate(
+        name=f"{old_key.name} (Rotated)",
+        expires_at=old_key.expires_at,
+        user_id=old_key.user_id,
+    )
     new_key_response = await create_api_key(db, old_key.project_id, tenant_id, create_data)
 
     logger.info(
@@ -116,17 +134,18 @@ async def rotate_api_key(
 
 async def verify_and_authenticate_key(
     db: AsyncSession, raw_key: str
-) -> Optional[Tuple[APIKey, Project, Tenant]]:
+) -> Optional[Tuple[APIKey, Project, Tenant, Optional[User]]]:
     if not raw_key or not raw_key.startswith(API_KEY_PREFIX):
         return None
 
     prefix = raw_key[:PREFIX_LENGTH]
 
-    # Prefix-based index lookup
+    # Prefix-based index lookup with optional user join
     query = (
-        select(APIKey, Project, Tenant)
+        select(APIKey, Project, Tenant, User)
         .join(Project, APIKey.project_id == Project.id)
         .join(Tenant, APIKey.tenant_id == Tenant.id)
+        .outerjoin(User, APIKey.user_id == User.id)
         .where(
             APIKey.key_prefix == prefix,
             APIKey.status == "active",
@@ -139,8 +158,16 @@ async def verify_and_authenticate_key(
 
     now = datetime.now(timezone.utc)
 
-    for api_key, project, tenant in records:
+    for api_key, project, tenant, user in records:
         if verify_api_key_hash(raw_key, api_key.key_hash):
+            # If key is associated with a user, ensure user is valid, belongs to tenant, and is active
+            if api_key.user_id is not None:
+                if not user or user.tenant_id != tenant.id or user.status != "active":
+                    logger.warning(
+                        f"Authentication failed: Associated user {api_key.user_id} is inactive, mismatched, or not found"
+                    )
+                    return None
+
             # Expiration check
             if api_key.expires_at:
                 exp_at = api_key.expires_at
@@ -158,6 +185,6 @@ async def verify_and_authenticate_key(
             api_key.last_used_at = now
             await db.commit()
 
-            return api_key, project, tenant
+            return api_key, project, tenant, user
 
     return None
