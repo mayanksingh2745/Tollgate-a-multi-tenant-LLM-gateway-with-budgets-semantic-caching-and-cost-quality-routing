@@ -2,7 +2,17 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -149,3 +159,133 @@ class APIKey(Base):
 
     tenant: Mapped[Tenant] = relationship("Tenant", back_populates="api_keys")
     project: Mapped[Project] = relationship("Project", back_populates="api_keys")
+
+
+class UsageEvent(Base):
+    __tablename__ = "usage_events"
+    __table_args__ = (
+        Index("idx_usage_events_tenant_created", "tenant_id", "created_at"),
+        Index("idx_usage_events_project_created", "project_id", "created_at"),
+        Index("idx_usage_events_model_created", "model", "created_at"),
+        Index("idx_usage_events_provider_created", "provider", "created_at"),
+        Index("idx_usage_events_request_id", "request_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), unique=True, nullable=False, index=True
+    )
+    event_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    request_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    reservation_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    api_key_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
+
+    provider: Mapped[str] = mapped_column(String(64), nullable=False)
+    model: Mapped[str] = mapped_column(String(128), nullable=False)
+    stream: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False
+    )  # "success" | "provider_failure" | "client_cancelled"
+
+    input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    estimated_cost: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    actual_cost: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    latency_ms: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    fallback_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    processed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class UsageDailyRollup(Base):
+    __tablename__ = "usage_daily_rollups"
+    __table_args__ = (
+        UniqueConstraint(
+            "date", "tenant_id", "project_id", "provider", "model", name="uq_usage_daily_rollups"
+        ),
+        Index("idx_daily_rollups_tenant_date", "tenant_id", "date"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    date: Mapped[str] = mapped_column(String(10), nullable=False)  # "YYYY-MM-DD"
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(64), nullable=False)
+    model: Mapped[str] = mapped_column(String(128), nullable=False)
+
+    request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    success_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    failure_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    input_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    output_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    total_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    estimated_cost: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    actual_cost: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class UsageMonthlyRollup(Base):
+    __tablename__ = "usage_monthly_rollups"
+    __table_args__ = (
+        UniqueConstraint(
+            "month", "tenant_id", "project_id", "provider", "model", name="uq_usage_monthly_rollups"
+        ),
+        Index("idx_monthly_rollups_tenant_month", "tenant_id", "month"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    month: Mapped[str] = mapped_column(String(7), nullable=False)  # "YYYY-MM"
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(64), nullable=False)
+    model: Mapped[str] = mapped_column(String(128), nullable=False)
+
+    request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    success_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    failure_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    input_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    output_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    total_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    estimated_cost: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    actual_cost: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

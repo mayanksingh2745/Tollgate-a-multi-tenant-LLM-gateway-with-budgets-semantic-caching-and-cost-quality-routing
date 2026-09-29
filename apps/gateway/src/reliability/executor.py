@@ -35,6 +35,7 @@ class ExecutionMetadata:
         self.fallback_used: bool = False
         self.providers_attempted: List[str] = []
         self.failures: List[dict] = []
+        self.latency_ms: float = 0.0
 
     def record_attempt(self, provider_name: str):
         self.total_attempts += 1

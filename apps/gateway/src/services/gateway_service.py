@@ -42,6 +42,7 @@ class GatewayService:
                 policy=policy,
             )
             latency_ms = (time.perf_counter() - t0) * 1000.0
+            metadata.latency_ms = latency_ms
 
             # Safe structured audit/request logging (no prompts, no responses, no credentials)
             logger.info(

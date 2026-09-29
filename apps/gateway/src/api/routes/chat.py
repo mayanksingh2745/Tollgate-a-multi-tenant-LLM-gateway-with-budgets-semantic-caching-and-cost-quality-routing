@@ -1,3 +1,4 @@
+import time
 import uuid
 from typing import Optional
 
@@ -23,7 +24,9 @@ from gateway.src.schemas.chat import (
 )
 from gateway.src.services.budget_service import get_effective_budget_limits
 from gateway.src.services.gateway_service import gateway_service
+from gateway.src.usage.publisher import usage_publisher
 from sqlalchemy.ext.asyncio import AsyncSession
+from tollgate_core.usage import UsageEventPayload
 
 router = APIRouter(tags=["Chat Completions"])
 
@@ -103,6 +106,11 @@ async def create_chat_completion(
                 prompt_tokens = estimate_prompt_tokens(request.messages)
                 output_tokens = 0
                 chunks_emitted = 0
+                t0_stream = time.perf_counter()
+                route = gateway_service.registry.get_route(request.model)
+                stream_provider = (
+                    route.primary.provider_name if route and route.primary else "openai"
+                )
                 try:
                     async for chunk in raw_generator:
                         chunks_emitted += 1
@@ -113,9 +121,33 @@ async def create_chat_completion(
                         model=request.model,
                         input_tokens=prompt_tokens,
                         output_tokens=output_tokens,
+                        provider=stream_provider,
                     )
                     await budget_manager.settle(reservation.reservation_id, actual_cost)
-                except Exception:
+                    stream_latency_ms = (time.perf_counter() - t0_stream) * 1000.0
+
+                    usage_event = UsageEventPayload(
+                        request_id=request_id,
+                        reservation_id=reservation.reservation_id,
+                        tenant_id=ctx.tenant_id,
+                        project_id=ctx.project_id,
+                        api_key_id=ctx.api_key_id,
+                        provider=stream_provider,
+                        model=request.model,
+                        stream=True,
+                        status="success",
+                        input_tokens=prompt_tokens,
+                        output_tokens=output_tokens,
+                        total_tokens=prompt_tokens + output_tokens,
+                        estimated_cost=reservation.estimated_cost,
+                        actual_cost=actual_cost,
+                        latency_ms=stream_latency_ms,
+                        attempt_count=1,
+                        fallback_used=False,
+                    )
+                    await usage_publisher.publish(usage_event)
+                except Exception as e:
+                    stream_latency_ms = (time.perf_counter() - t0_stream) * 1000.0
                     if chunks_emitted == 0:
                         await budget_manager.release(reservation.reservation_id)
                     else:
@@ -123,8 +155,33 @@ async def create_chat_completion(
                             model=request.model,
                             input_tokens=prompt_tokens,
                             output_tokens=output_tokens,
+                            provider=stream_provider,
                         )
                         await budget_manager.settle(reservation.reservation_id, actual_cost)
+                        usage_event = UsageEventPayload(
+                            request_id=request_id,
+                            reservation_id=reservation.reservation_id,
+                            tenant_id=ctx.tenant_id,
+                            project_id=ctx.project_id,
+                            api_key_id=ctx.api_key_id,
+                            provider=stream_provider,
+                            model=request.model,
+                            stream=True,
+                            status=(
+                                "provider_failure"
+                                if isinstance(e, ProviderException)
+                                else "client_cancelled"
+                            ),
+                            input_tokens=prompt_tokens,
+                            output_tokens=output_tokens,
+                            total_tokens=prompt_tokens + output_tokens,
+                            estimated_cost=reservation.estimated_cost,
+                            actual_cost=actual_cost,
+                            latency_ms=stream_latency_ms,
+                            attempt_count=1,
+                            fallback_used=False,
+                        )
+                        await usage_publisher.publish(usage_event)
                     raise
 
             return StreamingResponse(
@@ -150,6 +207,28 @@ async def create_chat_completion(
                 provider=metadata.final_provider,
             )
             await budget_manager.settle(reservation.reservation_id, actual_cost)
+
+            # Publish usage event to Redis Stream (non-blocking, asynchronous)
+            usage_event = UsageEventPayload(
+                request_id=request_id,
+                reservation_id=reservation.reservation_id,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                api_key_id=ctx.api_key_id,
+                provider=metadata.final_provider or "unknown",
+                model=request.model,
+                stream=False,
+                status="success",
+                input_tokens=actual_in,
+                output_tokens=actual_out,
+                total_tokens=actual_in + actual_out,
+                estimated_cost=reservation.estimated_cost,
+                actual_cost=actual_cost,
+                latency_ms=getattr(metadata, "latency_ms", 0.0),
+                attempt_count=metadata.total_attempts,
+                fallback_used=metadata.fallback_used,
+            )
+            await usage_publisher.publish(usage_event)
 
             if metadata.final_provider:
                 headers["X-Tollgate-Provider"] = metadata.final_provider

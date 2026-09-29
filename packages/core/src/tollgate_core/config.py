@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -116,6 +118,52 @@ class Settings(BaseSettings):
             "TOLLGATE_BUDGET_REDIS_TIMEOUT_SECONDS",
             "budget_redis_timeout_seconds",
         ),
+    )
+
+    # Phase 6 Usage Pipeline & Cost Accounting Settings
+    usage_stream: str = Field(
+        "tg:usage:events",
+        validation_alias=AliasChoices("TOLLGATE_USAGE_STREAM", "usage_stream"),
+    )
+    usage_consumer_group: str = Field(
+        "tg-usage-workers",
+        validation_alias=AliasChoices("TOLLGATE_USAGE_CONSUMER_GROUP", "usage_consumer_group"),
+    )
+    usage_consumer_name: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("TOLLGATE_USAGE_CONSUMER_NAME", "usage_consumer_name"),
+    )
+    usage_dead_letter_stream: str = Field(
+        "tg:usage:dead-letter",
+        validation_alias=AliasChoices(
+            "TOLLGATE_USAGE_DEAD_LETTER_STREAM", "usage_dead_letter_stream"
+        ),
+    )
+    usage_batch_size: int = Field(
+        50,
+        validation_alias=AliasChoices("TOLLGATE_USAGE_BATCH_SIZE", "usage_batch_size"),
+    )
+    usage_max_retries: int = Field(
+        3,
+        validation_alias=AliasChoices("TOLLGATE_USAGE_MAX_RETRIES", "usage_max_retries"),
+    )
+    usage_retry_base_delay: float = Field(
+        0.25,
+        validation_alias=AliasChoices("TOLLGATE_USAGE_RETRY_BASE_DELAY", "usage_retry_base_delay"),
+    )
+    usage_retry_max_delay: float = Field(
+        5.0,
+        validation_alias=AliasChoices("TOLLGATE_USAGE_RETRY_MAX_DELAY", "usage_retry_max_delay"),
+    )
+    usage_claim_idle_seconds: int = Field(
+        60,
+        validation_alias=AliasChoices(
+            "TOLLGATE_USAGE_CLAIM_IDLE_SECONDS", "usage_claim_idle_seconds"
+        ),
+    )
+    usage_block_ms: int = Field(
+        2000,
+        validation_alias=AliasChoices("TOLLGATE_USAGE_BLOCK_MS", "usage_block_ms"),
     )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
