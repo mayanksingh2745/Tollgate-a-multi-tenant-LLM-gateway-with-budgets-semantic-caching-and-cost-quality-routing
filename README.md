@@ -1,100 +1,80 @@
-﻿# 🔮 Predictive Analytics Engine – Customer Churn
+# Tollgate: Multi-Tenant LLM Gateway
 
-## 📖 Project Overview
-This project is a **Predictive Analytics Engine** designed to identify customers at risk of churning for a telecom company. By analyzing historical customer data, the engine predicts which customers are likely to leave and provides actionable insights to improve retention.  
+[![CI Pipeline](https://github.com/mayanksingh2745/Tollgate-a-multi-tenant-LLM-gateway-with-budgets-semantic-caching-and-cost-quality-routing/actions/workflows/ci.yml/badge.svg)](https://github.com/mayanksingh2745/Tollgate-a-multi-tenant-LLM-gateway-with-budgets-semantic-caching-and-cost-quality-routing/actions)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18.2+-61DAFB.svg)](https://react.dev/)
+
+Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent runaway costs, enforce per-project monthly budgets, provide automatic provider failover, enable high-performance semantic caching, and maintain token accounting precision across streaming and concurrent workloads.
 
 ---
 
-## 📂 Repository Structure
+## Phase 1: Multi-Tenancy + API Key Authentication
+
+Phase 1 establishes the core identity, project hierarchy, RBAC, and secure API key authentication engine.
+
+### Core Domain Hierarchy
+
 ```
-Predictive-Analytics-Engine/
-│
-├── data/
-│   ├── raw/         # Original dataset
-│   └── processed/   # Cleaned and preprocessed data
-│
-├── notebooks/       # EDA & modeling notebooks
-├── src/             # Scripts for preprocessing, training, and evaluation
-├── models/          # Saved trained models
-├── README.md        # Project documentation
-└── requirements.txt # Python dependencies
+Tenant
+ ├── Users (owner / admin / viewer)
+ └── Projects
+      └── API Keys (tg_live_...)
 ```
 
 ---
 
-## 📊 Dataset
-- **Source:** Telecom customer dataset  
-- **Shape:** (7043, 21)  
-- **Target Variable:** `Churn` (Yes/No)  
-- **Key Features:**  
-  - **Numerical:** `tenure`, `MonthlyCharges`, `TotalCharges`  
-  - **Categorical:** `Contract`, `PaymentMethod`, `InternetService`, `OnlineSecurity`, `TechSupport`, `SeniorCitizen`, etc.
+## API Reference (Phase 1 Endpoints)
+
+### 1. Tenants
+
+- `POST /api/v1/tenants` — Create a new tenant (`{"name": "...", "slug": "..."}`)
+- `GET /api/v1/tenants/{tenant_id}` — Retrieve tenant details (Enforces Tenant Isolation)
+
+### 2. Users
+
+- `POST /api/v1/tenants/{tenant_id}/users` — Create user (`owner`, `admin`, or `viewer` with Argon2id password hashing)
+- `GET /api/v1/tenants/{tenant_id}/users` — List users in tenant
+
+### 3. Projects
+
+- `POST /api/v1/tenants/{tenant_id}/projects` — Create project under tenant
+- `GET /api/v1/tenants/{tenant_id}/projects` — List projects in tenant
+- `GET /api/v1/tenants/{tenant_id}/projects/{project_id}` — Retrieve project details
+
+### 4. API Keys
+
+- `POST /api/v1/projects/{project_id}/api-keys` — Generate new API key (Returns raw key `tg_live_...` **ONLY ONCE**)
+- `GET /api/v1/projects/{project_id}/api-keys` — List API key metadata (Excludes raw secrets)
+- `DELETE /api/v1/api-keys/{api_key_id}` — Revoke an API key
+- `POST /api/v1/api-keys/{api_key_id}/rotate` — Rotate API key (Revokes old key, generates new active key)
 
 ---
 
-## 🎯 Problem Statement
-Customer churn is a critical problem for subscription-based companies. Identifying potential churners in advance allows businesses to take proactive measures, reduce revenue loss, and improve customer satisfaction.  
+## Quick Start (Docker Compose)
+
+Launch the complete stack (FastAPI + PostgreSQL + Redis + Worker + React Dashboard) with a single command:
+
+```bash
+docker compose up --build
+```
 
 ---
 
-## 🔍 Key Insights from EDA
-- Customers with **month-to-month contracts** churn more frequently  
-- High **MonthlyCharges** correlate with higher churn  
-- Long-term customers have higher **TotalCharges** and lower churn  
-- **Payment method, contract type, and value-added services** are strong predictors  
+## Authentication Flow & Security Guarantees
+
+1. **Header**: `Authorization: Bearer tg_live_xxxxxxxx...`
+2. **Prefix Lookup**: Looks up candidate records via indexed prefix (`key_prefix = tg_live_a8f3d91c`).
+3. **Constant-Time Verification**: Compares raw key hash against stored SHA-256 hash using `hmac.compare_digest`.
+4. **Tenant Isolation**: Guarantees API keys belonging to Tenant A can NEVER access or mutate Tenant B resources.
+
+See [`docs/authentication.md`](docs/authentication.md) for full architectural specifications.
 
 ---
 
-## 🛠️ Methodology
-1. **Data Preprocessing**  
-   - Handle missing values and correct data types  
-   - Encode categorical variables using One-Hot Encoding  
-   - Scale numerical features with StandardScaler  
-   - Split dataset into train and test sets (80/20)  
+## Local Development & Testing
 
-2. **Baseline Model**  
-   - Logistic Regression with `class_weight="balanced"` to handle imbalance  
-   - Threshold tuning to optimize recall for churn  
-
-3. **Advanced Models**  
-   - Random Forest Classifier with class balancing and hyperparameter tuning  
-   - Threshold optimization for business-focused recall improvement  
-
-4. **Evaluation Metrics**  
-   - Accuracy, Precision, Recall, F1-score  
-   - ROC-AUC Score  
-   - Confusion Matrix  
-
----
-
-## 📈 Results
-- **Logistic Regression (with threshold tuning)**:
-  - Recall (churn) = 0.90  
-  - ROC-AUC = 0.84  
-
-- **Random Forest**:
-  - Recall (churn) = 0.78  
-  - ROC-AUC = 0.84  
-
-> ✅ Business insight: Model identifies high-risk customers accurately for retention strategies  
-
----
-
-## 🧠 Skills Learned
-- Exploratory Data Analysis (EDA) 📊  
-- Handling imbalanced datasets ⚖️  
-- Preprocessing pipelines (`ColumnTransformer` & `Pipeline`) 🛠️  
-- Logistic Regression & Random Forest modeling 🤖  
-- Threshold tuning for business objectives 🎯  
-- Model evaluation using precision, recall, F1-score, ROC-AUC 📈  
-- Feature importance interpretation 📌  
-
----
-
-## 🚀 Future Enhancements
-- Implement **XGBoost** for improved predictive performance  
-- Hyperparameter tuning using **GridSearchCV / RandomizedSearchCV**  
-- Model explainability using **SHAP** or **LIME**  
-- Deployment-ready model with `joblib` or `pickle` 💾  
----
-
+```bash
+# Run test suite
+pytest
+```

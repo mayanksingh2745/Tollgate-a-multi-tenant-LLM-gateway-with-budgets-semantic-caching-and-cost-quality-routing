@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-test:
+    name: Lint, Type Check & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: tollgate
+          POSTGRES_PASSWORD: tollgate_secret_pass
+          POSTGRES_DB: tollgate_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black mypy pytest pytest-asyncio httpx
+          pip install -e packages/core
+          pip install -e apps/gateway
+          pip install -e apps/worker
+
+      - name: Code Formatting Check (Black)
+        run: black --check apps/ packages/ tests/
+
+      - name: Lint with Ruff
+        run: ruff check apps/ packages/ tests/
+
+      - name: Type Check with mypy
+        run: mypy apps/ packages/
+
+      - name: Run Pytest Suite
+        env:
+          DATABASE_URL: postgresql+asyncpg://tollgate:tollgate_secret_pass@localhost:5432/tollgate_db
+          REDIS_URL: redis://localhost:6379/0
+        run: pytest
+
+  build-dashboard:
+    name: Build React Dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/dashboard/package.json
+
+      - name: Install & Build
+        run: |
+          cd apps/dashboard
+          npm ci
+          npm run build

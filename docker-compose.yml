@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tollgate-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tollgate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tollgate_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-tollgate_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tollgate} -d ${POSTGRES_DB:-tollgate_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tollgate-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    container_name: tollgate-gateway
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORT: 8000
+      POSTGRES_USER: ${POSTGRES_USER:-tollgate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tollgate_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-tollgate_db}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tollgate}:${POSTGRES_PASSWORD:-tollgate_secret_pass}@postgres:5432/${POSTGRES_DB:-tollgate_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: tollgate-worker
+    restart: always
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tollgate}:${POSTGRES_PASSWORD:-tollgate_secret_pass}@postgres:5432/${POSTGRES_DB:-tollgate_db}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: tollgate-dashboard
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      VITE_API_BASE_URL: http://gateway:8000
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
