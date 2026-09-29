@@ -45,6 +45,9 @@ app = FastAPI(
 )
 
 
+from gateway.src.ratelimit import RateLimitExceeded
+
+
 # Custom validation exception handler to produce OpenAI-compatible errors for 400s
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -60,6 +63,23 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         )
     )
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=error_payload.model_dump())
+
+
+# RateLimitExceeded exception handler returning standard OpenAI 429
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    headers = exc.result.headers
+    return JSONResponse(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        headers=headers,
+        content=OpenAIErrorResponse(
+            error=OpenAIErrorDetail(
+                message="Rate limit exceeded. Please wait before retrying.",
+                type="rate_limit_error",
+                code="rate_limit_exceeded",
+            )
+        ).model_dump(),
+    )
 
 
 # CORS configuration
@@ -84,7 +104,7 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "2 - OpenAI-Compatible LLM Gateway",
+        "phase": "4 - Distributed Rate Limiting",
         "status": "online",
         "docs_url": "/docs",
     }

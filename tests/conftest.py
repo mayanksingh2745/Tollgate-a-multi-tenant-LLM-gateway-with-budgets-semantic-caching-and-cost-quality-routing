@@ -32,6 +32,16 @@ TestAsyncSessionLocal = async_sessionmaker(
 )
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_rate_limiter_backend():
+    from gateway.src.ratelimit.limiter import InMemoryRateLimitBackend, rate_limiter
+
+    original_backend = rate_limiter.backend
+    rate_limiter.backend = InMemoryRateLimitBackend()
+    yield
+    rate_limiter.backend = original_backend
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:

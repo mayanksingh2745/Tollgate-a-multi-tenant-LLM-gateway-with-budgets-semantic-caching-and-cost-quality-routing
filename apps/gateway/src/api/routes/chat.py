@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.auth.dependencies import get_current_api_key
 from gateway.src.providers.base import ProviderException
+from gateway.src.ratelimit import RateLimitResult, rate_limit_dependency
 from gateway.src.schemas.chat import (
     ChatCompletionRequest,
     ChatCompletionResponse,
@@ -25,6 +26,7 @@ router = APIRouter(tags=["Chat Completions"])
         400: {"model": OpenAIErrorResponse, "description": "Invalid request parameter"},
         401: {"description": "Authentication failure"},
         404: {"model": OpenAIErrorResponse, "description": "Unknown or unconfigured model"},
+        429: {"model": OpenAIErrorResponse, "description": "Rate limit exceeded"},
         502: {"model": OpenAIErrorResponse, "description": "Upstream provider failure"},
         504: {"model": OpenAIErrorResponse, "description": "Upstream provider timeout"},
     },
@@ -34,6 +36,7 @@ async def create_chat_completion(
     request: ChatCompletionRequest,
     raw_request: Request,
     ctx: AuthenticatedContext = Depends(get_current_api_key),
+    rate_limit: RateLimitResult = Depends(rate_limit_dependency),
     x_request_id: Optional[str] = Header(None, alias="X-Request-ID"),
 ):
     """
@@ -45,6 +48,7 @@ async def create_chat_completion(
 
     headers = {
         "X-Request-ID": request_id,
+        **rate_limit.headers,
     }
 
     try:
