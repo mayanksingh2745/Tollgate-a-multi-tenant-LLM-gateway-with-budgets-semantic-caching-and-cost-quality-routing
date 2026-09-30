@@ -2,10 +2,19 @@ import threading
 from typing import Dict, List
 
 
+from tollgate_core.observability import (
+    record_worker_dead_lettered,
+    record_worker_failed,
+    record_worker_processed,
+    record_worker_reclaimed,
+)
+
+
 class UsageMetrics:
     """
     Observability metrics tracker for the usage event pipeline.
     Provides thread-safe counters, gauges, and latency recordings for both gateway and worker.
+    Exports to Prometheus.
     """
 
     def __init__(self):
@@ -30,6 +39,15 @@ class UsageMetrics:
             else:
                 self._counters[metric_name] = count
 
+        if metric_name == "usage_worker_events_processed_total":
+            record_worker_processed("success", duration_seconds=0.005)
+        elif metric_name == "usage_worker_events_failed_total":
+            record_worker_failed("database_error")
+        elif metric_name == "usage_worker_events_reclaimed_total":
+            record_worker_reclaimed(count)
+        elif metric_name == "usage_dead_letter_events_total":
+            record_worker_dead_lettered("quarantined")
+
     def get_count(self, metric_name: str) -> int:
         with self._lock:
             return self._counters.get(metric_name, 0)
@@ -39,6 +57,7 @@ class UsageMetrics:
             self._latencies.append(latency_ms)
             if len(self._latencies) > 1000:
                 self._latencies = self._latencies[-1000:]
+        record_worker_processed("success", duration_seconds=latency_ms / 1000.0)
 
     def record_batch_size(self, size: int) -> None:
         with self._lock:

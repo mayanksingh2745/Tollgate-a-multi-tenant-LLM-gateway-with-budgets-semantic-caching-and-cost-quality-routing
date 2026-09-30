@@ -57,6 +57,9 @@ services:
       TOLLGATE_OTEL_ENDPOINT: ${TOLLGATE_OTEL_ENDPOINT:-http://jaeger:4318}
       TOLLGATE_OTEL_SERVICE_NAME: tollgate-api
       TOLLGATE_OTEL_TRACE_SAMPLE_RATE: ${TOLLGATE_OTEL_TRACE_SAMPLE_RATE:-1.0}
+      TOLLGATE_METRICS_ENABLED: ${TOLLGATE_METRICS_ENABLED:-true}
+      TOLLGATE_METRICS_AUTH_ENABLED: ${TOLLGATE_METRICS_AUTH_ENABLED:-true}
+      TOLLGATE_METRICS_TOKEN: ${TOLLGATE_METRICS_TOKEN:-tollgate-metrics-secret-token}
     depends_on:
       postgres:
         condition: service_healthy
@@ -109,6 +112,42 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
 
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: tollgate-prometheus
+    restart: always
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: tollgate-grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=tollgate_admin_pass
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - jaeger
+
   dashboard:
     build:
       context: .
@@ -126,3 +165,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  prometheus_data:
+  grafana_data:

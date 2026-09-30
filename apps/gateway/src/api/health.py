@@ -22,20 +22,28 @@ class SystemHealthResponse(BaseModel):
     services: list[ComponentStatus]
 
 
+from tollgate_core.observability import update_infrastructure_health
+
+
 @router.get("/healthz", summary="Simple System Health Check")
 async def healthz():
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 @router.get("/livez", summary="Liveness Probe")
+@router.get("/health/live", summary="Liveness Probe Alias")
 async def livez():
+    """Liveness probe: is the process alive?"""
     return {"status": "alive"}
 
 
 @router.get("/readyz", summary="Readiness Probe")
+@router.get("/health/ready", summary="Readiness Probe Alias")
 async def readyz():
+    """Readiness probe: can the service safely serve traffic?"""
     db_ok = await check_db_health()
     redis_ok = await check_redis_health()
+    update_infrastructure_health(redis_ok=redis_ok, postgres_ok=db_ok)
 
     if not db_ok or not redis_ok:
         raise HTTPException(

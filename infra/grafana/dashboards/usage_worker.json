@@ -1,0 +1,190 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Stream Backlog & Queue Gauges",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 200 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "sum(tollgate_usage_queue_pending_messages)",
+          "legendFormat": "Pending Consumer Messages",
+          "refId": "A"
+        }
+      ],
+      "title": "Pending Unacknowledged Messages (Backlog)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 1 },
+      "id": 2,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "sum(tollgate_usage_dead_letter_queue_messages)",
+          "legendFormat": "Dead Letter Messages",
+          "refId": "A"
+        }
+      ],
+      "title": "Dead-Letter Queue Total Items",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 },
+      "id": 101,
+      "title": "Consumption & Processing Throughput",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "events/sec"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum(rate(tollgate_usage_events_consumed_total[5m]))",
+          "legendFormat": "Consumed / sec",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(tollgate_usage_events_processed_total{status=\"success\"}[5m]))",
+          "legendFormat": "Processed & ACKed / sec",
+          "refId": "B"
+        }
+      ],
+      "title": "Usage Events Ingestion vs Commit Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" } },
+          "unit": "events/sec"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (failure_type) (rate(tollgate_usage_events_failed_total[5m]))",
+          "legendFormat": "Failed: {{failure_type}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(tollgate_usage_events_reclaimed_total[5m]))",
+          "legendFormat": "Reclaimed Stale Events",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (reason) (rate(tollgate_usage_events_dead_lettered_total[5m]))",
+          "legendFormat": "Dead-Lettered: {{reason}}",
+          "refId": "C"
+        }
+      ],
+      "title": "Worker Failures, Reclaims & Dead-Letters",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 102,
+      "title": "Worker Processing Duration",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(tollgate_usage_processing_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50 Batch Duration",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(tollgate_usage_processing_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 Batch Duration",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(tollgate_usage_processing_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99 Batch Duration",
+          "refId": "C"
+        }
+      ],
+      "title": "Usage Worker DB Persistence & Rollup Latency",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["tollgate", "worker", "usage"],
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m"] },
+  "timezone": "browser",
+  "title": "4 — Tollgate Usage Worker",
+  "uid": "tollgate-worker",
+  "version": 1
+}

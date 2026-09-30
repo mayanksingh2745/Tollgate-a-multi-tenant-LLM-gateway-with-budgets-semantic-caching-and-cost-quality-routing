@@ -23,7 +23,14 @@ from gateway.src.schemas.chat import (
     ChatCompletionRequest,
     ChatCompletionResponse,
 )
-from tollgate_core.observability import get_tracer, safe_set_attribute
+from tollgate_core.observability import (
+    get_tracer,
+    record_stream_duration,
+    record_stream_failure,
+    record_stream_request,
+    record_stream_ttft,
+    safe_set_attribute,
+)
 
 logger = logging.getLogger("tollgate.reliability.executor")
 tracer = get_tracer("tollgate.executor")
@@ -144,7 +151,10 @@ class ReliableExecutor:
                     continue
 
                 if target_idx > 0:
-                    self.metrics.inc_fallbacks(provider.name)
+                    self.metrics.inc_fallbacks(
+                        target_provider=provider.name,
+                        source_provider=all_targets[target_idx - 1].provider_name,
+                    )
                     logger.info(
                         f"Initiating fallback to '{provider.name}' (model: {target.upstream_model}) for request {request_id}"
                     )
@@ -171,7 +181,7 @@ class ReliableExecutor:
                         break
 
                     metadata.record_attempt(provider.name)
-                    self.metrics.inc_requests(provider.name)
+                    self.metrics.inc_requests(provider.name, model=target.upstream_model)
 
                     attempt_start = time.perf_counter()
                     timeout_for_call = min(
@@ -189,7 +199,12 @@ class ReliableExecutor:
                                 timeout=timeout_for_call,
                             )
                             latency_ms = (time.perf_counter() - attempt_start) * 1000.0
-                            self.metrics.record_latency(provider.name, latency_ms)
+                            self.metrics.record_latency(
+                                provider.name,
+                                latency_ms,
+                                model=target.upstream_model,
+                                status_code=200,
+                            )
                             self.health.record_success(provider.name)
                             safe_set_attribute(attempt_span, "status", "success")
                             safe_set_attribute(attempt_span, "duration_ms", latency_ms)
@@ -203,14 +218,19 @@ class ReliableExecutor:
                             err = ProviderTimeoutError(
                                 f"Provider {provider.name} call timed out after {timeout_for_call}s"
                             )
-                            self.metrics.inc_timeouts(provider.name)
+                            self.metrics.inc_timeouts(provider.name, model=target.upstream_model)
                             classified = classify_failure(err)
                         except Exception as e:
                             err = e
                             classified = classify_failure(err)
 
                         latency_ms = (time.perf_counter() - attempt_start) * 1000.0
-                        self.metrics.inc_failures(provider.name)
+                        self.metrics.inc_failures(
+                            provider.name,
+                            model=target.upstream_model,
+                            failure_category=classified.category.value,
+                            latency_ms=latency_ms,
+                        )
                         self.health.record_failure(provider.name, reason=classified.message)
                         metadata.record_failure(
                             provider_name=provider.name,
@@ -248,7 +268,7 @@ class ReliableExecutor:
                         )
                         break
 
-                    self.metrics.inc_retries(provider.name)
+                    self.metrics.inc_retries(provider.name, model=target.upstream_model)
                     logger.info(
                         f"Retrying {provider.name} in {delay}s (attempt {attempt + 1}/{active_policy.max_attempts})"
                     )
@@ -294,6 +314,8 @@ class ReliableExecutor:
         deadline = start_time + active_policy.overall_timeout_seconds
         all_targets: List[ProviderTarget] = [route.primary] + route.fallbacks
 
+        record_stream_request(provider=route.primary.provider_name, model=request.model)
+
         with tracer.start_as_current_span("provider.request") as req_span:
             safe_set_attribute(req_span, "tollgate.provider", route.primary.provider_name)
             safe_set_attribute(req_span, "tollgate.requested_model", request.model)
@@ -311,7 +333,10 @@ class ReliableExecutor:
                     continue
 
                 if target_idx > 0:
-                    self.metrics.inc_fallbacks(provider.name)
+                    self.metrics.inc_fallbacks(
+                        target_provider=provider.name,
+                        source_provider=all_targets[target_idx - 1].provider_name,
+                    )
                     with tracer.start_as_current_span("provider.fallback") as fb_span:
                         safe_set_attribute(fb_span, "tollgate.provider.fallback", True)
                         safe_set_attribute(
@@ -333,7 +358,7 @@ class ReliableExecutor:
                         return
 
                     metadata.record_attempt(provider.name)
-                    self.metrics.inc_requests(provider.name)
+                    self.metrics.inc_requests(provider.name, model=target.upstream_model)
 
                     chunks_emitted = 0
                     attempt_failed = False
@@ -353,39 +378,79 @@ class ReliableExecutor:
                             async for chunk in stream_iter:
                                 chunks_emitted += 1
                                 if not ttft_recorded:
-                                    ttft_ms = (time.perf_counter() - attempt_start) * 1000.0
+                                    ttft_s = time.perf_counter() - attempt_start
                                     safe_set_attribute(
-                                        attempt_span, "tollgate.time_to_first_token_ms", ttft_ms
+                                        attempt_span,
+                                        "tollgate.time_to_first_token_ms",
+                                        ttft_s * 1000.0,
+                                    )
+                                    record_stream_ttft(
+                                        provider=provider.name,
+                                        model=target.upstream_model,
+                                        ttft_seconds=ttft_s,
                                     )
                                     ttft_recorded = True
                                 chunk_json = chunk.model_dump_json(exclude_none=True)
                                 yield f"data: {chunk_json}\n\n"
 
                             # Successfully finished stream!
-                            stream_dur_ms = (time.perf_counter() - attempt_start) * 1000.0
+                            stream_dur_s = time.perf_counter() - attempt_start
                             safe_set_attribute(
-                                attempt_span, "tollgate.stream_duration_ms", stream_dur_ms
+                                attempt_span,
+                                "tollgate.stream_duration_ms",
+                                stream_dur_s * 1000.0,
                             )
                             safe_set_attribute(
                                 attempt_span, "tollgate.chunks_emitted", chunks_emitted
                             )
                             safe_set_attribute(attempt_span, "status", "success")
+                            record_stream_duration(
+                                provider=provider.name,
+                                model=target.upstream_model,
+                                duration_seconds=stream_dur_s,
+                                status="success",
+                            )
                             yield "data: [DONE]\n\n"
                             self.health.record_success(provider.name)
                             return
 
                         except asyncio.CancelledError:
                             logger.info(f"Stream cancelled by client for request {request_id}")
+                            dur_s = time.perf_counter() - attempt_start
                             safe_set_attribute(attempt_span, "status", "client_cancelled")
+                            record_stream_failure("client_disconnect")
+                            record_stream_duration(
+                                provider=provider.name,
+                                model=target.upstream_model,
+                                duration_seconds=dur_s,
+                                status="client_disconnect",
+                            )
                             raise
                         except Exception as e:
                             attempt_failed = True
                             error_to_raise = e
+                            dur_s = time.perf_counter() - attempt_start
                             safe_set_attribute(attempt_span, "status", "failure")
+                            fail_cls = (
+                                "provider_failure"
+                                if isinstance(e, ProviderException)
+                                else "gateway_failure"
+                            )
+                            record_stream_failure(fail_cls)
+                            record_stream_duration(
+                                provider=provider.name,
+                                model=target.upstream_model,
+                                duration_seconds=dur_s,
+                                status="error",
+                            )
 
                     if attempt_failed and error_to_raise:
                         classified = classify_failure(error_to_raise)
-                        self.metrics.inc_failures(provider.name)
+                        self.metrics.inc_failures(
+                            provider.name,
+                            model=target.upstream_model,
+                            failure_category=classified.category.value,
+                        )
                         self.health.record_failure(provider.name, reason=classified.message)
 
                         # CASE B: Partial stream was ALREADY sent to client!
@@ -417,7 +482,7 @@ class ReliableExecutor:
                         if time.time() + delay >= deadline:
                             break
 
-                        self.metrics.inc_retries(provider.name)
+                        self.metrics.inc_retries(provider.name, model=target.upstream_model)
                         with tracer.start_as_current_span("provider.retry") as retry_span:
                             safe_set_attribute(retry_span, "tollgate.provider", provider.name)
                             safe_set_attribute(retry_span, "tollgate.provider.retry", attempt)

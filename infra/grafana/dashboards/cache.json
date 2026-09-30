@@ -1,0 +1,197 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Cache Effectiveness & Hit Rates",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "(sum(rate(tollgate_cache_requests_total{cache_type=\"exact\",result=\"hit\"}[5m])) or vector(0)) / (sum(rate(tollgate_cache_requests_total{cache_type=\"exact\"}[5m])) > 0 or vector(1))",
+          "legendFormat": "Exact Cache Hit Rate",
+          "refId": "A"
+        },
+        {
+          "expr": "(sum(rate(tollgate_cache_requests_total{cache_type=\"semantic\",result=\"hit\"}[5m])) or vector(0)) / (sum(rate(tollgate_cache_requests_total{cache_type=\"semantic\"}[5m])) > 0 or vector(1))",
+          "legendFormat": "Semantic Cache Hit Rate",
+          "refId": "B"
+        }
+      ],
+      "title": "Exact vs Semantic Cache Hit Ratio",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 1 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum(rate(tollgate_http_requests_total{route=\"/v1/chat/completions\"}[5m]))",
+          "legendFormat": "Gateway Chat Requests",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(tollgate_provider_requests_total[5m]))",
+          "legendFormat": "Upstream Provider Calls",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(tollgate_cache_requests_total{result=\"hit\"}[5m]))",
+          "legendFormat": "Total Cache Hits (Saved Calls)",
+          "refId": "C"
+        }
+      ],
+      "title": "Gateway Ingress vs Upstream Dispatches (Traffic Saved)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
+      "id": 101,
+      "title": "Cache Latency & Cosine Similarity",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 9 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (cache_type, le) (rate(tollgate_cache_operation_duration_seconds_bucket{operation=\"lookup\"}[5m])))",
+          "legendFormat": "{{cache_type}} Lookup (p95)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (cache_type, le) (rate(tollgate_cache_operation_duration_seconds_bucket{operation=\"store\"}[5m])))",
+          "legendFormat": "{{cache_type}} Write (p95)",
+          "refId": "B"
+        }
+      ],
+      "title": "Cache Lookup & Write Duration (p95)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth" }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 9 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(tollgate_cache_similarity_score_bucket[5m])) by (le))",
+          "legendFormat": "Median Similarity (p50)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(tollgate_cache_similarity_score_bucket[5m])) by (le))",
+          "legendFormat": "p95 Similarity",
+          "refId": "B"
+        }
+      ],
+      "title": "Semantic Cache Cosine Similarity Score Distribution",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "id": 102,
+      "title": "Cache Errors & Bypasses",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars" },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 17 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (cache_type, operation) (rate(tollgate_cache_errors_total[5m]))",
+          "legendFormat": "{{cache_type}} ({{operation}})",
+          "refId": "A"
+        }
+      ],
+      "title": "Cache Errors Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 17 },
+      "id": 6,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (cache_type) (rate(tollgate_cache_requests_total{result=\"bypass\"}[5m]))",
+          "legendFormat": "{{cache_type}} Bypasses",
+          "refId": "A"
+        }
+      ],
+      "title": "Cache Bypasses (Non-cacheable or Direct)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["tollgate", "cache"],
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m"] },
+  "timezone": "browser",
+  "title": "3 — Tollgate Cache Performance",
+  "uid": "tollgate-cache",
+  "version": 1
+}

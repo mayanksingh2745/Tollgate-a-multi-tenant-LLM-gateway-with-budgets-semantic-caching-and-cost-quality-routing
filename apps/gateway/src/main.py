@@ -34,6 +34,8 @@ from tollgate_core.observability import (
     get_current_traceparent,
     get_tracer,
     init_tracer,
+    record_error,
+    record_http_request,
     safe_set_attribute,
     setup_logging,
 )
@@ -54,7 +56,7 @@ async def lifespan(app: FastAPI):
         timeout_seconds=settings.otel_export_timeout_seconds,
     )
     print(
-        f"[Tollgate Gateway] Starting in {settings.environment} mode (OTel enabled: {settings.otel_enabled})..."
+        f"[Tollgate Gateway] Starting in {settings.environment} mode (OTel enabled: {settings.otel_enabled}, Metrics enabled: {settings.metrics_enabled})..."
     )
     yield
     # Shutdown sequence
@@ -74,7 +76,7 @@ app = FastAPI(
 async def observability_middleware(request: Request, call_next):
     """
     Root HTTP middleware establishing W3C trace propagation, application request_id,
-    root 'gateway.request' span, and HTTP response headers.
+    root 'gateway.request' span, Prometheus HTTP metrics, and response headers.
     """
     request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
     current_request_id.set(request_id)
@@ -90,9 +92,18 @@ async def observability_middleware(request: Request, call_next):
 
         try:
             response = await call_next(request)
-            duration_ms = (time.perf_counter() - t0) * 1000.0
+            duration_s = time.perf_counter() - t0
+            duration_ms = duration_s * 1000.0
             safe_set_attribute(span, "http.response.status_code", response.status_code)
             safe_set_attribute(span, "duration_ms", duration_ms)
+
+            # Record Prometheus HTTP traffic & latency
+            record_http_request(
+                method=request.method,
+                path=request.url.path,
+                status_code=response.status_code,
+                duration_seconds=duration_s,
+            )
 
             response.headers["X-Request-ID"] = request_id
             trace_id = get_current_trace_id()
@@ -104,9 +115,17 @@ async def observability_middleware(request: Request, call_next):
 
             return response
         except Exception:
-            duration_ms = (time.perf_counter() - t0) * 1000.0
+            duration_s = time.perf_counter() - t0
+            duration_ms = duration_s * 1000.0
             safe_set_attribute(span, "http.response.status_code", 500)
             safe_set_attribute(span, "duration_ms", duration_ms)
+            record_http_request(
+                method=request.method,
+                path=request.url.path,
+                status_code=500,
+                duration_seconds=duration_s,
+            )
+            record_error(category="internal", status_code=500)
             raise
 
 
@@ -116,6 +135,7 @@ from gateway.src.ratelimit import RateLimitExceeded
 # Custom validation exception handler to produce OpenAI-compatible errors for 400s
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    record_error(category="validation", status_code=status.HTTP_400_BAD_REQUEST)
     first_error = exc.errors()[0] if exc.errors() else {"msg": "Validation failed", "loc": []}
     field = ".".join(str(loc) for loc in first_error.get("loc", []))
     msg = first_error.get("msg", "Invalid parameter")
@@ -133,6 +153,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # RateLimitExceeded exception handler returning standard OpenAI 429
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    record_error(category="rate_limit", status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     headers = exc.result.headers
     return JSONResponse(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -153,6 +174,7 @@ from gateway.src.budgets import BudgetExceededError
 # BudgetExceededError exception handler returning HTTP 402 Payment Required
 @app.exception_handler(BudgetExceededError)
 async def budget_exceeded_handler(request: Request, exc: BudgetExceededError):
+    record_error(category="budget", status_code=status.HTTP_402_PAYMENT_REQUIRED)
     return JSONResponse(
         status_code=status.HTTP_402_PAYMENT_REQUIRED,
         content=OpenAIErrorResponse(
@@ -178,10 +200,12 @@ from gateway.src.api.routes.auth import router as auth_router
 from gateway.src.api.routes.budgets import router as budgets_router
 from gateway.src.api.routes.cache import router as cache_router
 from gateway.src.api.routes.dashboard import router as dashboard_router
+from gateway.src.api.routes.metrics import router as metrics_router
 from gateway.src.api.routes.usage import router as usage_router
 
 # Include routers
 app.include_router(health_router)
+app.include_router(metrics_router)
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(tenants_router)

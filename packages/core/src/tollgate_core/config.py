@@ -330,6 +330,20 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Phase 11B Prometheus Metrics Settings
+    metrics_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_METRICS_ENABLED", "metrics_enabled"),
+    )
+    metrics_auth_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_METRICS_AUTH_ENABLED", "metrics_auth_enabled"),
+    )
+    metrics_token: str = Field(
+        "tollgate-metrics-secret-token",
+        validation_alias=AliasChoices("TOLLGATE_METRICS_TOKEN", "metrics_token"),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
