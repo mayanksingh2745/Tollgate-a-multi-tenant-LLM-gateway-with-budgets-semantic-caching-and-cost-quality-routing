@@ -53,6 +53,9 @@ Thumbs.db
 # Database & Redis local volumes data
 postgres_data/
 redis_data/
+backups/
+*.sql
+*.sql.gz
 
 # Scratch files
 scratch/

@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
 jobs:
   security-audit:
     name: Dependency Audit & Secret Scan
@@ -21,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip"
 
       - name: Install audit dependencies
@@ -36,7 +40,7 @@ jobs:
         run: python scripts/scan_secrets.py
 
   lint-and-test:
-    name: Lint, Type Check & Security Test Suite
+    name: Lint, Type Check & Test Suite
     runs-on: ubuntu-latest
     needs: security-audit
 
@@ -45,8 +49,8 @@ jobs:
         image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: tollgate
-          POSTGRES_PASSWORD: tollgate_secret_pass
-          POSTGRES_DB: tollgate_db
+          POSTGRES_PASSWORD: tollgate_ci_pass
+          POSTGRES_DB: tollgate_test_db
         ports:
           - 5432:5432
         options: >-
@@ -69,10 +73,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip"
 
       - name: Install Dependencies
@@ -94,9 +98,14 @@ jobs:
 
       - name: Run Pytest & Security Test Suite
         env:
-          DATABASE_URL: postgresql+asyncpg://tollgate:tollgate_secret_pass@localhost:5432/tollgate_db
+          DATABASE_URL: postgresql+asyncpg://tollgate:tollgate_ci_pass@localhost:5432/tollgate_test_db
           REDIS_URL: redis://localhost:6379/0
-        run: pytest
+        run: pytest --tb=short -q
+
+      - name: Run Migration Chain Validation
+        env:
+          DATABASE_URL: postgresql+asyncpg://tollgate:tollgate_ci_pass@localhost:5432/tollgate_test_db
+        run: pytest tests/test_migrations.py -v
 
   build-docker:
     name: Docker Build Validation
@@ -115,6 +124,7 @@ jobs:
           context: .
           file: apps/gateway/Dockerfile
           push: false
+          tags: tollgate-api:ci-${{ github.sha }}
 
       - name: Build Worker Docker Image
         uses: docker/build-push-action@v5
@@ -122,6 +132,7 @@ jobs:
           context: .
           file: apps/worker/Dockerfile
           push: false
+          tags: tollgate-worker:ci-${{ github.sha }}
 
   build-dashboard:
     name: Build React Dashboard
@@ -133,7 +144,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: apps/dashboard/package.json
 
@@ -142,3 +153,55 @@ jobs:
           cd apps/dashboard
           npm ci
           npm run build
+
+  staging-deploy:
+    name: Staging Deployment & Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [build-docker, build-dashboard]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feat/')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python (for smoke tests)
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build Staging Images
+        run: |
+          export TOLLGATE_GIT_COMMIT=$(git rev-parse --short HEAD)
+          docker compose -f docker-compose.staging.yml build
+
+      - name: Start Staging Stack
+        run: |
+          export TOLLGATE_GIT_COMMIT=$(git rev-parse --short HEAD)
+          docker compose -f docker-compose.staging.yml up -d --wait
+        timeout-minutes: 5
+
+      - name: Wait for Staging Readiness
+        run: |
+          echo "Waiting for staging gateway to be ready..."
+          for i in $(seq 1 30); do
+            if curl -s -f http://localhost:8080/health/ready > /dev/null 2>&1; then
+              echo "Staging gateway is ready!"
+              break
+            fi
+            echo "  Attempt ${i}/30: not ready, retrying in 3s..."
+            sleep 3
+          done
+
+      - name: Run Smoke Tests Against Staging
+        run: |
+          chmod +x scripts/smoke_test.sh
+          GATEWAY_URL=http://localhost:8080 bash scripts/smoke_test.sh
+
+      - name: Capture Staging Logs on Failure
+        if: failure()
+        run: |
+          docker compose -f docker-compose.staging.yml logs --tail=100
+
+      - name: Tear Down Staging Stack
+        if: always()
+        run: |
+          docker compose -f docker-compose.staging.yml down -v --remove-orphans

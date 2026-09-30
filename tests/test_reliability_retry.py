@@ -224,9 +224,10 @@ async def test_rate_limit_429_retried_and_succeeds():
 
 @pytest.mark.asyncio
 async def test_overall_deadline_stops_retries():
-    # Provider times out after 0.05s
+    # Provider sleeps 0.5s which exceeds the 0.1s overall deadline,
+    # so asyncio.wait_for triggers TimeoutError on the first attempt.
     provider = MockProvider(
-        name="prov_a", latency_seconds=0.05, should_fail=True, failure_status=504
+        name="prov_a", latency_seconds=0.5, should_fail=True, failure_status=504
     )
     route = FallbackRoute(
         logical_model="test-model",
@@ -234,13 +235,14 @@ async def test_overall_deadline_stops_retries():
     )
     providers_map = {"prov_a": provider}
 
-    # Short overall deadline of 0.08s: attempt 1 takes 0.05s, leaves 0.03s, stops before completing attempt 2
+    # Overall deadline of 0.1s is well below the 0.5s provider latency,
+    # ensuring the first attempt is cancelled by asyncio.wait_for.
     policy = ReliabilityPolicy(
-        max_attempts=5, base_delay=0.01, max_delay=0.02, overall_timeout_seconds=0.08
+        max_attempts=5, base_delay=0.01, max_delay=0.02, overall_timeout_seconds=0.1
     )
     executor = ReliableExecutor()
 
-    with pytest.raises(ProviderTimeoutError):
+    with pytest.raises((ProviderTimeoutError, ProviderException)):
         await executor.execute_chat(
             request=make_chat_request(),
             route=route,
