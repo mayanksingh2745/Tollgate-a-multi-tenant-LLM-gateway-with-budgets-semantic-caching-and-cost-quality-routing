@@ -40,7 +40,8 @@ dev = [
     "black>=24.3.0",
     "mypy>=1.9.0",
     "aiosqlite>=0.20.0",
-    "pip-audit>=2.7.0"
+    "pip-audit>=2.7.0",
+    "openai>=1.0.0"
 ]
 
 [tool.setuptools]
