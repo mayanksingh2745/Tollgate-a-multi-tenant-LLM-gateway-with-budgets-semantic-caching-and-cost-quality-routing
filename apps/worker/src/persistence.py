@@ -52,6 +52,13 @@ async def persist_usage_event(session: AsyncSession, event: UsageEventPayload) -
             latency_ms=event.latency_ms,
             attempt_count=event.attempt_count,
             fallback_used=event.fallback_used,
+            cache_status=getattr(event, "cache_status", None),
+            router_mode=getattr(event, "router_mode", None),
+            router_route=getattr(event, "router_route", None),
+            router_confidence=getattr(event, "router_confidence", None),
+            router_model_version=getattr(event, "router_model_version", None),
+            router_fallback=getattr(event, "router_fallback", False),
+            original_model=getattr(event, "original_model", None),
             created_at=event.timestamp,
             processed_at=datetime.now(timezone.utc),
         )

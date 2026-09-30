@@ -109,12 +109,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from gateway.src.api.routes.auth import router as auth_router
 from gateway.src.api.routes.budgets import router as budgets_router
 from gateway.src.api.routes.cache import router as cache_router
+from gateway.src.api.routes.dashboard import router as dashboard_router
 from gateway.src.api.routes.usage import router as usage_router
 
 # Include routers
 app.include_router(health_router)
+app.include_router(auth_router)
+app.include_router(dashboard_router)
 app.include_router(tenants_router)
 app.include_router(users_router)
 app.include_router(projects_router)
@@ -129,7 +133,7 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "7 - Exact Response Cache",
+        "phase": "10 - Production Dashboard & Tenant Analytics",
         "status": "online",
         "docs_url": "/docs",
     }

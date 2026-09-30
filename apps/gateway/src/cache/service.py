@@ -39,6 +39,14 @@ class BaseCacheBackend(ABC):
     async def increment_version(self, version_key: str) -> int:
         pass
 
+    @abstractmethod
+    async def increment_counter(self, key: str, amount: int = 1) -> int:
+        pass
+
+    @abstractmethod
+    async def get_counter(self, key: str) -> int:
+        pass
+
 
 class RedisCacheBackend(BaseCacheBackend):
     def __init__(self, redis_client: Optional[aioredis.Redis] = None):
@@ -72,11 +80,21 @@ class RedisCacheBackend(BaseCacheBackend):
         client = await self._get_client()
         return await client.incr(version_key)
 
+    async def increment_counter(self, key: str, amount: int = 1) -> int:
+        client = await self._get_client()
+        return await client.incrby(key, amount)
+
+    async def get_counter(self, key: str) -> int:
+        client = await self._get_client()
+        val = await client.get(key)
+        return int(val) if val is not None else 0
+
 
 class InMemoryCacheBackend(BaseCacheBackend):
     def __init__(self):
         self._store: Dict[str, Tuple[str, float]] = {}
         self._versions: Dict[str, int] = {}
+        self._counters: Dict[str, int] = {}
 
     async def get(self, key: str) -> Optional[str]:
         entry = self._store.get(key)
@@ -103,9 +121,17 @@ class InMemoryCacheBackend(BaseCacheBackend):
         self._versions[version_key] = new_v
         return new_v
 
+    async def increment_counter(self, key: str, amount: int = 1) -> int:
+        self._counters[key] = self._counters.get(key, 0) + amount
+        return self._counters[key]
+
+    async def get_counter(self, key: str) -> int:
+        return self._counters.get(key, 0)
+
     def clear(self) -> None:
         self._store.clear()
         self._versions.clear()
+        self._counters.clear()
 
 
 class ExactResponseCache:
@@ -193,6 +219,7 @@ class ExactResponseCache:
 
         if raw_entry is None:
             cache_metrics.increment("cache_misses_total")
+            await self.record_tenant_miss(tenant_id, project_id)
             logger.debug(f"Cache MISS for model={request.model} tenant={tenant_id}")
             return None
 
@@ -205,11 +232,13 @@ class ExactResponseCache:
                 )
                 await self.backend.delete(cache_key)
                 cache_metrics.increment("cache_misses_total")
+                await self.record_tenant_miss(tenant_id, project_id)
                 return None
 
             response_data = entry.get("response")
             cached_response = ChatCompletionResponse.model_validate(response_data)
             cache_metrics.increment("cache_hits_total")
+            await self.record_tenant_hit(tenant_id, project_id)
             logger.info(
                 f"Cache HIT: model={request.model} provider={provider} "
                 f"tenant_id={tenant_id} latency_ms={latency_ms:.2f}"
@@ -219,7 +248,50 @@ class ExactResponseCache:
             logger.warning(f"Failed to deserialize cached response (treating as miss): {parse_err}")
             await self.backend.delete(cache_key)
             cache_metrics.increment("cache_misses_total")
+            await self.record_tenant_miss(tenant_id, project_id)
             return None
+
+    async def record_tenant_hit(self, tenant_id: UUID, project_id: Optional[UUID] = None) -> None:
+        try:
+            t_key = f"{settings.cache_redis_prefix}:stats:hits:{tenant_id}"
+            await self.backend.increment_counter(t_key)
+            if project_id:
+                p_key = f"{settings.cache_redis_prefix}:stats:hits:{tenant_id}:{project_id}"
+                await self.backend.increment_counter(p_key)
+        except Exception:
+            pass
+
+    async def record_tenant_miss(self, tenant_id: UUID, project_id: Optional[UUID] = None) -> None:
+        try:
+            t_key = f"{settings.cache_redis_prefix}:stats:misses:{tenant_id}"
+            await self.backend.increment_counter(t_key)
+            if project_id:
+                p_key = f"{settings.cache_redis_prefix}:stats:misses:{tenant_id}:{project_id}"
+                await self.backend.increment_counter(p_key)
+        except Exception:
+            pass
+
+    async def get_tenant_hits(self, tenant_id: UUID, project_id: Optional[UUID] = None) -> int:
+        try:
+            key = (
+                f"{settings.cache_redis_prefix}:stats:hits:{tenant_id}:{project_id}"
+                if project_id
+                else f"{settings.cache_redis_prefix}:stats:hits:{tenant_id}"
+            )
+            return await self.backend.get_counter(key)
+        except Exception:
+            return 0
+
+    async def get_tenant_misses(self, tenant_id: UUID, project_id: Optional[UUID] = None) -> int:
+        try:
+            key = (
+                f"{settings.cache_redis_prefix}:stats:misses:{tenant_id}:{project_id}"
+                if project_id
+                else f"{settings.cache_redis_prefix}:stats:misses:{tenant_id}"
+            )
+            return await self.backend.get_counter(key)
+        except Exception:
+            return 0
 
     async def set(
         self,
