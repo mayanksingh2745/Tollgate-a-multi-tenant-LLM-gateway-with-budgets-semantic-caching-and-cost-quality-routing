@@ -121,6 +121,18 @@ def test_router_isolation():
     model_router.set_router(orig_router)
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_circuit_breaker_isolation():
+    from gateway.src.reliability.circuit_breaker import circuit_breaker_registry
+    from gateway.src.reliability.health import health_tracker
+
+    circuit_breaker_registry.reset()
+    health_tracker.reset()
+    yield
+    circuit_breaker_registry.reset()
+    health_tracker.reset()
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:

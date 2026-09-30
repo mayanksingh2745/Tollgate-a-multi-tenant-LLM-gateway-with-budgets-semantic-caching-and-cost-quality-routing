@@ -56,6 +56,44 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Phase 12 Circuit Breaker Settings
+    circuit_breaker_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CIRCUIT_BREAKER_ENABLED", "circuit_breaker_enabled"
+        ),
+    )
+    circuit_failure_threshold: int = Field(
+        5,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CIRCUIT_FAILURE_THRESHOLD", "circuit_failure_threshold"
+        ),
+    )
+    circuit_failure_window_seconds: float = Field(
+        30.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CIRCUIT_FAILURE_WINDOW_SECONDS", "circuit_failure_window_seconds"
+        ),
+    )
+    circuit_open_duration_seconds: float = Field(
+        30.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CIRCUIT_OPEN_DURATION_SECONDS", "circuit_open_duration_seconds"
+        ),
+    )
+    circuit_half_open_max_calls: int = Field(
+        1,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CIRCUIT_HALF_OPEN_MAX_CALLS", "circuit_half_open_max_calls"
+        ),
+    )
+    circuit_rate_limit_threshold: int = Field(
+        10,
+        validation_alias=AliasChoices(
+            "TOLLGATE_CIRCUIT_RATE_LIMIT_THRESHOLD", "circuit_rate_limit_threshold"
+        ),
+    )
+
     # Distributed Rate Limiting Settings
     rate_limit_enabled: bool = Field(
         True,

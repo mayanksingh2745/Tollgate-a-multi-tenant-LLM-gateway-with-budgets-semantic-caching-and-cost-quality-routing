@@ -87,9 +87,14 @@ class GatewayService:
             yield chunk
 
 
+from gateway.src.reliability.circuit_breaker import circuit_breaker_registry
 from gateway.src.reliability.health import health_tracker
 from gateway.src.reliability.metrics import metrics
 
 gateway_service = GatewayService(
-    executor=ReliableExecutor(health=health_tracker, metric_recorder=metrics)
+    executor=ReliableExecutor(
+        health=health_tracker,
+        metric_recorder=metrics,
+        circuit_breaker=circuit_breaker_registry,
+    )
 )

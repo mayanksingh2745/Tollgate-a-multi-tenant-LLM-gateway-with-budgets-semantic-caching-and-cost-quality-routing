@@ -11,6 +11,10 @@ from gateway.src.providers.base import (
     ProviderTimeoutError,
 )
 from gateway.src.reliability.backoff import BackoffStrategy
+from gateway.src.reliability.circuit_breaker import (
+    CircuitBreakerRegistry,
+    CircuitState,
+)
 from gateway.src.reliability.failure_classifier import FailureCategory, classify_failure
 from gateway.src.reliability.health import ProviderHealthTracker
 from gateway.src.reliability.metrics import ReliabilityMetrics
@@ -25,6 +29,9 @@ from gateway.src.schemas.chat import (
 )
 from tollgate_core.observability import (
     get_tracer,
+    record_circuit_half_open_probe,
+    record_circuit_rejection,
+    record_circuit_transition,
     record_stream_duration,
     record_stream_failure,
     record_stream_request,
@@ -45,6 +52,7 @@ class ExecutionMetadata:
         self.providers_attempted: List[str] = []
         self.failures: List[dict] = []
         self.latency_ms: float = 0.0
+        self.circuit_rejections: int = 0
 
     def record_attempt(self, provider_name: str):
         self.total_attempts += 1
@@ -80,13 +88,14 @@ class ExecutionMetadata:
             "fallback_used": self.fallback_used,
             "providers_attempted": self.providers_attempted,
             "failures_count": len(self.failures),
+            "circuit_rejections": self.circuit_rejections,
         }
 
 
 class ReliableExecutor:
     """
     Executes LLM requests with bounded retries, exponential backoff,
-    jitter, deadlines, health tracking, and deterministic fallback.
+    jitter, deadlines, health tracking, circuit breaking, and deterministic fallback.
     """
 
     def __init__(
@@ -94,10 +103,19 @@ class ReliableExecutor:
         health: Optional[ProviderHealthTracker] = None,
         metric_recorder: Optional[ReliabilityMetrics] = None,
         backoff_strategy: Optional[BackoffStrategy] = None,
+        circuit_breaker: Optional[CircuitBreakerRegistry] = None,
     ):
         self.health = health if health is not None else ProviderHealthTracker()
         self.metrics = metric_recorder if metric_recorder is not None else ReliabilityMetrics()
         self._backoff = backoff_strategy
+        if circuit_breaker is not None:
+            self.circuit_breaker = circuit_breaker
+        else:
+            from gateway.src.reliability.circuit_breaker import (
+                create_circuit_breaker_registry_from_settings,
+            )
+
+            self.circuit_breaker = create_circuit_breaker_registry_from_settings()
 
     def _get_backoff(self, policy: ReliabilityPolicy) -> BackoffStrategy:
         if self._backoff is not None:
@@ -140,7 +158,7 @@ class ReliableExecutor:
                     )
                     continue
 
-                # Check health state
+                # Check health state (Phase 3 legacy health tracker)
                 if (
                     not self.health.is_available(provider.name)
                     and target_idx < len(all_targets) - 1
@@ -149,6 +167,33 @@ class ReliableExecutor:
                         f"Provider '{provider.name}' currently unhealthy/cooldown, skipping to next fallback"
                     )
                     continue
+
+                # Circuit breaker check (Phase 12)
+                circuit_decision = None
+                if self.circuit_breaker:
+                    circuit_decision = await self.circuit_breaker.before_call(
+                        provider.name, target.upstream_model
+                    )
+                    if circuit_decision.is_open:
+                        metadata.circuit_rejections += 1
+                        record_circuit_rejection(provider.name, target.upstream_model)
+                        with tracer.start_as_current_span("circuit.check") as cb_span:
+                            safe_set_attribute(cb_span, "tollgate.circuit.state", circuit_decision.state.value)
+                            safe_set_attribute(cb_span, "tollgate.circuit.action", "reject")
+                            safe_set_attribute(cb_span, "tollgate.provider", provider.name)
+                            safe_set_attribute(cb_span, "tollgate.model", target.upstream_model)
+                        logger.info(
+                            f"Circuit OPEN for {provider.name}:{target.upstream_model}, "
+                            f"skipping to next fallback"
+                        )
+                        if target_idx < len(all_targets) - 1:
+                            continue
+                        # Last target — circuit still open, nothing to do
+                        last_error = ProviderException(
+                            f"All providers unavailable (circuit open for {provider.name})",
+                            status_code=503,
+                        )
+                        break
 
                 if target_idx > 0:
                     self.metrics.inc_fallbacks(
@@ -192,6 +237,8 @@ class ReliableExecutor:
                         safe_set_attribute(attempt_span, "tollgate.provider", provider.name)
                         safe_set_attribute(attempt_span, "tollgate.model", target.upstream_model)
                         safe_set_attribute(attempt_span, "tollgate.provider.attempt", attempt)
+                        if circuit_decision and circuit_decision.is_probe:
+                            safe_set_attribute(attempt_span, "tollgate.circuit.probe", True)
 
                         try:
                             res = await asyncio.wait_for(
@@ -206,6 +253,17 @@ class ReliableExecutor:
                                 status_code=200,
                             )
                             self.health.record_success(provider.name)
+
+                            # Circuit breaker: record success
+                            if self.circuit_breaker:
+                                await self.circuit_breaker.record_success(
+                                    provider.name, target.upstream_model
+                                )
+                                if circuit_decision and circuit_decision.is_probe:
+                                    record_circuit_half_open_probe(
+                                        provider.name, target.upstream_model, "success"
+                                    )
+
                             safe_set_attribute(attempt_span, "status", "success")
                             safe_set_attribute(attempt_span, "duration_ms", latency_ms)
                             safe_set_attribute(
@@ -232,6 +290,17 @@ class ReliableExecutor:
                             latency_ms=latency_ms,
                         )
                         self.health.record_failure(provider.name, reason=classified.message)
+
+                        # Circuit breaker: record failure
+                        if self.circuit_breaker:
+                            await self.circuit_breaker.record_failure(
+                                provider.name, target.upstream_model, classified.category
+                            )
+                            if circuit_decision and circuit_decision.is_probe:
+                                record_circuit_half_open_probe(
+                                    provider.name, target.upstream_model, "failure"
+                                )
+
                         metadata.record_failure(
                             provider_name=provider.name,
                             attempt=attempt,
@@ -332,6 +401,33 @@ class ReliableExecutor:
                 ):
                     continue
 
+                # Circuit breaker check (Phase 12)
+                circuit_decision = None
+                if self.circuit_breaker:
+                    circuit_decision = await self.circuit_breaker.before_call(
+                        provider.name, target.upstream_model
+                    )
+                    if circuit_decision.is_open:
+                        metadata.circuit_rejections += 1
+                        record_circuit_rejection(provider.name, target.upstream_model)
+                        logger.info(
+                            f"Circuit OPEN for {provider.name}:{target.upstream_model} (stream), "
+                            f"skipping to next fallback"
+                        )
+                        if target_idx < len(all_targets) - 1:
+                            continue
+                        # Last target — all circuits open
+                        err_payload = {
+                            "error": {
+                                "message": "All upstream model providers unavailable.",
+                                "type": "upstream_error",
+                                "code": "circuit_open",
+                            }
+                        }
+                        yield f"data: {json.dumps(err_payload)}\n\n"
+                        yield "data: [DONE]\n\n"
+                        return
+
                 if target_idx > 0:
                     self.metrics.inc_fallbacks(
                         target_provider=provider.name,
@@ -368,6 +464,8 @@ class ReliableExecutor:
                         safe_set_attribute(attempt_span, "tollgate.provider", provider.name)
                         safe_set_attribute(attempt_span, "tollgate.model", target.upstream_model)
                         safe_set_attribute(attempt_span, "tollgate.provider.attempt", attempt)
+                        if circuit_decision and circuit_decision.is_probe:
+                            safe_set_attribute(attempt_span, "tollgate.circuit.probe", True)
                         ttft_recorded = False
                         attempt_start = time.perf_counter()
 
@@ -412,6 +510,16 @@ class ReliableExecutor:
                             )
                             yield "data: [DONE]\n\n"
                             self.health.record_success(provider.name)
+
+                            # Circuit breaker: record success
+                            if self.circuit_breaker:
+                                await self.circuit_breaker.record_success(
+                                    provider.name, target.upstream_model
+                                )
+                                if circuit_decision and circuit_decision.is_probe:
+                                    record_circuit_half_open_probe(
+                                        provider.name, target.upstream_model, "success"
+                                    )
                             return
 
                         except asyncio.CancelledError:
@@ -452,6 +560,16 @@ class ReliableExecutor:
                             failure_category=classified.category.value,
                         )
                         self.health.record_failure(provider.name, reason=classified.message)
+
+                        # Circuit breaker: record failure
+                        if self.circuit_breaker:
+                            await self.circuit_breaker.record_failure(
+                                provider.name, target.upstream_model, classified.category
+                            )
+                            if circuit_decision and circuit_decision.is_probe:
+                                record_circuit_half_open_probe(
+                                    provider.name, target.upstream_model, "failure"
+                                )
 
                         # CASE B: Partial stream was ALREADY sent to client!
                         # CRITICAL RULE: DO NOT transparently restart request!
