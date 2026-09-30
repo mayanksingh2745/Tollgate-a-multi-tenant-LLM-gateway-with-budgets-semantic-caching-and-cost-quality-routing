@@ -19,6 +19,8 @@ All automated failure tests reside in:
 | **`test_infrastructure_failures.py`** | PostgreSQL & Redis outage | DB & Cache Layer | `/health/ready` returns 503; API fails safe; auto-reconnects upon restoration |
 | **`test_provider_failures_and_streaming.py`**| Upstream 10%/30%/50%/100% 5xx errors | Circuit Breakers & Router | Retries with jitter; circuit trips; fallback routes; streaming aborts cleanly |
 | **`test_observability_isolation.py`** | Metrics & OTel backend down | Prometheus & Tracing | Telemetry failure NEVER degrades or slows client inference requests |
+| **`test_chaos_recovery.py`** | Catastrophic cache loss, connection storm & provider chaos | Cache, Circuit & Concurrency | Cache fail-open & repopulate, 50-concurrency stability, zero double-counting under worker crash |
+| **`test_multi_instance_tenant_isolation.py`** | Cross-instance multi-tenant access attempts | Auth, Rates, Budgets & Cache | Zero cross-tenant data leakage across separate gateway replicas |
 
 ---
 
