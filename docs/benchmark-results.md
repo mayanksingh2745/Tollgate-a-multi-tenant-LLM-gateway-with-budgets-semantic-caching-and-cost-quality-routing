@@ -2,8 +2,8 @@
 
 > **Phase 13 Comprehensive Performance, Scalability & Resilience Audit**
 
-* **Git Commit SHA**: `d06122b393e00ecbeae88902acc2562b8887c9ee`
-* **Evaluation Timestamp**: `2026-09-30T13:03:44.150336+00:00`
+* **Git Commit SHA**: `1f4d3638027b9b9323587fd46d908c6a13c33496`
+* **Evaluation Timestamp**: `2026-09-30T15:23:08.438359+00:00`
 * **OS / Platform**: `Windows 10`
 * **Processor / Architecture**: `Intel64 Family 6 Model 60 Stepping 3, GenuineIntel` (4 cores)
 * **Total System RAM**: `7.9 GB`
@@ -15,7 +15,7 @@
 
 | Subsystem / Metric | Measured Headline Result | SLA / Target | Evaluation Status |
 | :--- | :--- | :--- | :--- |
-| **Gateway Latency Overhead** | **0.036 ms** (p50) | < 2.0 ms | **PASS** |
+| **Gateway Latency Overhead** | **0.0 ms** (p50) | < 2.0 ms | **PASS** |
 | **Sustainable Throughput** | **1836.91 requests/sec** | > 100 RPS | **PASS** |
 | **Exact Cache Hit Latency** | **287.0 µs** (p50) | < 500 µs | **PASS (Instant)** |
 | **Learned Router Cost Savings** | **42.2167% savings** | > 30% | **PASS** (Quality degradation: 0.0%) |
@@ -31,9 +31,9 @@ Comparing direct upstream invocation against Tollgate proxy execution:
 
 | Percentile | Direct Provider (ms) | Tollgate Total (ms) | Gateway Added Overhead (ms) |
 | :--- | :--- | :--- | :--- |
-| **p50** | 15.926 | 15.962 | **0.036 ms** |
-| **p95** | 16.937 | 48.311 | **31.374 ms** |
-| **p99** | 20.618 | 53.152 | **32.534 ms** |
+| **p50** | 15.834 | 15.792 | **0.0 ms** |
+| **p95** | 16.673 | 16.11 | **0.0 ms** |
+| **p99** | 17.559 | 16.214 | **0.0 ms** |
 
 ---
 

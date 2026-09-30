@@ -17,10 +17,12 @@ class BudgetConfigUpdate(BaseModel):
     daily_budget_microdollars: Optional[int] = Field(
         None,
         ge=0,
-        description="Daily spending limit in integer microdollars (must be >= 0 or null to unset)",
+        le=1_000_000_000_000_000,
+        description="Daily spending limit in integer microdollars (must be >= 0 and <= 1,000,000,000,000,000)",
     )
     monthly_budget_microdollars: Optional[int] = Field(
         None,
         ge=0,
-        description="Monthly spending limit in integer microdollars (must be >= 0 or null to unset)",
+        le=1_000_000_000_000_000,
+        description="Monthly spending limit in integer microdollars (must be >= 0 and <= 1,000,000,000,000,000)",
     )

@@ -15,29 +15,21 @@ Comprehensive verification of:
 """
 
 import asyncio
-import time
-from typing import AsyncIterator
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
-from uuid import uuid4
 from fastapi.testclient import TestClient
-
 from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.main import app
 from gateway.src.providers.base import (
-    LLMProvider,
     ProviderException,
-    ProviderTimeoutError,
 )
 from gateway.src.providers.mock import MockProvider
-from gateway.src.reliability.backoff import BackoffStrategy
 from gateway.src.reliability.circuit_breaker import (
     CircuitBreakerRegistry,
     CircuitBreakerState,
-    CircuitDecision,
     CircuitState,
-    make_provider_key,
 )
 from gateway.src.reliability.executor import ReliableExecutor
 from gateway.src.reliability.failure_classifier import FailureCategory
@@ -53,7 +45,6 @@ from gateway.src.schemas.chat import (
     ChatMessage,
 )
 from tollgate_core.observability.metrics import (
-    CIRCUIT_HALF_OPEN_PROBES_TOTAL,
     CIRCUIT_REJECTIONS_TOTAL,
     CIRCUIT_STATE,
     CIRCUIT_TRANSITIONS_TOTAL,

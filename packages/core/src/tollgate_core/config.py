@@ -11,6 +11,26 @@ class Settings(BaseSettings):
     gateway_host: str = "0.0.0.0"
     gateway_port: int = 8000
 
+    # CORS configuration
+    cors_allowed_origins: list[str] = Field(
+        default=["*"],
+        validation_alias=AliasChoices("TOLLGATE_CORS_ALLOWED_ORIGINS", "cors_allowed_origins"),
+    )
+
+    # HTTP & Reverse Proxy Security Settings
+    docs_enabled: bool = Field(
+        True,
+        validation_alias=AliasChoices("TOLLGATE_DOCS_ENABLED", "docs_enabled"),
+    )
+    enable_hsts: bool = Field(
+        False,
+        validation_alias=AliasChoices("TOLLGATE_ENABLE_HSTS", "enable_hsts"),
+    )
+    trusted_proxies: list[str] = Field(
+        default=["127.0.0.1", "::1"],
+        validation_alias=AliasChoices("TOLLGATE_TRUSTED_PROXIES", "trusted_proxies"),
+    )
+
     postgres_user: str = "tollgate"
     postgres_password: str = "tollgate_secret_pass"
     postgres_db: str = "tollgate_db"

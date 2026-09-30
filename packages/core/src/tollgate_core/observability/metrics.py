@@ -7,10 +7,10 @@ trace_id, and prompt text are NEVER used as metric labels.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Optional
 
 from prometheus_client import (
-    CONTENT_TYPE_LATEST,
+    CONTENT_TYPE_LATEST,  # noqa: F401
     REGISTRY,
     Counter,
     Gauge,
