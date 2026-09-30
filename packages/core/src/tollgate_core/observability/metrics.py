@@ -487,6 +487,28 @@ CIRCUIT_STATE = Gauge(
     ["provider", "model"],
 )
 
+# ==============================================================================
+# 12. High Availability & Resilience Metrics (Phase 16)
+# ==============================================================================
+
+RECOVERY_EVENTS_TOTAL = Counter(
+    "tollgate_recovery_events_total",
+    "Total automated or manual recovery events executed",
+    ["component", "status"],  # component: postgres|redis|worker|api; status: success|failure
+)
+
+FAILOVER_TOTAL = Counter(
+    "tollgate_failover_total",
+    "Total automated failover events between replicas or providers",
+    ["target_type", "status"],  # target_type: api_replica|provider; status: success|failure
+)
+
+BACKUP_OPERATIONS_TOTAL = Counter(
+    "tollgate_backup_operations_total",
+    "Total database backup operations executed",
+    ["operation", "status"],  # operation: backup|restore|verify; status: success|failure
+)
+
 
 # ==============================================================================
 # Helper Functions (Fail-Safe: Never crash caller on telemetry errors)
@@ -844,6 +866,36 @@ def record_circuit_half_open_probe(provider: str, model: str, result: str) -> No
         ).inc()
     except Exception as e:
         logger.debug(f"Failed to record circuit probe: {e}")
+
+
+def record_recovery_event(component: str, status: str) -> None:
+    """Records an infrastructure recovery event with bounded labels."""
+    try:
+        RECOVERY_EVENTS_TOTAL.labels(
+            component=str(component).lower(), status=str(status).lower()
+        ).inc()
+    except Exception as e:
+        logger.debug(f"Failed to record recovery event metric: {e}")
+
+
+def record_failover_event(target_type: str, status: str) -> None:
+    """Records a failover event with bounded labels."""
+    try:
+        FAILOVER_TOTAL.labels(
+            target_type=str(target_type).lower(), status=str(status).lower()
+        ).inc()
+    except Exception as e:
+        logger.debug(f"Failed to record failover event metric: {e}")
+
+
+def record_backup_operation(operation: str, status: str) -> None:
+    """Records a backup or restore operation with bounded labels."""
+    try:
+        BACKUP_OPERATIONS_TOTAL.labels(
+            operation=str(operation).lower(), status=str(status).lower()
+        ).inc()
+    except Exception as e:
+        logger.debug(f"Failed to record backup operation metric: {e}")
 
 
 def export_metrics() -> bytes:

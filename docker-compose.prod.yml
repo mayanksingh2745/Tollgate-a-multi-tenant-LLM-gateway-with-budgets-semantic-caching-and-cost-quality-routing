@@ -75,8 +75,9 @@ services:
       context: .
       dockerfile: apps/gateway/Dockerfile
     image: tollgate-api:${TOLLGATE_GIT_COMMIT:-latest}
-    container_name: tollgate-gateway
     restart: always
+    deploy:
+      replicas: ${GATEWAY_REPLICAS:-2}
     security_opt:
       - no-new-privileges:true
     environment:
@@ -134,8 +135,9 @@ services:
       context: .
       dockerfile: apps/worker/Dockerfile
     image: tollgate-worker:${TOLLGATE_GIT_COMMIT:-latest}
-    container_name: tollgate-worker
     restart: always
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
     security_opt:
       - no-new-privileges:true
     environment:
