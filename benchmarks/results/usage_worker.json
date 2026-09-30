@@ -1,0 +1,45 @@
+{
+  "benchmark": "usage_worker",
+  "scenario": "throughput_and_recovery",
+  "timestamp": "2026-09-30T13:04:29.647061+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 500,
+  "requests_successful": 500,
+  "requests_failed": 1,
+  "duration_seconds": 0.012,
+  "throughput_rps": 40180.33,
+  "latency_ms": {
+    "count": 10,
+    "mean": 1.218,
+    "stddev": 0.439,
+    "min": 0.88,
+    "p50": 1.062,
+    "p75": 1.273,
+    "p90": 1.321,
+    "p95": 2.455,
+    "p99": 2.455,
+    "max": 2.455
+  },
+  "details": {
+    "events_processed": 500,
+    "batch_size": 50,
+    "events_per_second": 40180.33,
+    "batch_processing_p50_ms": 1.062,
+    "batch_processing_p95_ms": 2.455,
+    "dead_letter_handled": true,
+    "stale_events_reclaimed": 5,
+    "idempotency_verified": true
+  }
+}

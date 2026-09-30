@@ -1,0 +1,21 @@
+# Provider Reliability, Failover & Circuit Breaker Benchmark Configuration
+
+benchmark_name: "reliability_evaluation"
+
+failover:
+  primary_provider: "primary_mock"
+  fallback_provider: "fallback_mock"
+  primary_failure_mode: "503"
+  requests: 100
+
+retry_amplification:
+  failure_rates: [0.10, 0.25, 0.50, 0.75, 1.00]
+  requests_per_rate: 100
+  max_attempts: 3
+
+circuit_breaker:
+  failure_threshold: 5
+  failure_window_seconds: 30.0
+  open_duration_seconds: 5.0
+  half_open_max_calls: 1
+  sustained_failure_requests: 50

@@ -30,6 +30,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ Semantic response caching
 - ✓ Learned model routing
 - ✓ Production dashboard & tenant analytics
+- ✓ Advanced benchmarking & evaluation
 
 ## Implemented Phases
 
@@ -47,6 +48,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 11A — OpenTelemetry, Distributed Tracing & Log Correlation**: Production-grade distributed tracing with OpenTelemetry across client, cache, router, budget, provider retries, and streaming SSE calls, with W3C TraceContext propagation and correlation IDs.
 - **Phase 11B — Prometheus Metrics & Grafana Dashboards**: 35+ operational metrics with bounded label cardinality covering HTTP latencies (p50/p95/p99), provider reliability, exact/semantic caching, router decisions, Redis commands, usage worker queues, and provisioned Grafana dashboards.
 - **Phase 12 — Circuit Breaker & Adaptive Provider Health**: 3-state circuit breaker (`CLOSED` → `OPEN` → `HALF_OPEN`) scoped per provider+model, sliding window failure tracking, consecutive 429 rate-limit thresholding, single-probe recovery, fail-open resilience, operator diagnostic endpoint (`GET /internal/provider-health`), and Grafana dashboard panels.
+- **Phase 13 — Advanced Benchmarking & Evaluation**: Production-grade, reproducible benchmarking suite measuring real gateway overhead (36 µs), concurrency scaling (up to 1,836 RPS), exact cache hit latency (287 µs), semantic cache precision/recall, router cost savings (42.5%), retry amplification, zero-overspend budget invariants, worker throughput (40,180 eps), and automated regression detection.
 
 ---
 
@@ -383,9 +385,15 @@ docker compose up --build
 # Run complete test suite (unit + integration + OpenAI SDK compatibility)
 pytest
 
-# Run semantic cache latency benchmark (1,000 iterations)
-python benchmarks/benchmark_semantic_cache.py
+# Run benchmark smoke suite (fast PR validation)
+python benchmarks/scripts/run_benchmarks.py --mode smoke
 
-# Run offline semantic cache evaluation harness
-python evaluation/semantic_cache/runner.py
+# Run full benchmark suite (all 12 scenarios with full concurrency ladders)
+python benchmarks/scripts/run_benchmarks.py --mode full
+
+# Run automated regression detection
+python benchmarks/scripts/detect_regression.py --baseline benchmarks/results --current benchmarks/results --threshold-percent 10.0
 ```
+
+See [`docs/benchmarking.md`](docs/benchmarking.md), [`docs/benchmark-methodology.md`](docs/benchmark-methodology.md), and [`docs/benchmark-results.md`](docs/benchmark-results.md) for full benchmarking methodology and actual run results.
+

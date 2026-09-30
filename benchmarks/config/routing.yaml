@@ -1,0 +1,17 @@
+# Learned Model Router Evaluation Configuration
+
+benchmark_name: "router_evaluation"
+
+threshold_sweep: [0.50, 0.60, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+default_threshold: 0.80
+
+model_tiers:
+  cheap_model: "mock-fast"
+  strong_model: "mock-model"
+  cheap_cost_per_1k_tokens_microdollars: 500     # $0.0005 / 1k
+  strong_cost_per_1k_tokens_microdollars: 15000   # $0.0150 / 1k
+
+dataset:
+  artifact_path: "artifacts/router/latest"
+  sample_count_smoke: 50
+  sample_count_full: 500

@@ -1,0 +1,139 @@
+{
+  "benchmark": "cache_evaluation",
+  "scenario": "semantic_cache_precision_recall",
+  "timestamp": "2026-09-30T13:04:16.769575+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 85,
+  "requests_successful": 85,
+  "requests_failed": 0,
+  "duration_seconds": 0.0,
+  "throughput_rps": 500.0,
+  "latency_ms": {
+    "count": 85,
+    "mean": 163.089,
+    "stddev": 56.724,
+    "min": 71.678,
+    "p50": 153.325,
+    "p75": 198.856,
+    "p90": 239.363,
+    "p95": 250.317,
+    "p99": 349.144,
+    "max": 349.144
+  },
+  "details": {
+    "threshold_sweep": {
+      "thresh_0.8": {
+        "similarity_threshold": 0.8,
+        "precision": 0.4444,
+        "recall": 0.5,
+        "false_hit_rate": 0.5556,
+        "false_miss_rate": 0.5,
+        "cache_hit_rate": 0.5294,
+        "true_positives": 4,
+        "false_positives": 5,
+        "true_negatives": 4,
+        "false_negatives": 4,
+        "p50_lookup_ms": 115.315,
+        "p95_lookup_ms": 257.527,
+        "estimated_cost_reduction_pct": 52.9
+      },
+      "thresh_0.85": {
+        "similarity_threshold": 0.85,
+        "precision": 0.5,
+        "recall": 0.25,
+        "false_hit_rate": 0.2222,
+        "false_miss_rate": 0.75,
+        "cache_hit_rate": 0.2353,
+        "true_positives": 2,
+        "false_positives": 2,
+        "true_negatives": 7,
+        "false_negatives": 6,
+        "p50_lookup_ms": 137.33,
+        "p95_lookup_ms": 204.617,
+        "estimated_cost_reduction_pct": 23.5
+      },
+      "thresh_0.9": {
+        "similarity_threshold": 0.9,
+        "precision": 1.0,
+        "recall": 0.125,
+        "false_hit_rate": 0.0,
+        "false_miss_rate": 0.875,
+        "cache_hit_rate": 0.0588,
+        "true_positives": 1,
+        "false_positives": 0,
+        "true_negatives": 9,
+        "false_negatives": 7,
+        "p50_lookup_ms": 209.865,
+        "p95_lookup_ms": 349.144,
+        "estimated_cost_reduction_pct": 5.9
+      },
+      "thresh_0.92": {
+        "similarity_threshold": 0.92,
+        "precision": 1.0,
+        "recall": 0.125,
+        "false_hit_rate": 0.0,
+        "false_miss_rate": 0.875,
+        "cache_hit_rate": 0.0588,
+        "true_positives": 1,
+        "false_positives": 0,
+        "true_negatives": 9,
+        "false_negatives": 7,
+        "p50_lookup_ms": 167.046,
+        "p95_lookup_ms": 296.583,
+        "estimated_cost_reduction_pct": 5.9
+      },
+      "thresh_0.95": {
+        "similarity_threshold": 0.95,
+        "precision": 1.0,
+        "recall": 0.0,
+        "false_hit_rate": 0.0,
+        "false_miss_rate": 1.0,
+        "cache_hit_rate": 0.0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "true_negatives": 9,
+        "false_negatives": 8,
+        "p50_lookup_ms": 172.489,
+        "p95_lookup_ms": 238.285,
+        "estimated_cost_reduction_pct": 0.0
+      }
+    },
+    "adversarial_false_hit_tests": {
+      "capital_1800": {
+        "query": "What was the capital of France in 1800?",
+        "matched": false,
+        "prevented_false_hit": true
+      },
+      "capital_germany": {
+        "query": "What is the capital of Germany?",
+        "matched": false,
+        "prevented_false_hit": true
+      },
+      "travel_france": {
+        "query": "How do I travel to France?",
+        "matched": false,
+        "prevented_false_hit": true
+      },
+      "gdp_france": {
+        "query": "What is France's GDP?",
+        "matched": false,
+        "prevented_false_hit": true
+      }
+    },
+    "all_adversarials_prevented": true,
+    "recommended_production_threshold": 0.9,
+    "tradeoff_notes": "Threshold 0.80 maximizes recall but introduces false-hit risk; 0.90 provides optimal balance with zero observed false hits."
+  }
+}

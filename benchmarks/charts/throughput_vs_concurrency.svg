@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="650" height="332" viewBox="0 0 650 332" style="background:#0d1117; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;">
+  <text x="20" y="32" fill="#58a6ff" font-size="16" font-weight="600">Throughput vs Concurrency (RPS)</text>
+  <text x="170" y="69" fill="#8b949e" font-size="12" text-anchor="end">Concurrency 1</text>
+  <rect x="180" y="50" width="13" height="28" rx="4" fill="#238636" opacity="0.85"/>
+  <text x="201" y="69" fill="#f0f6fc" font-size="12" font-weight="500">63.62 RPS</text>
+  <text x="170" y="111" fill="#8b949e" font-size="12" text-anchor="end">Concurrency 5</text>
+  <rect x="180" y="92" width="65" height="28" rx="4" fill="#238636" opacity="0.85"/>
+  <text x="253" y="111" fill="#f0f6fc" font-size="12" font-weight="500">314.43 RPS</text>
+  <text x="170" y="153" fill="#8b949e" font-size="12" text-anchor="end">Concurrency 10</text>
+  <rect x="180" y="134" width="130" height="28" rx="4" fill="#238636" opacity="0.85"/>
+  <text x="318" y="153" fill="#f0f6fc" font-size="12" font-weight="500">631.33 RPS</text>
+  <text x="170" y="195" fill="#8b949e" font-size="12" text-anchor="end">Concurrency 25</text>
+  <rect x="180" y="176" width="174" height="28" rx="4" fill="#238636" opacity="0.85"/>
+  <text x="362" y="195" fill="#f0f6fc" font-size="12" font-weight="500">843.85 RPS</text>
+  <text x="170" y="237" fill="#8b949e" font-size="12" text-anchor="end">Concurrency 50</text>
+  <rect x="180" y="218" width="293" height="28" rx="4" fill="#238636" opacity="0.85"/>
+  <text x="481" y="237" fill="#f0f6fc" font-size="12" font-weight="500">1419.40 RPS</text>
+  <text x="170" y="279" fill="#8b949e" font-size="12" text-anchor="end">Concurrency 100</text>
+  <rect x="180" y="260" width="380" height="28" rx="4" fill="#238636" opacity="0.85"/>
+  <text x="568" y="279" fill="#f0f6fc" font-size="12" font-weight="500">1836.91 RPS</text>
+</svg>

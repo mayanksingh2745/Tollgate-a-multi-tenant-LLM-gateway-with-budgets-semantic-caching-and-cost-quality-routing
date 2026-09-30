@@ -1,0 +1,173 @@
+{
+  "benchmark": "router_evaluation",
+  "scenario": "cost_quality_threshold_sweep",
+  "timestamp": "2026-09-30T13:04:18.997440+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 9,
+  "requests_successful": 9,
+  "requests_failed": 0,
+  "duration_seconds": 0.0,
+  "throughput_rps": 12500.0,
+  "latency_ms": {
+    "mean": 0.08,
+    "p50": 0.05,
+    "p95": 0.12,
+    "p99": 0.25
+  },
+  "details": {
+    "router_version": "1.0.0",
+    "baselines": {
+      "always_strong": {
+        "threshold": 1.0,
+        "total_samples": 300,
+        "true_positives": 0,
+        "false_positives": 0,
+        "true_negatives": 150,
+        "false_negatives": 150,
+        "accuracy": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 1.0,
+        "brier_score": 0.5,
+        "cheap_route_pct": 0.0,
+        "strong_route_pct": 100.0,
+        "estimated_cost_savings_pct": 0.0,
+        "estimated_quality_degradation_pct": 0.0
+      },
+      "always_cheap": {
+        "threshold": 0.0,
+        "total_samples": 300,
+        "true_positives": 150,
+        "false_positives": 150,
+        "true_negatives": 0,
+        "false_negatives": 0,
+        "accuracy": 0.5,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1_score": 0.6667,
+        "false_positive_rate": 1.0,
+        "false_negative_rate": 0.0,
+        "brier_score": 0.5,
+        "cheap_route_pct": 100.0,
+        "strong_route_pct": 0.0,
+        "estimated_cost_savings_pct": 85.0,
+        "estimated_quality_degradation_pct": 50.0
+      },
+      "learned_router_threshold_0_5": {
+        "threshold": 0.5,
+        "total_samples": 300,
+        "true_positives": 150,
+        "false_positives": 0,
+        "true_negatives": 150,
+        "false_negatives": 0,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "brier_score": 0.0008,
+        "cheap_route_pct": 50.0,
+        "strong_route_pct": 50.0,
+        "estimated_cost_savings_pct": 42.5,
+        "estimated_quality_degradation_pct": 0.0
+      },
+      "learned_router_threshold_0_7": {
+        "threshold": 0.7,
+        "total_samples": 300,
+        "true_positives": 150,
+        "false_positives": 0,
+        "true_negatives": 150,
+        "false_negatives": 0,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "brier_score": 0.0008,
+        "cheap_route_pct": 50.0,
+        "strong_route_pct": 50.0,
+        "estimated_cost_savings_pct": 42.5,
+        "estimated_quality_degradation_pct": 0.0
+      }
+    },
+    "cost_quality_tradeoff_curve": {
+      "thresh_0.5": {
+        "threshold": 0.5,
+        "cheap_route_fraction": 50.0,
+        "strong_route_fraction": 50.0,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "quality_degradation_pct": 0.0,
+        "cost_savings_pct": 42.5
+      },
+      "thresh_0.6": {
+        "threshold": 0.6,
+        "cheap_route_fraction": 50.0,
+        "strong_route_fraction": 50.0,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "quality_degradation_pct": 0.0,
+        "cost_savings_pct": 42.5
+      },
+      "thresh_0.7": {
+        "threshold": 0.7,
+        "cheap_route_fraction": 50.0,
+        "strong_route_fraction": 50.0,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "quality_degradation_pct": 0.0,
+        "cost_savings_pct": 42.5
+      },
+      "thresh_0.8": {
+        "threshold": 0.8,
+        "cheap_route_fraction": 49.6667,
+        "strong_route_fraction": 50.3333,
+        "accuracy": 0.9967,
+        "precision": 1.0,
+        "recall": 0.9933,
+        "f1_score": 0.9967,
+        "quality_degradation_pct": 0.0,
+        "cost_savings_pct": 42.2167
+      },
+      "thresh_0.9": {
+        "threshold": 0.9,
+        "cheap_route_fraction": 49.0,
+        "strong_route_fraction": 51.0,
+        "accuracy": 0.99,
+        "precision": 1.0,
+        "recall": 0.98,
+        "f1_score": 0.9899,
+        "quality_degradation_pct": 0.0,
+        "cost_savings_pct": 41.65
+      }
+    },
+    "recommended_operating_threshold": 0.8,
+    "headline_findings": {
+      "cost_savings_at_default_pct": 42.2167,
+      "quality_degradation_at_default_pct": 0.0,
+      "cheap_fraction_at_default_pct": 4966.67
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "benchmark": "budget_concurrency",
+  "scenario": "atomic_reservation_under_contention",
+  "timestamp": "2026-09-30T13:04:27.692990+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 300,
+  "requests_successful": 150,
+  "requests_failed": 150,
+  "duration_seconds": 0.0,
+  "throughput_rps": 3639.48,
+  "latency_ms": {
+    "count": 300,
+    "mean": 0.275,
+    "stddev": 3.312,
+    "min": 0.052,
+    "p50": 0.068,
+    "p75": 0.076,
+    "p90": 0.094,
+    "p95": 0.135,
+    "p99": 0.376,
+    "max": 57.492
+  },
+  "details": {
+    "initial_budget_microdollars": 1000000,
+    "cost_per_request_microdollars": 20000,
+    "max_allowed_requests": 50,
+    "concurrency_ladder": {
+      "10": {
+        "concurrency": 10,
+        "requests_dispatched": 100,
+        "accepted_requests": 50,
+        "rejected_requests": 50,
+        "total_spent_microdollars": 1000000,
+        "remaining_microdollars": 0,
+        "overspend_microdollars": 0,
+        "p50_reservation_ms": 0.068,
+        "p95_reservation_ms": 0.132,
+        "duration_seconds": 0.012
+      },
+      "50": {
+        "concurrency": 50,
+        "requests_dispatched": 100,
+        "accepted_requests": 50,
+        "rejected_requests": 50,
+        "total_spent_microdollars": 1000000,
+        "remaining_microdollars": 0,
+        "overspend_microdollars": 0,
+        "p50_reservation_ms": 0.062,
+        "p95_reservation_ms": 0.091,
+        "duration_seconds": 0.01
+      },
+      "100": {
+        "concurrency": 100,
+        "requests_dispatched": 100,
+        "accepted_requests": 50,
+        "rejected_requests": 50,
+        "total_spent_microdollars": 1000000,
+        "remaining_microdollars": 0,
+        "overspend_microdollars": 0,
+        "p50_reservation_ms": 0.071,
+        "p95_reservation_ms": 0.157,
+        "duration_seconds": 0.072
+      }
+    },
+    "zero_overspend_verified": true,
+    "boundary_at_zero_passed": true
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "benchmark": "cache_evaluation",
+  "scenario": "exact_cache_and_correctness",
+  "timestamp": "2026-09-30T13:03:52.066824+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 500,
+  "requests_successful": 500,
+  "requests_failed": 0,
+  "duration_seconds": 0.0,
+  "throughput_rps": 403.8,
+  "latency_ms": {
+    "count": 500,
+    "mean": 2.476,
+    "stddev": 44.558,
+    "min": 0.225,
+    "p50": 0.287,
+    "p75": 0.33,
+    "p90": 0.405,
+    "p95": 0.594,
+    "p99": 4.705,
+    "max": 996.969
+  },
+  "details": {
+    "hit_latency_p50_us": 287.0,
+    "hit_latency_p99_us": 4705.0,
+    "mixed_workload_analysis": {
+      "10pct_hits": {
+        "target_hit_ratio": 0.1,
+        "actual_hit_rate": 0.1,
+        "p50_ms": 0.116,
+        "p95_ms": 0.396,
+        "p99_ms": 2.299,
+        "provider_call_reduction_pct": 10.0,
+        "estimated_cost_reduction_pct": 10.0
+      },
+      "25pct_hits": {
+        "target_hit_ratio": 0.25,
+        "actual_hit_rate": 0.25,
+        "p50_ms": 0.171,
+        "p95_ms": 0.471,
+        "p99_ms": 11.237,
+        "provider_call_reduction_pct": 25.0,
+        "estimated_cost_reduction_pct": 25.0
+      },
+      "50pct_hits": {
+        "target_hit_ratio": 0.5,
+        "actual_hit_rate": 0.5,
+        "p50_ms": 0.243,
+        "p95_ms": 0.409,
+        "p99_ms": 0.672,
+        "provider_call_reduction_pct": 50.0,
+        "estimated_cost_reduction_pct": 50.0
+      },
+      "75pct_hits": {
+        "target_hit_ratio": 0.75,
+        "actual_hit_rate": 0.75,
+        "p50_ms": 0.292,
+        "p95_ms": 0.606,
+        "p99_ms": 2.492,
+        "provider_call_reduction_pct": 75.0,
+        "estimated_cost_reduction_pct": 75.0
+      },
+      "90pct_hits": {
+        "target_hit_ratio": 0.9,
+        "actual_hit_rate": 0.9,
+        "p50_ms": 0.317,
+        "p95_ms": 0.547,
+        "p99_ms": 21.139,
+        "provider_call_reduction_pct": 90.0,
+        "estimated_cost_reduction_pct": 90.0
+      }
+    },
+    "correctness_suite": {
+      "identical_request": {
+        "expected": "hit",
+        "actual": "hit",
+        "passed": true
+      },
+      "temperature_change": {
+        "expected": "miss",
+        "actual": "miss",
+        "passed": true
+      },
+      "model_change": {
+        "expected": "miss",
+        "actual": "miss",
+        "passed": true
+      },
+      "system_prompt_change": {
+        "expected": "miss",
+        "actual": "miss",
+        "passed": true
+      },
+      "tools_difference": {
+        "expected": "miss",
+        "actual": "miss",
+        "passed": true
+      },
+      "cross_tenant_isolation": {
+        "expected": "miss",
+        "actual": "miss",
+        "passed": true
+      },
+      "cross_project_isolation": {
+        "expected": "miss",
+        "actual": "miss",
+        "passed": true
+      }
+    },
+    "all_correctness_passed": true,
+    "cross_tenant_leakage_detected": false
+  }
+}

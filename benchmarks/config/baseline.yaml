@@ -1,0 +1,32 @@
+# Baseline Gateway Benchmark Configuration
+# Used for evaluating pure gateway overhead and single/multi-concurrency baseline.
+
+benchmark_name: "gateway_baseline"
+mode: "smoke"  # smoke | full
+
+# Target settings
+base_url: "http://localhost:8000"
+provider_mode: "mock" # mock | external
+allow_external: false
+
+# Execution parameters
+smoke:
+  concurrency_levels: [1, 5, 10]
+  requests_per_level: 100
+  warmup_requests: 20
+  timeout_seconds: 5.0
+  seed: 42
+
+full:
+  concurrency_levels: [1, 5, 10, 25, 50, 100]
+  requests_per_level: 1000
+  warmup_requests: 100
+  timeout_seconds: 15.0
+  seed: 42
+
+# Mock provider configuration for direct vs gateway comparison
+mock_provider:
+  base_latency_seconds: 0.020 # 20ms upstream simulation
+  response_text: "Tollgate baseline benchmark response."
+  prompt_tokens: 15
+  completion_tokens: 8

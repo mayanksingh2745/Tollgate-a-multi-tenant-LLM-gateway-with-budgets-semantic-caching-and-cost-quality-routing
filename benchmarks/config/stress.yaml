@@ -1,0 +1,26 @@
+# High Concurrency, Stress & Fault Injection Benchmark Configuration
+
+benchmark_name: "stress_and_resilience"
+
+concurrency_scaling:
+  levels: [1, 5, 10, 25, 50, 100]
+  requests_per_level: 200
+
+budget_concurrency:
+  concurrency_levels: [10, 50, 100]
+  requests: 300
+  initial_budget_microdollars: 5000000 # $5.00
+  near_zero_budget_microdollars: 50000  # $0.05
+
+rate_limit_concurrency:
+  concurrency_levels: [10, 50]
+  burst_limit: 20
+  rate_per_sec: 10
+
+usage_worker:
+  events_to_generate: 1000
+  batch_size: 50
+
+failure_injection:
+  components: ["redis", "postgres"]
+  duration_seconds: 5.0
