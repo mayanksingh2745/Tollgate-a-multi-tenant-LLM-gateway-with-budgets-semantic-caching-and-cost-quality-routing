@@ -13,7 +13,6 @@ from gateway.src.providers.base import (
 from gateway.src.reliability.backoff import BackoffStrategy
 from gateway.src.reliability.circuit_breaker import (
     CircuitBreakerRegistry,
-    CircuitState,
 )
 from gateway.src.reliability.failure_classifier import FailureCategory, classify_failure
 from gateway.src.reliability.health import ProviderHealthTracker
@@ -31,7 +30,6 @@ from tollgate_core.observability import (
     get_tracer,
     record_circuit_half_open_probe,
     record_circuit_rejection,
-    record_circuit_transition,
     record_stream_duration,
     record_stream_failure,
     record_stream_request,

@@ -31,7 +31,6 @@ from tollgate_core.observability import (
     record_router_duration,
     record_router_error,
     record_router_fallback,
-    record_stream_disconnect,
     record_stream_duration,
     record_stream_failure,
     record_stream_request,

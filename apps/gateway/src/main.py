@@ -64,12 +64,52 @@ async def lifespan(app: FastAPI):
     await close_redis_connection()
 
 
+docs_url = "/docs" if settings.docs_enabled else None
+redoc_url = "/redoc" if settings.docs_enabled else None
+openapi_url = "/openapi.json" if settings.docs_enabled else None
+
 app = FastAPI(
     title="Tollgate LLM Gateway API",
     description="Multi-tenant LLM gateway identity, API key management, and OpenAI-compatible proxy.",
     version="0.2.0",
     lifespan=lifespan,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url,
 )
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    """
+    Enforces HTTP security headers:
+    - X-Content-Type-Options: nosniff
+    - X-Frame-Options: DENY
+    - Referrer-Policy: strict-origin-when-cross-origin
+    - Content-Security-Policy
+    - Strict-Transport-Security (when HTTPS enabled or behind TLS proxy)
+    """
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https://fastapi.tiangolo.com; "
+            "frame-ancestors 'none';"
+        )
+    else:
+        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
+
+    if settings.enable_hsts or request.headers.get("X-Forwarded-Proto") == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    return response
+
 
 
 @app.middleware("http")
@@ -126,7 +166,25 @@ async def observability_middleware(request: Request, call_next):
                 duration_seconds=duration_s,
             )
             record_error(category="internal", status_code=500)
-            raise
+
+            err_resp = JSONResponse(
+                status_code=500,
+                headers={"X-Request-ID": request_id},
+                content=OpenAIErrorResponse(
+                    error=OpenAIErrorDetail(
+                        message="An internal server error occurred.",
+                        type="internal_server_error",
+                        code="internal_error",
+                    )
+                ).model_dump(),
+            )
+            trace_id = get_current_trace_id()
+            if trace_id:
+                err_resp.headers["X-Trace-ID"] = trace_id
+            tp = get_current_traceparent()
+            if tp:
+                err_resp.headers["traceparent"] = tp
+            return err_resp
 
 
 from gateway.src.ratelimit import RateLimitExceeded
@@ -187,12 +245,41 @@ async def budget_exceeded_handler(request: Request, exc: BudgetExceededError):
     )
 
 
-# CORS configuration
+# Global unhandled exception handler ensuring zero error/stack trace leakage
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    req_id = current_request_id.get() or "unknown"
+    record_error(category="internal", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        headers={"X-Request-ID": req_id},
+        content=OpenAIErrorResponse(
+            error=OpenAIErrorDetail(
+                message="An internal server error occurred.",
+                type="internal_server_error",
+                code="internal_error",
+            )
+        ).model_dump(),
+    )
+
+
+# Environment-aware CORS configuration
+cors_origins = list(settings.cors_allowed_origins)
+allow_creds = True
+if "*" in cors_origins:
+    if settings.environment == "production":
+        # Disallow wildcard origin with credentials in production
+        cors_origins = ["https://app.tollgate.ai"]
+        allow_creds = True
+    else:
+        # Development mode: wildcard without credentials to satisfy standard security
+        allow_creds = False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=cors_origins,
+    allow_credentials=allow_creds,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -224,9 +311,9 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "12 - Circuit Breaker & Adaptive Provider Health",
+        "phase": "14 - Security Hardening",
         "status": "online",
-        "docs_url": "/docs",
+        "docs_url": "/docs" if settings.docs_enabled else None,
     }
 
 
@@ -234,5 +321,8 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "gateway.src.main:app", host=settings.gateway_host, port=settings.gateway_port, reload=True
+        "gateway.src.main:app",
+        host=settings.gateway_host,
+        port=settings.gateway_port,
+        reload=(settings.environment == "development"),
     )

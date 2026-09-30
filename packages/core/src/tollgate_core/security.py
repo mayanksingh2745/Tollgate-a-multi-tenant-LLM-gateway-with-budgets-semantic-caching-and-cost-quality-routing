@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 import secrets
-from typing import Tuple
+from typing import Optional, Tuple
 
 try:
     from argon2 import PasswordHasher
@@ -73,3 +73,31 @@ def verify_api_key_hash(raw_key: str, stored_hash: str) -> bool:
     """Constant-time comparison between raw API key hash and stored hash."""
     computed_hash = hash_api_key(raw_key)
     return hmac.compare_digest(computed_hash, stored_hash)
+
+
+def resolve_client_ip(
+    peer_ip: str,
+    x_forwarded_for: Optional[str] = None,
+    trusted_proxies: Optional[list[str]] = None,
+) -> str:
+    """
+    Safely resolves the true client IP in a reverse-proxy topology.
+
+    Never blindly trusts client-supplied headers (e.g. X-Forwarded-For).
+    Only traverses X-Forwarded-For if the immediate peer_ip is present in trusted_proxies.
+    Walks backwards from the rightmost proxy hop, returning the first non-trusted IP.
+    """
+    if not trusted_proxies:
+        trusted_proxies = ["127.0.0.1", "::1"]
+
+    if peer_ip not in trusted_proxies or not x_forwarded_for:
+        return peer_ip
+
+    # Parse comma-separated IPs from right to left
+    hops = [ip.strip() for ip in x_forwarded_for.split(",") if ip.strip()]
+    for hop in reversed(hops):
+        if hop not in trusted_proxies:
+            return hop
+
+    return peer_ip
+

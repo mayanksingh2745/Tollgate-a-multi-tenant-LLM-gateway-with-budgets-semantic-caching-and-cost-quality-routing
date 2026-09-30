@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Tests & Coverage
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Artifacts & Local Data
+artifacts/
+scratch/
+benchmarks/results/
+postgres_data/
+redis_data/
+prometheus_data/
+grafana_data/
+
+# Documentation & IDE
+docs/
+.idea/
+.vscode/
+*.md

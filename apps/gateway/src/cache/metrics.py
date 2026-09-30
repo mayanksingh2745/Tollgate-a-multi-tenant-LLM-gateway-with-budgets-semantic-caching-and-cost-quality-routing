@@ -1,7 +1,6 @@
 import threading
 from typing import Dict, List
 
-
 from tollgate_core.observability import (
     record_cache_error,
     record_cache_operation,

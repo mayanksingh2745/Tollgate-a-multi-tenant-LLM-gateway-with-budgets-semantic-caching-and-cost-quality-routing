@@ -36,7 +36,7 @@ async def get_effective_budget_limits(
 
     project = None
     if project_id:
-        proj_query = select(Project).where(Project.id == project_id)
+        proj_query = select(Project).where(Project.id == project_id, Project.tenant_id == tenant_id)
         proj_res = await db.execute(proj_query)
         project = proj_res.scalars().first()
 

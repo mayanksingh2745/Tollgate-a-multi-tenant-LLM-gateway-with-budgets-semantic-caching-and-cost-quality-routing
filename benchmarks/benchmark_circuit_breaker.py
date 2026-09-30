@@ -25,7 +25,6 @@ for p in [str(root_dir), str(apps_dir), str(core_src)]:
 
 from gateway.src.reliability.circuit_breaker import (
     CircuitBreakerRegistry,
-    CircuitState,
 )
 from gateway.src.reliability.failure_classifier import FailureCategory
 

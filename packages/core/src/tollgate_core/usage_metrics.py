@@ -1,7 +1,6 @@
 import threading
 from typing import Dict, List
 
-
 from tollgate_core.observability import (
     record_worker_dead_lettered,
     record_worker_failed,

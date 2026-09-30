@@ -26,7 +26,8 @@ dependencies = [
     "opentelemetry-sdk>=1.24.0",
     "opentelemetry-exporter-otlp-proto-http>=1.24.0",
     "opentelemetry-instrumentation-fastapi>=0.45b0",
-    "prometheus-client>=0.20.0"
+    "prometheus-client>=0.20.0",
+    "urllib3>=2.8.0"
 ]
 
 [project.optional-dependencies]
@@ -37,7 +38,8 @@ dev = [
     "ruff>=0.3.3",
     "black>=24.3.0",
     "mypy>=1.9.0",
-    "aiosqlite>=0.20.0"
+    "aiosqlite>=0.20.0",
+    "pip-audit>=2.7.0"
 ]
 
 [tool.ruff.lint]

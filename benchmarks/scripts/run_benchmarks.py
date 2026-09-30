@@ -21,10 +21,11 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
-# Ensure repository root is on sys.path
+# Ensure repository root, apps, apps/gateway, and packages/core/src are on sys.path
 root_dir = Path(__file__).resolve().parents[2]
-if str(root_dir) not in sys.path:
-    sys.path.insert(0, str(root_dir))
+for path in [str(root_dir), str(root_dir / "apps"), str(root_dir / "apps" / "gateway"), str(root_dir / "packages" / "core" / "src")]:
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 from benchmarks.scenarios.baseline import run_baseline_benchmark
 from benchmarks.scenarios.budget_concurrency import run_budget_concurrency_benchmark
