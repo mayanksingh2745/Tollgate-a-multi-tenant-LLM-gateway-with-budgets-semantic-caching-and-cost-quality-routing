@@ -51,6 +51,10 @@ class PricingService:
                 input_microdollars_per_million=1_000_000,  # $1.00 / 1M tokens
                 output_microdollars_per_million=2_000_000,  # $2.00 / 1M tokens
             ),
+            "mock-fast": ModelPricing(
+                input_microdollars_per_million=150_000,  # $0.15 / 1M tokens
+                output_microdollars_per_million=300_000,  # $0.30 / 1M tokens
+            ),
             "test-model": ModelPricing(
                 input_microdollars_per_million=1_000_000,
                 output_microdollars_per_million=2_000_000,

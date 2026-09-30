@@ -18,6 +18,7 @@ from gateway.src.config import settings
 from gateway.src.db import get_db
 from gateway.src.providers.base import ProviderException
 from gateway.src.ratelimit import RateLimitResult, rate_limit_dependency
+from gateway.src.router import model_router
 from gateway.src.schemas.chat import (
     ChatCompletionRequest,
     ChatCompletionResponse,
@@ -70,6 +71,7 @@ async def create_chat_completion(
     }
 
     reservation = None
+    routing_decision = None
     try:
         # Resolve deterministic primary provider
         route = gateway_service.registry.get_route(request.model)
@@ -111,6 +113,23 @@ async def create_chat_completion(
         if settings.cache_header_enabled:
             is_cacheable, _ = Canonicalizer.is_cacheable(request)
             headers["X-Tollgate-Cache"] = "BYPASS" if not is_cacheable else "MISS"
+
+        # 2c. Model Router Evaluation (evaluated on cache miss, before budget reservation)
+        routing_decision = await model_router.route(request)
+        if settings.router_enabled and settings.router_mode != "disabled":
+            headers["X-Tollgate-Router-Route"] = routing_decision.route
+            headers["X-Tollgate-Router-Selected-Model"] = routing_decision.selected_model
+            headers["X-Tollgate-Router-Confidence"] = f"{routing_decision.confidence:.4f}"
+            if routing_decision.shadow:
+                headers["X-Tollgate-Router-Shadow"] = "true"
+            if routing_decision.fallback:
+                headers["X-Tollgate-Router-Fallback"] = "true"
+
+        # Apply routing if not in shadow mode
+        if not routing_decision.shadow and routing_decision.selected_model != request.model:
+            request.model = routing_decision.selected_model
+            route = gateway_service.registry.get_route(request.model)
+            provider_name = route.primary.provider_name if route and route.primary else "openai"
 
         # 3. Atomic Budget Reservation (Multi-scope: Tenant + Project)
         limits = await get_effective_budget_limits(
@@ -188,6 +207,24 @@ async def create_chat_completion(
                         latency_ms=stream_latency_ms,
                         attempt_count=1,
                         fallback_used=False,
+                        router_mode=(
+                            settings.router_mode if settings.router_enabled else "disabled"
+                        ),
+                        router_route=(routing_decision.route if routing_decision else None),
+                        router_confidence=(
+                            routing_decision.confidence
+                            if routing_decision and routing_decision.confidence > 0
+                            else None
+                        ),
+                        router_model_version=(
+                            routing_decision.model_version if routing_decision else None
+                        ),
+                        router_fallback=(routing_decision.fallback if routing_decision else False),
+                        original_model=(
+                            routing_decision.original_model
+                            if (routing_decision and routing_decision.original_model)
+                            else request.model
+                        ),
                     )
                     await usage_publisher.publish(usage_event)
                 except Exception as e:
@@ -224,6 +261,26 @@ async def create_chat_completion(
                             latency_ms=stream_latency_ms,
                             attempt_count=1,
                             fallback_used=False,
+                            router_mode=(
+                                settings.router_mode if settings.router_enabled else "disabled"
+                            ),
+                            router_route=(routing_decision.route if routing_decision else None),
+                            router_confidence=(
+                                routing_decision.confidence
+                                if routing_decision and routing_decision.confidence > 0
+                                else None
+                            ),
+                            router_model_version=(
+                                routing_decision.model_version if routing_decision else None
+                            ),
+                            router_fallback=(
+                                routing_decision.fallback if routing_decision else False
+                            ),
+                            original_model=(
+                                routing_decision.original_model
+                                if (routing_decision and routing_decision.original_model)
+                                else request.model
+                            ),
                         )
                         await usage_publisher.publish(usage_event)
                     raise
@@ -279,6 +336,43 @@ async def create_chat_completion(
                 session=db,
             )
 
+            # If model was rewritten from original_model, also cache under original_model
+            # so subsequent requests for original_model hit exact cache directly
+            if (
+                routing_decision
+                and routing_decision.original_model
+                and routing_decision.original_model != request.model
+            ):
+                orig_request = request.model_copy(update={"model": routing_decision.original_model})
+                orig_route = gateway_service.registry.get_route(routing_decision.original_model)
+                orig_prov = (
+                    orig_route.primary.provider_name
+                    if orig_route and orig_route.primary
+                    else final_prov
+                )
+                await exact_cache.set(
+                    request=orig_request,
+                    response=response,
+                    tenant_id=ctx.tenant_id,
+                    project_id=ctx.project_id,
+                    provider=orig_prov,
+                )
+                orig_response_key = await exact_cache.build_cache_key(
+                    request=orig_request,
+                    tenant_id=ctx.tenant_id,
+                    project_id=ctx.project_id,
+                    provider=orig_prov,
+                )
+                await semantic_cache.set(
+                    request=orig_request,
+                    response=response,
+                    response_cache_key=orig_response_key,
+                    tenant_id=ctx.tenant_id,
+                    project_id=ctx.project_id,
+                    provider=orig_prov,
+                    session=db,
+                )
+
             # Publish usage event to Redis Stream (non-blocking, asynchronous)
             usage_event = UsageEventPayload(
                 request_id=request_id,
@@ -298,6 +392,20 @@ async def create_chat_completion(
                 latency_ms=getattr(metadata, "latency_ms", 0.0),
                 attempt_count=metadata.total_attempts,
                 fallback_used=metadata.fallback_used,
+                router_mode=(settings.router_mode if settings.router_enabled else "disabled"),
+                router_route=(routing_decision.route if routing_decision else None),
+                router_confidence=(
+                    routing_decision.confidence
+                    if routing_decision and routing_decision.confidence > 0
+                    else None
+                ),
+                router_model_version=(routing_decision.model_version if routing_decision else None),
+                router_fallback=(routing_decision.fallback if routing_decision else False),
+                original_model=(
+                    routing_decision.original_model
+                    if (routing_decision and routing_decision.original_model)
+                    else request.model
+                ),
             )
             await usage_publisher.publish(usage_event)
 

@@ -1,0 +1,4782 @@
+[
+  {
+    "id": "benchmark_0000",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Name three primary colors. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.941,
+    "quality_strong": 0.954
+  },
+  {
+    "id": "benchmark_0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.318,
+    "quality_strong": 0.899
+  },
+  {
+    "id": "benchmark_0002",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.302,
+    "quality_strong": 0.896
+  },
+  {
+    "id": "benchmark_0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Tell me a short, clean joke about coffee."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.888,
+    "quality_strong": 0.981
+  },
+  {
+    "id": "benchmark_0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Can you say hello in French, Spanish, and German?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.89,
+    "quality_strong": 0.954
+  },
+  {
+    "id": "benchmark_0005",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hi there, good morning!"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.961,
+    "quality_strong": 0.974
+  },
+  {
+    "id": "benchmark_0006",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.579,
+    "quality_strong": 0.888
+  },
+  {
+    "id": "benchmark_0007",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.568,
+    "quality_strong": 0.929
+  },
+  {
+    "id": "benchmark_0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Summarize this in one sentence: An apple is an edible fruit produced by an apple tree."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.945,
+    "quality_strong": 0.996
+  },
+  {
+    "id": "benchmark_0009",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is a synonym for 'happy'?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.987,
+    "quality_strong": 0.966
+  },
+  {
+    "id": "benchmark_0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.333,
+    "quality_strong": 0.979
+  },
+  {
+    "id": "benchmark_0011",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Convert 68 Fahrenheit to Celsius. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.976,
+    "quality_strong": 0.989
+  },
+  {
+    "id": "benchmark_0012",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.367,
+    "quality_strong": 0.866
+  },
+  {
+    "id": "benchmark_0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Is 'apple' a fruit or a vegetable?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.985,
+    "quality_strong": 0.99
+  },
+  {
+    "id": "benchmark_0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Capitalize the following title: 'the great gatsby' Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.968,
+    "quality_strong": 0.989
+  },
+  {
+    "id": "benchmark_0015",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.463,
+    "quality_strong": 0.929
+  },
+  {
+    "id": "benchmark_0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the boiling point of water in Celsius?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.944,
+    "quality_strong": 0.972
+  },
+  {
+    "id": "benchmark_0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.455,
+    "quality_strong": 0.962
+  },
+  {
+    "id": "benchmark_0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.325,
+    "quality_strong": 0.872
+  },
+  {
+    "id": "benchmark_0019",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.381,
+    "quality_strong": 0.94
+  },
+  {
+    "id": "benchmark_0020",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Give me an inspiring quote for Monday morning. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.983,
+    "quality_strong": 0.99
+  },
+  {
+    "id": "benchmark_0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Fix spelling: 'The restaraunt was beautifull.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.904,
+    "quality_strong": 0.952
+  },
+  {
+    "id": "benchmark_0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Proofread this sentence: 'They went to there house yesterday.' Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.925,
+    "quality_strong": 0.97
+  },
+  {
+    "id": "benchmark_0023",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.623,
+    "quality_strong": 0.916
+  },
+  {
+    "id": "benchmark_0024",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.522,
+    "quality_strong": 0.963
+  },
+  {
+    "id": "benchmark_0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! How are you today? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.944,
+    "quality_strong": 0.962
+  },
+  {
+    "id": "benchmark_0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.633,
+    "quality_strong": 0.98
+  },
+  {
+    "id": "benchmark_0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.587,
+    "quality_strong": 0.978
+  },
+  {
+    "id": "benchmark_0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Define the word 'serendipity'."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.983,
+    "quality_strong": 0.974
+  },
+  {
+    "id": "benchmark_0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.459,
+    "quality_strong": 0.939
+  },
+  {
+    "id": "benchmark_0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.605,
+    "quality_strong": 0.925
+  },
+  {
+    "id": "benchmark_0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the currency of Japan?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.898,
+    "quality_strong": 0.95
+  },
+  {
+    "id": "benchmark_0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many days are in a leap year? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.913,
+    "quality_strong": 0.973
+  },
+  {
+    "id": "benchmark_0033",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Capitalize the following title: 'the great gatsby'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.922,
+    "quality_strong": 0.999
+  },
+  {
+    "id": "benchmark_0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Good evening! Hope you had a nice day."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.909,
+    "quality_strong": 0.99
+  },
+  {
+    "id": "benchmark_0035",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is the chemical symbol for gold?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.884,
+    "quality_strong": 0.945
+  },
+  {
+    "id": "benchmark_0036",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Make this email polite: 'Send the report now.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.907,
+    "quality_strong": 0.965
+  },
+  {
+    "id": "benchmark_0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the speed of light in vacuum? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.979,
+    "quality_strong": 0.937
+  },
+  {
+    "id": "benchmark_0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many continents are there?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.973,
+    "quality_strong": 0.982
+  },
+  {
+    "id": "benchmark_0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Hello! How are you today?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.939,
+    "quality_strong": 0.982
+  },
+  {
+    "id": "benchmark_0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the speed of light in vacuum?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.926,
+    "quality_strong": 0.942
+  },
+  {
+    "id": "benchmark_0041",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Write a haiku about autumn leaves. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.901,
+    "quality_strong": 0.946
+  },
+  {
+    "id": "benchmark_0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.522,
+    "quality_strong": 0.958
+  },
+  {
+    "id": "benchmark_0043",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Quick question: Can you say hello in French, Spanish, and German?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.958,
+    "quality_strong": 0.92
+  },
+  {
+    "id": "benchmark_0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.584,
+    "quality_strong": 0.9
+  },
+  {
+    "id": "benchmark_0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.462,
+    "quality_strong": 0.865
+  },
+  {
+    "id": "benchmark_0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.315,
+    "quality_strong": 0.947
+  },
+  {
+    "id": "benchmark_0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.542,
+    "quality_strong": 0.934
+  },
+  {
+    "id": "benchmark_0048",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.521,
+    "quality_strong": 0.97
+  },
+  {
+    "id": "benchmark_0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: How many days are in a leap year?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.951,
+    "quality_strong": 0.955
+  },
+  {
+    "id": "benchmark_0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.439,
+    "quality_strong": 0.943
+  },
+  {
+    "id": "benchmark_0051",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the primary ingredient in guacamole?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.929,
+    "quality_strong": 0.937
+  },
+  {
+    "id": "benchmark_0052",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Turn this into a bullet point: Today we discussed the budget, the timeline, and the hiring plan."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.949,
+    "quality_strong": 0.983
+  },
+  {
+    "id": "benchmark_0053",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Fix spelling: 'The restaraunt was beautifull.' Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.961,
+    "quality_strong": 0.947
+  },
+  {
+    "id": "benchmark_0054",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.497,
+    "quality_strong": 0.878
+  },
+  {
+    "id": "benchmark_0055",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.394,
+    "quality_strong": 0.961
+  },
+  {
+    "id": "benchmark_0056",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the capital of France? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.957,
+    "quality_strong": 0.969
+  },
+  {
+    "id": "benchmark_0057",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Can you say hello in French, Spanish, and German?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.982,
+    "quality_strong": 0.99
+  },
+  {
+    "id": "benchmark_0058",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is your name and what can you help me with?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.954,
+    "quality_strong": 0.949
+  },
+  {
+    "id": "benchmark_0059",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.588,
+    "quality_strong": 0.864
+  },
+  {
+    "id": "benchmark_0060",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.605,
+    "quality_strong": 0.855
+  },
+  {
+    "id": "benchmark_0061",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.31,
+    "quality_strong": 0.961
+  },
+  {
+    "id": "benchmark_0062",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Hi there, good morning!"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.922,
+    "quality_strong": 0.966
+  },
+  {
+    "id": "benchmark_0063",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.327,
+    "quality_strong": 0.887
+  },
+  {
+    "id": "benchmark_0064",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.344,
+    "quality_strong": 0.94
+  },
+  {
+    "id": "benchmark_0065",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is photosynthesis in one sentence? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.91,
+    "quality_strong": 0.92
+  },
+  {
+    "id": "benchmark_0066",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Thank you so much for your help!"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.914,
+    "quality_strong": 0.925
+  },
+  {
+    "id": "benchmark_0067",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.458,
+    "quality_strong": 0.927
+  },
+  {
+    "id": "benchmark_0068",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Good evening! Hope you had a nice day."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.914,
+    "quality_strong": 0.953
+  },
+  {
+    "id": "benchmark_0069",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.577,
+    "quality_strong": 0.872
+  },
+  {
+    "id": "benchmark_0070",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Classify as fiction or non-fiction: 'A brief history of time'. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.892,
+    "quality_strong": 0.955
+  },
+  {
+    "id": "benchmark_0071",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.63,
+    "quality_strong": 0.915
+  },
+  {
+    "id": "benchmark_0072",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.381,
+    "quality_strong": 0.942
+  },
+  {
+    "id": "benchmark_0073",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is the largest ocean on Earth?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.912,
+    "quality_strong": 0.926
+  },
+  {
+    "id": "benchmark_0074",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.599,
+    "quality_strong": 0.974
+  },
+  {
+    "id": "benchmark_0075",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.602,
+    "quality_strong": 0.886
+  },
+  {
+    "id": "benchmark_0076",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.525,
+    "quality_strong": 0.868
+  },
+  {
+    "id": "benchmark_0077",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.33,
+    "quality_strong": 0.965
+  },
+  {
+    "id": "benchmark_0078",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Quick question: Proofread this sentence: 'They went to there house yesterday.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.907,
+    "quality_strong": 0.988
+  },
+  {
+    "id": "benchmark_0079",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.587,
+    "quality_strong": 0.887
+  },
+  {
+    "id": "benchmark_0080",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Is 'apple' a fruit or a vegetable?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.986,
+    "quality_strong": 0.926
+  },
+  {
+    "id": "benchmark_0081",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.414,
+    "quality_strong": 0.949
+  },
+  {
+    "id": "benchmark_0082",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.582,
+    "quality_strong": 0.967
+  },
+  {
+    "id": "benchmark_0083",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.605,
+    "quality_strong": 0.931
+  },
+  {
+    "id": "benchmark_0084",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Write a haiku about autumn leaves."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.962,
+    "quality_strong": 0.925
+  },
+  {
+    "id": "benchmark_0085",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi there, good morning! Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.902,
+    "quality_strong": 0.977
+  },
+  {
+    "id": "benchmark_0086",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Classify as fiction or non-fiction: 'A brief history of time'."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.945,
+    "quality_strong": 0.97
+  },
+  {
+    "id": "benchmark_0087",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.454,
+    "quality_strong": 0.874
+  },
+  {
+    "id": "benchmark_0088",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.598,
+    "quality_strong": 0.962
+  },
+  {
+    "id": "benchmark_0089",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.472,
+    "quality_strong": 0.862
+  },
+  {
+    "id": "benchmark_0090",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Name three primary colors."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.947,
+    "quality_strong": 0.934
+  },
+  {
+    "id": "benchmark_0091",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.641,
+    "quality_strong": 0.922
+  },
+  {
+    "id": "benchmark_0092",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Hi there, good morning!"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.88,
+    "quality_strong": 0.946
+  },
+  {
+    "id": "benchmark_0093",
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many days are in a leap year?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.96,
+    "quality_strong": 0.963
+  },
+  {
+    "id": "benchmark_0094",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.344,
+    "quality_strong": 0.963
+  },
+  {
+    "id": "benchmark_0095",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.361,
+    "quality_strong": 0.86
+  },
+  {
+    "id": "benchmark_0096",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is photosynthesis in one sentence?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.917,
+    "quality_strong": 0.985
+  },
+  {
+    "id": "benchmark_0097",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.6,
+    "quality_strong": 0.95
+  },
+  {
+    "id": "benchmark_0098",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.379,
+    "quality_strong": 0.918
+  },
+  {
+    "id": "benchmark_0099",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Good evening! Hope you had a nice day. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.921,
+    "quality_strong": 0.933
+  },
+  {
+    "id": "benchmark_0100",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.319,
+    "quality_strong": 0.869
+  },
+  {
+    "id": "benchmark_0101",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Who painted the Mona Lisa?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.893,
+    "quality_strong": 0.938
+  },
+  {
+    "id": "benchmark_0102",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: How many continents are there?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.924,
+    "quality_strong": 0.947
+  },
+  {
+    "id": "benchmark_0103",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Good evening! Hope you had a nice day."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.917,
+    "quality_strong": 0.932
+  },
+  {
+    "id": "benchmark_0104",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.567,
+    "quality_strong": 0.874
+  },
+  {
+    "id": "benchmark_0105",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the largest ocean on Earth?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.979,
+    "quality_strong": 0.984
+  },
+  {
+    "id": "benchmark_0106",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.385,
+    "quality_strong": 0.922
+  },
+  {
+    "id": "benchmark_0107",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.474,
+    "quality_strong": 0.943
+  },
+  {
+    "id": "benchmark_0108",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Make this email polite: 'Send the report now.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.972,
+    "quality_strong": 0.998
+  },
+  {
+    "id": "benchmark_0109",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.394,
+    "quality_strong": 0.855
+  },
+  {
+    "id": "benchmark_0110",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Turn this into a bullet point: Today we discussed the budget, the timeline, and the hiring plan. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.909,
+    "quality_strong": 0.983
+  },
+  {
+    "id": "benchmark_0111",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What does CPU stand for? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.94,
+    "quality_strong": 0.987
+  },
+  {
+    "id": "benchmark_0112",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the primary ingredient in guacamole? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.959,
+    "quality_strong": 0.936
+  },
+  {
+    "id": "benchmark_0113",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.407,
+    "quality_strong": 0.931
+  },
+  {
+    "id": "benchmark_0114",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Which is bigger: a kilowatt or a megawatt?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.893,
+    "quality_strong": 0.991
+  },
+  {
+    "id": "benchmark_0115",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.506,
+    "quality_strong": 0.933
+  },
+  {
+    "id": "benchmark_0116",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the chemical symbol for gold?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.881,
+    "quality_strong": 0.98
+  },
+  {
+    "id": "benchmark_0117",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Thank you so much for your help!"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.939,
+    "quality_strong": 0.978
+  },
+  {
+    "id": "benchmark_0118",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: How many days are in a leap year?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.948,
+    "quality_strong": 0.944
+  },
+  {
+    "id": "benchmark_0119",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Classify the sentiment: 'I absolutely love this new coffee machine!'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.935,
+    "quality_strong": 0.988
+  },
+  {
+    "id": "benchmark_0120",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Proofread this sentence: 'They went to there house yesterday.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.941,
+    "quality_strong": 0.924
+  },
+  {
+    "id": "benchmark_0121",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.453,
+    "quality_strong": 0.941
+  },
+  {
+    "id": "benchmark_0122",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.395,
+    "quality_strong": 0.883
+  },
+  {
+    "id": "benchmark_0123",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What year did Apollo 11 land on the Moon?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.932,
+    "quality_strong": 0.983
+  },
+  {
+    "id": "benchmark_0124",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Quick question: Who wrote 'Romeo and Juliet'?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.889,
+    "quality_strong": 0.961
+  },
+  {
+    "id": "benchmark_0125",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.493,
+    "quality_strong": 0.921
+  },
+  {
+    "id": "benchmark_0126",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.328,
+    "quality_strong": 0.855
+  },
+  {
+    "id": "benchmark_0127",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.368,
+    "quality_strong": 0.88
+  },
+  {
+    "id": "benchmark_0128",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.304,
+    "quality_strong": 0.973
+  },
+  {
+    "id": "benchmark_0129",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.627,
+    "quality_strong": 0.905
+  },
+  {
+    "id": "benchmark_0130",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the primary ingredient in guacamole?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.958,
+    "quality_strong": 0.924
+  },
+  {
+    "id": "benchmark_0131",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.465,
+    "quality_strong": 0.935
+  },
+  {
+    "id": "benchmark_0132",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.412,
+    "quality_strong": 0.92
+  },
+  {
+    "id": "benchmark_0133",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.355,
+    "quality_strong": 0.907
+  },
+  {
+    "id": "benchmark_0134",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Can you say hello in French, Spanish, and German? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.924,
+    "quality_strong": 0.974
+  },
+  {
+    "id": "benchmark_0135",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.409,
+    "quality_strong": 0.938
+  },
+  {
+    "id": "benchmark_0136",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.573,
+    "quality_strong": 0.935
+  },
+  {
+    "id": "benchmark_0137",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.445,
+    "quality_strong": 0.874
+  },
+  {
+    "id": "benchmark_0138",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.374,
+    "quality_strong": 0.954
+  },
+  {
+    "id": "benchmark_0139",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.527,
+    "quality_strong": 0.968
+  },
+  {
+    "id": "benchmark_0140",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Fix spelling: 'The restaraunt was beautifull.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.904,
+    "quality_strong": 1.0
+  },
+  {
+    "id": "benchmark_0141",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is your name and what can you help me with?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.984,
+    "quality_strong": 0.927
+  },
+  {
+    "id": "benchmark_0142",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Name the planets in our solar system in order from the Sun."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.982,
+    "quality_strong": 0.955
+  },
+  {
+    "id": "benchmark_0143",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.552,
+    "quality_strong": 0.914
+  },
+  {
+    "id": "benchmark_0144",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is a synonym for 'happy'?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.881,
+    "quality_strong": 0.978
+  },
+  {
+    "id": "benchmark_0145",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Fix spelling: 'The restaraunt was beautifull.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.947,
+    "quality_strong": 0.978
+  },
+  {
+    "id": "benchmark_0146",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.355,
+    "quality_strong": 0.922
+  },
+  {
+    "id": "benchmark_0147",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! How are you today?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.883,
+    "quality_strong": 0.942
+  },
+  {
+    "id": "benchmark_0148",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Is 17 a prime number?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.935,
+    "quality_strong": 0.934
+  },
+  {
+    "id": "benchmark_0149",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.505,
+    "quality_strong": 0.98
+  },
+  {
+    "id": "benchmark_0150",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.562,
+    "quality_strong": 0.924
+  },
+  {
+    "id": "benchmark_0151",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.57,
+    "quality_strong": 0.961
+  },
+  {
+    "id": "benchmark_0152",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.608,
+    "quality_strong": 0.941
+  },
+  {
+    "id": "benchmark_0153",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the primary ingredient in guacamole?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.888,
+    "quality_strong": 0.97
+  },
+  {
+    "id": "benchmark_0154",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: How many continents are there?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.934,
+    "quality_strong": 0.94
+  },
+  {
+    "id": "benchmark_0155",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.542,
+    "quality_strong": 0.934
+  },
+  {
+    "id": "benchmark_0156",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the boiling point of water in Celsius?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.945,
+    "quality_strong": 0.938
+  },
+  {
+    "id": "benchmark_0157",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Quick question: Name the planets in our solar system in order from the Sun."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.985,
+    "quality_strong": 0.961
+  },
+  {
+    "id": "benchmark_0158",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Suggest 3 baby names that start with the letter M."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.938,
+    "quality_strong": 0.998
+  },
+  {
+    "id": "benchmark_0159",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the chemical symbol for gold?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.907,
+    "quality_strong": 0.935
+  },
+  {
+    "id": "benchmark_0160",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tell me a short, clean joke about coffee. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.888,
+    "quality_strong": 0.937
+  },
+  {
+    "id": "benchmark_0161",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the boiling point of water in Celsius?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.948,
+    "quality_strong": 0.989
+  },
+  {
+    "id": "benchmark_0162",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tell me a short, clean joke about coffee."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.904,
+    "quality_strong": 0.967
+  },
+  {
+    "id": "benchmark_0163",
+    "messages": [
+      {
+        "role": "user",
+        "content": "A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.482,
+    "quality_strong": 0.931
+  },
+  {
+    "id": "benchmark_0164",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.396,
+    "quality_strong": 0.959
+  },
+  {
+    "id": "benchmark_0165",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.31,
+    "quality_strong": 0.894
+  },
+  {
+    "id": "benchmark_0166",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the largest ocean on Earth?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.98,
+    "quality_strong": 0.989
+  },
+  {
+    "id": "benchmark_0167",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is the speed of light in vacuum?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.903,
+    "quality_strong": 0.995
+  },
+  {
+    "id": "benchmark_0168",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.561,
+    "quality_strong": 0.893
+  },
+  {
+    "id": "benchmark_0169",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Transform this JSON API response into OpenAPI 3.1.0 YAML schema with components and security schemes: {\"status\": \"ok\", \"data\": {\"session_token\": \"xyz\", \"expires_at\": 1700000000, \"scopes\": [\"read\", \"write\"]}}"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_transformation",
+    "quality_cheap": 0.459,
+    "quality_strong": 0.891
+  },
+  {
+    "id": "benchmark_0170",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the capital of France?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.903,
+    "quality_strong": 0.963
+  },
+  {
+    "id": "benchmark_0171",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.561,
+    "quality_strong": 0.906
+  },
+  {
+    "id": "benchmark_0172",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.565,
+    "quality_strong": 0.931
+  },
+  {
+    "id": "benchmark_0173",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Who wrote 'Romeo and Juliet'?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.891,
+    "quality_strong": 0.942
+  },
+  {
+    "id": "benchmark_0174",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Who painted the Mona Lisa? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.895,
+    "quality_strong": 0.929
+  },
+  {
+    "id": "benchmark_0175",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.576,
+    "quality_strong": 0.931
+  },
+  {
+    "id": "benchmark_0176",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.352,
+    "quality_strong": 0.92
+  },
+  {
+    "id": "benchmark_0177",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.342,
+    "quality_strong": 0.978
+  },
+  {
+    "id": "benchmark_0178",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.632,
+    "quality_strong": 0.876
+  },
+  {
+    "id": "benchmark_0179",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.469,
+    "quality_strong": 0.907
+  },
+  {
+    "id": "benchmark_0180",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is the boiling point of water in Celsius? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.941,
+    "quality_strong": 0.942
+  },
+  {
+    "id": "benchmark_0181",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.469,
+    "quality_strong": 0.944
+  },
+  {
+    "id": "benchmark_0182",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.542,
+    "quality_strong": 0.932
+  },
+  {
+    "id": "benchmark_0183",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is a synonym for 'happy'? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.967,
+    "quality_strong": 0.938
+  },
+  {
+    "id": "benchmark_0184",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Who wrote 'Romeo and Juliet'?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.906,
+    "quality_strong": 0.974
+  },
+  {
+    "id": "benchmark_0185",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.466,
+    "quality_strong": 0.919
+  },
+  {
+    "id": "benchmark_0186",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.353,
+    "quality_strong": 0.866
+  },
+  {
+    "id": "benchmark_0187",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the capital of France?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.917,
+    "quality_strong": 0.927
+  },
+  {
+    "id": "benchmark_0188",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Convert 68 Fahrenheit to Celsius."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.985,
+    "quality_strong": 1.0
+  },
+  {
+    "id": "benchmark_0189",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.44,
+    "quality_strong": 0.86
+  },
+  {
+    "id": "benchmark_0190",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.446,
+    "quality_strong": 0.877
+  },
+  {
+    "id": "benchmark_0191",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Quick question: Tell me a short, clean joke about coffee."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.953,
+    "quality_strong": 0.946
+  },
+  {
+    "id": "benchmark_0192",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.389,
+    "quality_strong": 0.883
+  },
+  {
+    "id": "benchmark_0193",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.313,
+    "quality_strong": 0.915
+  },
+  {
+    "id": "benchmark_0194",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Make this email polite: 'Send the report now.' Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.982,
+    "quality_strong": 0.989
+  },
+  {
+    "id": "benchmark_0195",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Classify as fiction or non-fiction: 'A brief history of time'."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.947,
+    "quality_strong": 0.932
+  },
+  {
+    "id": "benchmark_0196",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Refactor this recursive Fibonacci implementation to use matrix exponentiation for O(log n) time complexity. ```python\ndef fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_refactoring",
+    "quality_cheap": 0.464,
+    "quality_strong": 0.976
+  },
+  {
+    "id": "benchmark_0197",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.619,
+    "quality_strong": 0.869
+  },
+  {
+    "id": "benchmark_0198",
+    "messages": [
+      {
+        "role": "user",
+        "content": "A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.56,
+    "quality_strong": 0.912
+  },
+  {
+    "id": "benchmark_0199",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Summarize this in one sentence: An apple is an edible fruit produced by an apple tree. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.969,
+    "quality_strong": 0.991
+  },
+  {
+    "id": "benchmark_0200",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Quick question: Name three primary colors."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.883,
+    "quality_strong": 0.94
+  },
+  {
+    "id": "benchmark_0201",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.568,
+    "quality_strong": 0.872
+  },
+  {
+    "id": "benchmark_0202",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.452,
+    "quality_strong": 0.945
+  },
+  {
+    "id": "benchmark_0203",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.563,
+    "quality_strong": 0.958
+  },
+  {
+    "id": "benchmark_0204",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.415,
+    "quality_strong": 0.94
+  },
+  {
+    "id": "benchmark_0205",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.631,
+    "quality_strong": 0.956
+  },
+  {
+    "id": "benchmark_0206",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is the currency of Japan? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.888,
+    "quality_strong": 0.991
+  },
+  {
+    "id": "benchmark_0207",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a haiku about autumn leaves."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.939,
+    "quality_strong": 0.941
+  },
+  {
+    "id": "benchmark_0208",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.64,
+    "quality_strong": 0.903
+  },
+  {
+    "id": "benchmark_0209",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What does CPU stand for?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.954,
+    "quality_strong": 0.999
+  },
+  {
+    "id": "benchmark_0210",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Name the planets in our solar system in order from the Sun."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.915,
+    "quality_strong": 0.972
+  },
+  {
+    "id": "benchmark_0211",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.629,
+    "quality_strong": 0.912
+  },
+  {
+    "id": "benchmark_0212",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Give me an inspiring quote for Monday morning."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.973,
+    "quality_strong": 0.978
+  },
+  {
+    "id": "benchmark_0213",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.406,
+    "quality_strong": 0.979
+  },
+  {
+    "id": "benchmark_0214",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Define the word 'serendipity'."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.973,
+    "quality_strong": 0.968
+  },
+  {
+    "id": "benchmark_0215",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.435,
+    "quality_strong": 0.913
+  },
+  {
+    "id": "benchmark_0216",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Classify the sentiment: 'I absolutely love this new coffee machine!'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.892,
+    "quality_strong": 0.955
+  },
+  {
+    "id": "benchmark_0217",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Capitalize the following title: 'the great gatsby'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.89,
+    "quality_strong": 0.924
+  },
+  {
+    "id": "benchmark_0218",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Name the planets in our solar system in order from the Sun. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.891,
+    "quality_strong": 0.982
+  },
+  {
+    "id": "benchmark_0219",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.345,
+    "quality_strong": 0.931
+  },
+  {
+    "id": "benchmark_0220",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Is 17 a prime number?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.945,
+    "quality_strong": 0.974
+  },
+  {
+    "id": "benchmark_0221",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.562,
+    "quality_strong": 0.865
+  },
+  {
+    "id": "benchmark_0222",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Which is bigger: a kilowatt or a megawatt? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.9,
+    "quality_strong": 0.997
+  },
+  {
+    "id": "benchmark_0223",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.637,
+    "quality_strong": 0.959
+  },
+  {
+    "id": "benchmark_0224",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a robust generic retry decorator in TypeScript that handles exponential backoff with jitter and abort signals. ```typescript\nasync function retry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.562,
+    "quality_strong": 0.921
+  },
+  {
+    "id": "benchmark_0225",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is photosynthesis in one sentence?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.92,
+    "quality_strong": 0.95
+  },
+  {
+    "id": "benchmark_0226",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Design a distributed event-driven billing architecture capable of processing 100,000 transactions per second. Address idempotent consumer design, out-of-order event resolution, double-entry ledger invariant verification, and disaster recovery across two cloud regions."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "architecture_design",
+    "quality_cheap": 0.442,
+    "quality_strong": 0.871
+  },
+  {
+    "id": "benchmark_0227",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is photosynthesis in one sentence?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.895,
+    "quality_strong": 0.995
+  },
+  {
+    "id": "benchmark_0228",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.322,
+    "quality_strong": 0.903
+  },
+  {
+    "id": "benchmark_0229",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Thank you so much for your help! Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.915,
+    "quality_strong": 0.98
+  },
+  {
+    "id": "benchmark_0230",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the speed of light in vacuum?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.892,
+    "quality_strong": 0.954
+  },
+  {
+    "id": "benchmark_0231",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.374,
+    "quality_strong": 0.936
+  },
+  {
+    "id": "benchmark_0232",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.411,
+    "quality_strong": 0.943
+  },
+  {
+    "id": "benchmark_0233",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Give me an inspiring quote for Monday morning."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.881,
+    "quality_strong": 0.984
+  },
+  {
+    "id": "benchmark_0234",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Hello! How are you today?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.915,
+    "quality_strong": 0.968
+  },
+  {
+    "id": "benchmark_0235",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: What is the currency of Japan?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.927,
+    "quality_strong": 0.957
+  },
+  {
+    "id": "benchmark_0236",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.364,
+    "quality_strong": 0.926
+  },
+  {
+    "id": "benchmark_0237",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Summarize this in one sentence: An apple is an edible fruit produced by an apple tree."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.944,
+    "quality_strong": 0.992
+  },
+  {
+    "id": "benchmark_0238",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Who wrote 'Romeo and Juliet'? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.973,
+    "quality_strong": 0.927
+  },
+  {
+    "id": "benchmark_0239",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.377,
+    "quality_strong": 0.879
+  },
+  {
+    "id": "benchmark_0240",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.484,
+    "quality_strong": 0.887
+  },
+  {
+    "id": "benchmark_0241",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.543,
+    "quality_strong": 0.967
+  },
+  {
+    "id": "benchmark_0242",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Capitalize the following title: 'the great gatsby'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.971,
+    "quality_strong": 0.964
+  },
+  {
+    "id": "benchmark_0243",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Analyze the security implications of utilizing JWTs vs opaque bearer tokens stored in Redis for distributed sessions. Compare revocation latency, replay attack mitigations, CSRF defenses, and cryptographic key rotation under CVE-2015-9235."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "security_analysis",
+    "quality_cheap": 0.646,
+    "quality_strong": 0.935
+  },
+  {
+    "id": "benchmark_0244",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.445,
+    "quality_strong": 0.971
+  },
+  {
+    "id": "benchmark_0245",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.395,
+    "quality_strong": 0.955
+  },
+  {
+    "id": "benchmark_0246",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Write a PostgreSQL query with CTEs to calculate 30-day rolling customer churn. SELECT customer_id, signup_date FROM subscriptions WHERE status = 'active' GROUP BY customer_id ORDER BY signup_date DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.329,
+    "quality_strong": 0.853
+  },
+  {
+    "id": "benchmark_0247",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the largest ocean on Earth? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.909,
+    "quality_strong": 0.959
+  },
+  {
+    "id": "benchmark_0248",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Is 'apple' a fruit or a vegetable? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.924,
+    "quality_strong": 0.998
+  },
+  {
+    "id": "benchmark_0249",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Convert 68 Fahrenheit to Celsius."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.887,
+    "quality_strong": 0.951
+  },
+  {
+    "id": "benchmark_0250",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What year did Apollo 11 land on the Moon?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.954,
+    "quality_strong": 0.938
+  },
+  {
+    "id": "benchmark_0251",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.5,
+    "quality_strong": 0.88
+  },
+  {
+    "id": "benchmark_0252",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Thank you so much for your help!"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.904,
+    "quality_strong": 0.96
+  },
+  {
+    "id": "benchmark_0253",
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many continents are there? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.896,
+    "quality_strong": 0.93
+  },
+  {
+    "id": "benchmark_0254",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.388,
+    "quality_strong": 0.96
+  },
+  {
+    "id": "benchmark_0255",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.484,
+    "quality_strong": 0.909
+  },
+  {
+    "id": "benchmark_0256",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.413,
+    "quality_strong": 0.875
+  },
+  {
+    "id": "benchmark_0257",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.542,
+    "quality_strong": 0.89
+  },
+  {
+    "id": "benchmark_0258",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Classify the sentiment: 'I absolutely love this new coffee machine!' Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.986,
+    "quality_strong": 0.942
+  },
+  {
+    "id": "benchmark_0259",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Suggest 3 baby names that start with the letter M."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.959,
+    "quality_strong": 0.932
+  },
+  {
+    "id": "benchmark_0260",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Which is bigger: a kilowatt or a megawatt?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.976,
+    "quality_strong": 0.944
+  },
+  {
+    "id": "benchmark_0261",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.413,
+    "quality_strong": 0.883
+  },
+  {
+    "id": "benchmark_0262",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Name three primary colors."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.901,
+    "quality_strong": 0.928
+  },
+  {
+    "id": "benchmark_0263",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Construct an optimized SQL query joining `orders`, `order_items`, and `products`. SELECT p.category, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders o JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' GROUP BY p.category HAVING SUM(oi.quantity * oi.unit_price) > 10000 ORDER BY total_revenue DESC;"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_query",
+    "quality_cheap": 0.65,
+    "quality_strong": 0.895
+  },
+  {
+    "id": "benchmark_0264",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.604,
+    "quality_strong": 0.964
+  },
+  {
+    "id": "benchmark_0265",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.417,
+    "quality_strong": 0.937
+  },
+  {
+    "id": "benchmark_0266",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Who painted the Mona Lisa?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.88,
+    "quality_strong": 0.943
+  },
+  {
+    "id": "benchmark_0267",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is your name and what can you help me with? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.93,
+    "quality_strong": 1.0
+  },
+  {
+    "id": "benchmark_0268",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the currency of Japan?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.973,
+    "quality_strong": 0.926
+  },
+  {
+    "id": "benchmark_0269",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Evaluate the limit as x approaches 0 of (sin(3x) - 3x) / x^3 using L'Hopital's Rule or Taylor series expansion."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_analysis",
+    "quality_cheap": 0.641,
+    "quality_strong": 0.929
+  },
+  {
+    "id": "benchmark_0270",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.477,
+    "quality_strong": 0.894
+  },
+  {
+    "id": "benchmark_0271",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Implement a thread-safe token bucket rate limiter in Python using asyncio and Redis. ```python\nclass TokenBucketRateLimiter:\n    async def acquire(self, key: str, tokens: int) -> bool:\n        pass\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_generation",
+    "quality_cheap": 0.443,
+    "quality_strong": 0.935
+  },
+  {
+    "id": "benchmark_0272",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the chemical symbol for gold? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.979,
+    "quality_strong": 0.984
+  },
+  {
+    "id": "benchmark_0273",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Define the word 'serendipity'. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.952,
+    "quality_strong": 0.921
+  },
+  {
+    "id": "benchmark_0274",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Review this code for race conditions and memory leaks in C++ smart pointers: ```cpp\nstd::shared_ptr<Node> a = std::make_shared<Node>();\nstd::shared_ptr<Node> b = std::make_shared<Node>();\na->next = b;\nb->prev = a;\n```"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "code_review",
+    "quality_cheap": 0.305,
+    "quality_strong": 0.919
+  },
+  {
+    "id": "benchmark_0275",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: A train leaves Station A at 60 km/h. Two hours later, a second train leaves Station A traveling at 90 km/h on the same track. At what distance from Station A will the second train overtake the first? Solve step-by-step: 60 * (t + 2) = 90 * t."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_reasoning",
+    "quality_cheap": 0.438,
+    "quality_strong": 0.923
+  },
+  {
+    "id": "benchmark_0276",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.5,
+    "quality_strong": 0.925
+  },
+  {
+    "id": "benchmark_0277",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Give me an inspiring quote for Monday morning."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.894,
+    "quality_strong": 0.958
+  },
+  {
+    "id": "benchmark_0278",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Summarize this in one sentence: An apple is an edible fruit produced by an apple tree."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.973,
+    "quality_strong": 0.933
+  },
+  {
+    "id": "benchmark_0279",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.422,
+    "quality_strong": 0.906
+  },
+  {
+    "id": "benchmark_0280",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What year did Apollo 11 land on the Moon?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.909,
+    "quality_strong": 0.995
+  },
+  {
+    "id": "benchmark_0281",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Write an idempotent PostgreSQL migration to create an index concurrently on tenant_id and created_at. CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_created ON events(tenant_id, created_at);"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_migration",
+    "quality_cheap": 0.559,
+    "quality_strong": 0.973
+  },
+  {
+    "id": "benchmark_0282",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain the execution plan differences between Hash Join, Nested Loop, and Merge Join in PostgreSQL. Include indexing strategies for EXPLAIN ANALYZE SELECT * FROM users JOIN orders ON users.id = orders.user_id."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "sql_optimization",
+    "quality_cheap": 0.617,
+    "quality_strong": 0.926
+  },
+  {
+    "id": "benchmark_0283",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What does CPU stand for?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.95,
+    "quality_strong": 0.965
+  },
+  {
+    "id": "benchmark_0284",
+    "messages": [
+      {
+        "role": "user",
+        "content": "In 20 words or less: Define the word 'serendipity'."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.902,
+    "quality_strong": 0.945
+  },
+  {
+    "id": "benchmark_0285",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "In 20 words or less: Turn this into a bullet point: Today we discussed the budget, the timeline, and the hiring plan."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.966,
+    "quality_strong": 0.956
+  },
+  {
+    "id": "benchmark_0286",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What is the capital of France?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.913,
+    "quality_strong": 0.93
+  },
+  {
+    "id": "benchmark_0287",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What year did Apollo 11 land on the Moon? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.95,
+    "quality_strong": 0.941
+  },
+  {
+    "id": "benchmark_0288",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Suggest 3 baby names that start with the letter M. Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.97,
+    "quality_strong": 0.957
+  },
+  {
+    "id": "benchmark_0289",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Detail all edge cases and rigorous constraints: Given the following nested JSON payload representing an e-commerce order: {\"order_id\": \"123\", \"items\": [{\"id\": \"item1\", \"qty\": 2, \"price\": 49.99}], \"customer\": {\"id\": \"c1\", \"meta\": {\"loyalty_points\": 340}}} Generate a strict JSON Schema Draft-07 that validates this structure and forbids extra properties."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "json_schema",
+    "quality_cheap": 0.638,
+    "quality_strong": 0.864
+  },
+  {
+    "id": "benchmark_0290",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Is 17 a prime number? Keep it simple."
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.983,
+    "quality_strong": 0.929
+  },
+  {
+    "id": "benchmark_0291",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: Make this email polite: 'Send the report now.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.968,
+    "quality_strong": 0.973
+  },
+  {
+    "id": "benchmark_0292",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Perform an exhaustive end-to-end breakdown: A box contains 5 red balls, 4 green balls, and 3 blue balls. If you draw 3 balls without replacement, calculate the probability that exactly two balls have the same color. P(X=2) = ?"
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_probability",
+    "quality_cheap": 0.371,
+    "quality_strong": 0.921
+  },
+  {
+    "id": "benchmark_0293",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Proofread this sentence: 'They went to there house yesterday.'"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.981,
+    "quality_strong": 0.957
+  },
+  {
+    "id": "benchmark_0294",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Carefully analyze and provide an in-depth response: Prove that the square root of 2 is irrational using proof by contradiction. Assume \u221a2 = p/q where gcd(p,q)=1."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_proof",
+    "quality_cheap": 0.351,
+    "quality_strong": 0.919
+  },
+  {
+    "id": "benchmark_0295",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a concise, helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "What is your name and what can you help me with?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.902,
+    "quality_strong": 0.972
+  },
+  {
+    "id": "benchmark_0296",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Quick question: What does CPU stand for?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.949,
+    "quality_strong": 0.936
+  },
+  {
+    "id": "benchmark_0297",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Provide an expert-level technical solution: Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.578,
+    "quality_strong": 0.862
+  },
+  {
+    "id": "benchmark_0298",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Who painted the Mona Lisa?"
+      }
+    ],
+    "cheap_sufficient": 1,
+    "task_type": "simple_query",
+    "quality_cheap": 0.922,
+    "quality_strong": 0.964
+  },
+  {
+    "id": "benchmark_0299",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a principal engineer and domain specialist. Provide rigorous technical solutions."
+      },
+      {
+        "role": "user",
+        "content": "We have an ongoing performance issue in our core transaction pipeline."
+      },
+      {
+        "role": "assistant",
+        "content": "Please share the database schema, query patterns, and query execution plans so we can diagnose the bottleneck."
+      },
+      {
+        "role": "user",
+        "content": "Solve the differential equation dy/dx + 2y = e^(-x) with initial condition y(0) = 1. Show all integration factor steps: IF = exp(\u222b2 dx)."
+      }
+    ],
+    "cheap_sufficient": 0,
+    "task_type": "math_calculus",
+    "quality_cheap": 0.387,
+    "quality_strong": 0.933
+  }
+]
