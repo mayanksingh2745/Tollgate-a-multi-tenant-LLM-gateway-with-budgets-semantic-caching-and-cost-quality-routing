@@ -13,6 +13,7 @@ from tollgate_core.observability import (
     current_tenant_id,
     extract_trace_context,
     get_tracer,
+    record_worker_consumed,
     safe_set_attribute,
 )
 from tollgate_core.usage import DeadLetterPayload, UsageEventPayload
@@ -280,6 +281,7 @@ class UsageWorkerConsumer:
 
         processed = 0
         for _stream, messages in resp:
+            record_worker_consumed(self.stream_name, len(messages))
             usage_metrics.record_batch_size(len(messages))
             for msg_id, msg_data in messages:
                 ok = await self.process_message(msg_id, msg_data)

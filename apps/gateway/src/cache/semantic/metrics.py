@@ -2,6 +2,14 @@ import threading
 from typing import Dict, List
 
 
+from tollgate_core.observability import (
+    record_cache_error,
+    record_cache_operation,
+    record_cache_request,
+    record_cache_similarity,
+)
+
+
 class SemanticCacheMetrics:
     """
     In-memory metrics collector for semantic cache observability.
@@ -32,29 +40,44 @@ class SemanticCacheMetrics:
             else:
                 self._counters[counter_name] = amount
 
+        if counter_name == "semantic_cache_hits_total":
+            record_cache_request("semantic", "hit")
+        elif counter_name == "semantic_cache_misses_total":
+            record_cache_request("semantic", "miss")
+        elif counter_name == "semantic_cache_bypasses_total":
+            record_cache_request("semantic", "bypass")
+        elif counter_name == "semantic_cache_errors_total":
+            record_cache_error("semantic", "lookup")
+        elif counter_name == "semantic_cache_embedding_errors_total":
+            record_cache_error("semantic", "embed")
+
     def record_lookup_latency(self, latency_ms: float) -> None:
         with self._lock:
             self._lookup_latencies_ms.append(latency_ms)
             if len(self._lookup_latencies_ms) > 2000:
                 self._lookup_latencies_ms.pop(0)
+        record_cache_operation("semantic", "lookup", latency_ms / 1000.0)
 
     def record_embedding_latency(self, latency_ms: float) -> None:
         with self._lock:
             self._embedding_latencies_ms.append(latency_ms)
             if len(self._embedding_latencies_ms) > 2000:
                 self._embedding_latencies_ms.pop(0)
+        record_cache_operation("semantic", "embed", latency_ms / 1000.0)
 
     def record_write_latency(self, latency_ms: float) -> None:
         with self._lock:
             self._write_latencies_ms.append(latency_ms)
             if len(self._write_latencies_ms) > 2000:
                 self._write_latencies_ms.pop(0)
+        record_cache_operation("semantic", "store", latency_ms / 1000.0)
 
     def record_similarity_score(self, score: float) -> None:
         with self._lock:
             self._similarity_scores.append(score)
             if len(self._similarity_scores) > 2000:
                 self._similarity_scores.pop(0)
+        record_cache_similarity(score, "semantic")
 
     def get_stats(self) -> Dict[str, object]:
         with self._lock:

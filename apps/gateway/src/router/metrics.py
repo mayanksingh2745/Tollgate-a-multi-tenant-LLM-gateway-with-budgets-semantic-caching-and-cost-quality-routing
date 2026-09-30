@@ -5,11 +5,20 @@ from dataclasses import dataclass, field
 from typing import List
 
 
+from tollgate_core.observability import (
+    record_router_confidence,
+    record_router_decision,
+    record_router_duration,
+    record_router_error,
+    record_router_fallback,
+)
+
+
 @dataclass
 class RouterMetrics:
     """
     Thread-safe in-memory metrics for the model router.
-    Tracks routing decisions, latencies, and error counts.
+    Tracks routing decisions, latencies, and error counts, and exports to Prometheus.
     """
 
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
@@ -27,6 +36,7 @@ class RouterMetrics:
     confidence_scores: List[float] = field(default_factory=list)
 
     def record_request(self, route: str, confidence: float = 0.0, shadow: bool = False) -> None:
+        mode = "shadow" if shadow else "active"
         with self._lock:
             self.requests_total += 1
             if shadow:
@@ -40,21 +50,29 @@ class RouterMetrics:
             if confidence > 0:
                 self.confidence_scores.append(confidence)
 
-    def record_fallback(self) -> None:
+        record_router_decision(mode=mode, route=route)
+        if confidence > 0:
+            record_router_confidence(mode=mode, confidence=confidence)
+
+    def record_fallback(self, mode: str = "active") -> None:
         with self._lock:
             self.fallback_total += 1
+        record_router_fallback(mode=mode)
 
-    def record_inference_error(self) -> None:
+    def record_inference_error(self, mode: str = "active") -> None:
         with self._lock:
             self.inference_errors_total += 1
+        record_router_error(mode=mode, error_type="inference_error")
 
-    def record_feature_extraction_latency(self, latency_seconds: float) -> None:
+    def record_feature_extraction_latency(self, latency_seconds: float, mode: str = "active") -> None:
         with self._lock:
             self.feature_extraction_latencies.append(latency_seconds)
+        record_router_duration(mode=mode, stage="feature_extraction", duration_seconds=latency_seconds)
 
-    def record_inference_latency(self, latency_seconds: float) -> None:
+    def record_inference_latency(self, latency_seconds: float, mode: str = "active") -> None:
         with self._lock:
             self.inference_latencies.append(latency_seconds)
+        record_router_duration(mode=mode, stage="inference", duration_seconds=latency_seconds)
 
     def get_summary(self) -> dict:
         with self._lock:

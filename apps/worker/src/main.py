@@ -19,7 +19,12 @@ import redis.asyncio as aioredis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from tollgate_core.config import settings
-from tollgate_core.observability import init_tracer, setup_logging
+from tollgate_core.observability import (
+    init_tracer,
+    setup_logging,
+    update_infrastructure_health,
+    update_queue_health,
+)
 
 from apps.worker.src.consumer import UsageWorkerConsumer
 
@@ -55,6 +60,26 @@ async def heartbeat_loop(
                 db_ok = res.scalar() == 1
         except Exception:
             db_ok = False
+
+        update_infrastructure_health(redis_ok=redis_ok, postgres_ok=db_ok)
+
+        try:
+            pending_res = await redis_client.xpending(
+                settings.usage_stream, settings.usage_consumer_group
+            )
+            pending_count = 0
+            if isinstance(pending_res, dict):
+                pending_count = pending_res.get("pending", 0)
+            elif isinstance(pending_res, (list, tuple)) and len(pending_res) > 0:
+                pending_count = pending_res[0]
+            dl_count = await redis_client.xlen(settings.usage_dead_letter_stream)
+            update_queue_health(
+                stream=settings.usage_stream,
+                pending_count=pending_count,
+                dead_letter_count=dl_count,
+            )
+        except Exception as q_err:
+            logger.debug(f"Worker queue health check skipped: {q_err}")
 
         status_str = "healthy" if (redis_ok and db_ok) else "degraded"
         payload = {

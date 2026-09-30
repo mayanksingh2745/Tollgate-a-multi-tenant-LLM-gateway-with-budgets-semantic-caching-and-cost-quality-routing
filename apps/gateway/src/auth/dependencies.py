@@ -10,6 +10,7 @@ from tollgate_core.observability import (
     current_project_id,
     current_tenant_id,
     get_tracer,
+    record_error,
     safe_set_attribute,
 )
 
@@ -36,6 +37,7 @@ async def get_optional_api_key(
         if len(parts) != 2 or parts[0].lower() != "bearer":
             logger.warning("Authentication failed: Malformed Authorization header")
             safe_set_attribute(span, "auth.success", False)
+            record_error("authentication", 401)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired API key",
@@ -49,6 +51,7 @@ async def get_optional_api_key(
                 "Authentication failed: Secret verification failed or key expired/revoked"
             )
             safe_set_attribute(span, "auth.success", False)
+            record_error("authentication", 401)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired API key",
@@ -85,6 +88,7 @@ async def get_current_api_key(
     """
     if not ctx:
         logger.warning("Authentication failed: Required API key missing")
+        record_error("authentication", 401)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired API key",

@@ -35,6 +35,7 @@ from tollgate_core.observability import (
     get_current_trace_id,
     get_current_traceparent,
     get_tracer,
+    record_error,
     safe_set_attribute,
 )
 from tollgate_core.usage import UsageEventPayload
@@ -549,6 +550,7 @@ async def create_chat_completion(
                 safe_set_attribute(b_rel_span, "budget.released", True)
         raise
     except ProviderException as pe:
+        record_error(category=pe.error_type, status_code=pe.status_code)
         if reservation and reservation.allowed:
             with tracer.start_as_current_span("budget.release") as b_rel_span:
                 safe_set_attribute(b_rel_span, "reservation_id", reservation.reservation_id)
@@ -566,6 +568,7 @@ async def create_chat_completion(
             ).model_dump(),
         )
     except Exception:
+        record_error(category="internal", status_code=500)
         if reservation and reservation.allowed:
             with tracer.start_as_current_span("budget.release") as b_rel_span:
                 safe_set_attribute(b_rel_span, "reservation_id", reservation.reservation_id)

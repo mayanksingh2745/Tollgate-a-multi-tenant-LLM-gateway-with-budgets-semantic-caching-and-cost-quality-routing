@@ -2,10 +2,17 @@ import threading
 from typing import Dict, List
 
 
+from tollgate_core.observability import (
+    record_cache_error,
+    record_cache_operation,
+    record_cache_request,
+)
+
+
 class CacheMetrics:
     """
     Thread-safe observability metrics tracker for Tollgate's exact response cache.
-    Maintains bounded cardinality counters and latency recordings.
+    Maintains bounded cardinality counters and latency recordings, and exports to Prometheus.
     """
 
     def __init__(self):
@@ -29,6 +36,18 @@ class CacheMetrics:
             else:
                 self._counters[metric_name] = count
 
+        # Mirror to Prometheus
+        if metric_name == "cache_hits_total":
+            record_cache_request("exact", "hit")
+        elif metric_name == "cache_misses_total":
+            record_cache_request("exact", "miss")
+        elif metric_name == "cache_bypasses_total":
+            record_cache_request("exact", "bypass")
+        elif metric_name == "cache_lookup_errors_total":
+            record_cache_error("exact", "lookup")
+        elif metric_name == "cache_write_errors_total":
+            record_cache_error("exact", "store")
+
     def get_count(self, metric_name: str) -> int:
         with self._lock:
             return self._counters.get(metric_name, 0)
@@ -38,12 +57,14 @@ class CacheMetrics:
             self._lookup_latencies.append(latency_ms)
             if len(self._lookup_latencies) > 1000:
                 self._lookup_latencies = self._lookup_latencies[-1000:]
+        record_cache_operation("exact", "lookup", latency_ms / 1000.0)
 
     def record_write_latency(self, latency_ms: float) -> None:
         with self._lock:
             self._write_latencies.append(latency_ms)
             if len(self._write_latencies) > 1000:
                 self._write_latencies = self._write_latencies[-1000:]
+        record_cache_operation("exact", "store", latency_ms / 1000.0)
 
     def get_all(self) -> Dict[str, int]:
         with self._lock:
