@@ -53,11 +53,17 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379/0
+      TOLLGATE_OTEL_ENABLED: ${TOLLGATE_OTEL_ENABLED:-true}
+      TOLLGATE_OTEL_ENDPOINT: ${TOLLGATE_OTEL_ENDPOINT:-http://jaeger:4318}
+      TOLLGATE_OTEL_SERVICE_NAME: tollgate-api
+      TOLLGATE_OTEL_TRACE_SAMPLE_RATE: ${TOLLGATE_OTEL_TRACE_SAMPLE_RATE:-1.0}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/readyz || exit 1"]
       interval: 10s
@@ -80,11 +86,28 @@ services:
       TOLLGATE_USAGE_STREAM: ${TOLLGATE_USAGE_STREAM:-tg:usage:events}
       TOLLGATE_USAGE_CONSUMER_GROUP: ${TOLLGATE_USAGE_CONSUMER_GROUP:-tg-usage-workers}
       TOLLGATE_USAGE_DEAD_LETTER_STREAM: ${TOLLGATE_USAGE_DEAD_LETTER_STREAM:-tg:usage:dead-letter}
+      TOLLGATE_OTEL_ENABLED: ${TOLLGATE_OTEL_ENABLED:-true}
+      TOLLGATE_OTEL_ENDPOINT: ${TOLLGATE_OTEL_ENDPOINT:-http://jaeger:4318}
+      TOLLGATE_OTEL_SERVICE_NAME: tollgate-worker
+      TOLLGATE_OTEL_TRACE_SAMPLE_RATE: ${TOLLGATE_OTEL_TRACE_SAMPLE_RATE:-1.0}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: tollgate-jaeger
+    restart: always
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
 
   dashboard:
     build:

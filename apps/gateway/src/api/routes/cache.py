@@ -11,6 +11,9 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tollgate_core.models import Project
+from tollgate_core.observability import get_tracer, safe_set_attribute
+
+tracer = get_tracer("tollgate.cache")
 
 router = APIRouter(prefix="/api/v1", tags=["Cache Management"])
 
@@ -68,12 +71,20 @@ async def invalidate_project_cache(
             detail="Project not found.",
         )
 
-    new_version = await exact_cache.invalidate_project(
-        tenant_id=ctx.tenant_id, project_id=project_id
-    )
-    semantic_count = await semantic_cache.invalidate_project(
-        tenant_id=ctx.tenant_id, project_id=project_id, session=db
-    )
+    with tracer.start_as_current_span("cache.invalidate") as span:
+        safe_set_attribute(span, "tollgate.tenant_id", str(ctx.tenant_id))
+        safe_set_attribute(span, "tollgate.project_id", str(project_id))
+        safe_set_attribute(span, "cache.type", "all")
+
+        new_version = await exact_cache.invalidate_project(
+            tenant_id=ctx.tenant_id, project_id=project_id
+        )
+        semantic_count = await semantic_cache.invalidate_project(
+            tenant_id=ctx.tenant_id, project_id=project_id, session=db
+        )
+
+        safe_set_attribute(span, "cache.new_version", new_version)
+        safe_set_attribute(span, "cache.semantic_invalidated", semantic_count)
 
     return {
         "status": "success",

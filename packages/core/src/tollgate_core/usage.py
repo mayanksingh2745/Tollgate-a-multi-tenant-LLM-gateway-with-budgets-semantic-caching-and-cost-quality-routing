@@ -72,6 +72,16 @@ class UsageEventPayload(BaseModel):
     cache_status: Optional[str] = Field(
         default=None, description="Cache status (MISS, BYPASS, HIT, SEMANTIC_HIT)"
     )
+    # Phase 11A Distributed Tracing fields
+    traceparent: Optional[str] = Field(
+        default=None, description="W3C traceparent header for distributed context propagation"
+    )
+    trace_id: Optional[str] = Field(
+        default=None, description="W3C trace ID for log/usage correlation"
+    )
+    span_id: Optional[str] = Field(
+        default=None, description="W3C parent span ID for trace correlation"
+    )
 
     @field_validator("event_version")
     @classmethod

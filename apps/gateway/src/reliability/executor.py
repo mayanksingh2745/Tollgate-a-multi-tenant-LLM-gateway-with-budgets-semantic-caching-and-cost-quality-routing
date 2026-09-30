@@ -23,8 +23,10 @@ from gateway.src.schemas.chat import (
     ChatCompletionRequest,
     ChatCompletionResponse,
 )
+from tollgate_core.observability import get_tracer, safe_set_attribute
 
 logger = logging.getLogger("tollgate.reliability.executor")
+tracer = get_tracer("tollgate.executor")
 
 
 class ExecutionMetadata:
@@ -118,111 +120,162 @@ class ReliableExecutor:
         all_targets: List[ProviderTarget] = [route.primary] + route.fallbacks
         last_error: Optional[Exception] = None
 
-        for target_idx, target in enumerate(all_targets):
-            provider = providers_map.get(target.provider_name)
-            if not provider:
-                logger.warning(f"Target provider '{target.provider_name}' not registered, skipping")
-                continue
+        with tracer.start_as_current_span("provider.request") as req_span:
+            safe_set_attribute(req_span, "tollgate.provider", route.primary.provider_name)
+            safe_set_attribute(req_span, "tollgate.requested_model", request.model)
+            safe_set_attribute(req_span, "tollgate.stream", False)
 
-            # Check health state
-            if not self.health.is_available(provider.name) and target_idx < len(all_targets) - 1:
-                logger.info(
-                    f"Provider '{provider.name}' currently unhealthy/cooldown, skipping to next fallback"
-                )
-                continue
-
-            if target_idx > 0:
-                self.metrics.inc_fallbacks(provider.name)
-                logger.info(
-                    f"Initiating fallback to '{provider.name}' (model: {target.upstream_model}) for request {request_id}"
-                )
-
-            # Attempt loop for this provider
-            for attempt in range(1, active_policy.max_attempts + 1):
-                now = time.time()
-                remaining_deadline = deadline - now
-                if remaining_deadline <= 0:
-                    last_error = ProviderTimeoutError(
-                        f"Overall request timeout of {active_policy.overall_timeout_seconds}s exceeded"
-                    )
-                    break
-
-                metadata.record_attempt(provider.name)
-                self.metrics.inc_requests(provider.name)
-
-                attempt_start = time.perf_counter()
-                timeout_for_call = min(active_policy.provider_timeout_seconds, remaining_deadline)
-
-                try:
-                    res = await asyncio.wait_for(
-                        provider.chat(request, target.upstream_model, request_id),
-                        timeout=timeout_for_call,
-                    )
-                    latency_ms = (time.perf_counter() - attempt_start) * 1000.0
-                    self.metrics.record_latency(provider.name, latency_ms)
-                    self.health.record_success(provider.name)
-                    return res, metadata
-
-                except asyncio.TimeoutError:
-                    err = ProviderTimeoutError(
-                        f"Provider {provider.name} call timed out after {timeout_for_call}s"
-                    )
-                    self.metrics.inc_timeouts(provider.name)
-                    classified = classify_failure(err)
-                except Exception as e:
-                    err = e
-                    classified = classify_failure(err)
-
-                latency_ms = (time.perf_counter() - attempt_start) * 1000.0
-                self.metrics.inc_failures(provider.name)
-                self.health.record_failure(provider.name, reason=classified.message)
-                metadata.record_failure(
-                    provider_name=provider.name,
-                    attempt=attempt,
-                    category=classified.category,
-                    error_msg=classified.message,
-                    latency_ms=latency_ms,
-                )
-                last_error = err
-
-                # Non-retryable error -> do not retry with this provider
-                if not classified.is_retryable:
+            for target_idx, target in enumerate(all_targets):
+                provider = providers_map.get(target.provider_name)
+                if not provider:
                     logger.warning(
-                        f"Non-retryable failure on {provider.name}: {classified.category.value} ({classified.message})"
+                        f"Target provider '{target.provider_name}' not registered, skipping"
                     )
-                    break
+                    continue
 
-                # If attempts exhausted for this provider
-                if attempt >= active_policy.max_attempts:
-                    logger.warning(
-                        f"Exhausted {active_policy.max_attempts} attempts on {provider.name}"
+                # Check health state
+                if (
+                    not self.health.is_available(provider.name)
+                    and target_idx < len(all_targets) - 1
+                ):
+                    logger.info(
+                        f"Provider '{provider.name}' currently unhealthy/cooldown, skipping to next fallback"
                     )
-                    break
+                    continue
 
-                # Calculate backoff delay
-                delay = backoff.compute_delay(attempt, classified.retry_after)
-                if time.time() + delay >= deadline:
-                    logger.warning(f"Insufficient remaining deadline to retry on {provider.name}")
-                    break
+                if target_idx > 0:
+                    self.metrics.inc_fallbacks(provider.name)
+                    logger.info(
+                        f"Initiating fallback to '{provider.name}' (model: {target.upstream_model}) for request {request_id}"
+                    )
+                    with tracer.start_as_current_span("provider.fallback") as fb_span:
+                        safe_set_attribute(fb_span, "tollgate.provider.fallback", True)
+                        safe_set_attribute(
+                            fb_span,
+                            "tollgate.fallback.from_provider",
+                            all_targets[target_idx - 1].provider_name,
+                        )
+                        safe_set_attribute(fb_span, "tollgate.fallback.to_provider", provider.name)
+                        safe_set_attribute(
+                            fb_span, "tollgate.fallback.model", target.upstream_model
+                        )
 
-                self.metrics.inc_retries(provider.name)
-                logger.info(
-                    f"Retrying {provider.name} in {delay}s (attempt {attempt + 1}/{active_policy.max_attempts})"
-                )
-                await backoff.sleep(delay)
+                # Attempt loop for this provider
+                for attempt in range(1, active_policy.max_attempts + 1):
+                    now = time.time()
+                    remaining_deadline = deadline - now
+                    if remaining_deadline <= 0:
+                        last_error = ProviderTimeoutError(
+                            f"Overall request timeout of {active_policy.overall_timeout_seconds}s exceeded"
+                        )
+                        break
 
-            # Check if we should fallback after exhausting this target
+                    metadata.record_attempt(provider.name)
+                    self.metrics.inc_requests(provider.name)
+
+                    attempt_start = time.perf_counter()
+                    timeout_for_call = min(
+                        active_policy.provider_timeout_seconds, remaining_deadline
+                    )
+
+                    with tracer.start_as_current_span("provider.attempt") as attempt_span:
+                        safe_set_attribute(attempt_span, "tollgate.provider", provider.name)
+                        safe_set_attribute(attempt_span, "tollgate.model", target.upstream_model)
+                        safe_set_attribute(attempt_span, "tollgate.provider.attempt", attempt)
+
+                        try:
+                            res = await asyncio.wait_for(
+                                provider.chat(request, target.upstream_model, request_id),
+                                timeout=timeout_for_call,
+                            )
+                            latency_ms = (time.perf_counter() - attempt_start) * 1000.0
+                            self.metrics.record_latency(provider.name, latency_ms)
+                            self.health.record_success(provider.name)
+                            safe_set_attribute(attempt_span, "status", "success")
+                            safe_set_attribute(attempt_span, "duration_ms", latency_ms)
+                            safe_set_attribute(
+                                req_span, "tollgate.actual_model", target.upstream_model
+                            )
+                            safe_set_attribute(req_span, "tollgate.provider", provider.name)
+                            return res, metadata
+
+                        except asyncio.TimeoutError:
+                            err = ProviderTimeoutError(
+                                f"Provider {provider.name} call timed out after {timeout_for_call}s"
+                            )
+                            self.metrics.inc_timeouts(provider.name)
+                            classified = classify_failure(err)
+                        except Exception as e:
+                            err = e
+                            classified = classify_failure(err)
+
+                        latency_ms = (time.perf_counter() - attempt_start) * 1000.0
+                        self.metrics.inc_failures(provider.name)
+                        self.health.record_failure(provider.name, reason=classified.message)
+                        metadata.record_failure(
+                            provider_name=provider.name,
+                            attempt=attempt,
+                            category=classified.category,
+                            error_msg=classified.message,
+                            latency_ms=latency_ms,
+                        )
+                        safe_set_attribute(attempt_span, "status", "failure")
+                        safe_set_attribute(
+                            attempt_span, "failure_category", classified.category.value
+                        )
+                        safe_set_attribute(attempt_span, "duration_ms", latency_ms)
+                        last_error = err
+
+                    # Non-retryable error -> do not retry with this provider
+                    if not classified.is_retryable:
+                        logger.warning(
+                            f"Non-retryable failure on {provider.name}: {classified.category.value} ({classified.message})"
+                        )
+                        break
+
+                    # If attempts exhausted for this provider
+                    if attempt >= active_policy.max_attempts:
+                        logger.warning(
+                            f"Exhausted {active_policy.max_attempts} attempts on {provider.name}"
+                        )
+                        break
+
+                    # Calculate backoff delay
+                    delay = backoff.compute_delay(attempt, classified.retry_after)
+                    if time.time() + delay >= deadline:
+                        logger.warning(
+                            f"Insufficient remaining deadline to retry on {provider.name}"
+                        )
+                        break
+
+                    self.metrics.inc_retries(provider.name)
+                    logger.info(
+                        f"Retrying {provider.name} in {delay}s (attempt {attempt + 1}/{active_policy.max_attempts})"
+                    )
+                    with tracer.start_as_current_span("provider.retry") as retry_span:
+                        safe_set_attribute(retry_span, "tollgate.provider", provider.name)
+                        safe_set_attribute(retry_span, "tollgate.provider.retry", attempt)
+                        safe_set_attribute(
+                            retry_span, "failure_category", classified.category.value
+                        )
+                        safe_set_attribute(retry_span, "retry_delay_seconds", delay)
+
+                    await backoff.sleep(delay)
+
+                # Check if we should fallback after exhausting this target
+                if last_error:
+                    classified = classify_failure(last_error)
+                    if not classified.is_fallback_eligible:
+                        # Client errors (400, not found) should fail immediately without fallback
+                        raise last_error
+
+            # If all providers and retries were exhausted
             if last_error:
-                classified = classify_failure(last_error)
-                if not classified.is_fallback_eligible:
-                    # Client errors (400, not found) should fail immediately without fallback
-                    raise last_error
+                raise last_error
 
-        # If all providers and retries were exhausted
-        if last_error:
-            raise last_error
-
-        raise ProviderException("No available provider could fulfill the request", status_code=503)
+            raise ProviderException(
+                "No available provider could fulfill the request", status_code=503
+            )
 
     async def execute_stream(
         self,
@@ -241,99 +294,151 @@ class ReliableExecutor:
         deadline = start_time + active_policy.overall_timeout_seconds
         all_targets: List[ProviderTarget] = [route.primary] + route.fallbacks
 
-        for target_idx, target in enumerate(all_targets):
-            provider = providers_map.get(target.provider_name)
-            if not provider:
-                continue
+        with tracer.start_as_current_span("provider.request") as req_span:
+            safe_set_attribute(req_span, "tollgate.provider", route.primary.provider_name)
+            safe_set_attribute(req_span, "tollgate.requested_model", request.model)
+            safe_set_attribute(req_span, "tollgate.stream", True)
 
-            if not self.health.is_available(provider.name) and target_idx < len(all_targets) - 1:
-                continue
+            for target_idx, target in enumerate(all_targets):
+                provider = providers_map.get(target.provider_name)
+                if not provider:
+                    continue
 
-            if target_idx > 0:
-                self.metrics.inc_fallbacks(provider.name)
+                if (
+                    not self.health.is_available(provider.name)
+                    and target_idx < len(all_targets) - 1
+                ):
+                    continue
 
-            for attempt in range(1, active_policy.max_attempts + 1):
-                now = time.time()
-                remaining_deadline = deadline - now
-                if remaining_deadline <= 0:
-                    yield f"data: {json.dumps({'error': {'message': 'Overall request deadline exceeded', 'type': 'timeout_error', 'code': 'timeout'}})}\n\n"
-                    yield "data: [DONE]\n\n"
-                    return
-
-                metadata.record_attempt(provider.name)
-                self.metrics.inc_requests(provider.name)
-
-                chunks_emitted = 0
-                attempt_failed = False
-                error_to_raise: Optional[Exception] = None
-
-                try:
-                    stream_iter = provider.stream(request, target.upstream_model, request_id)
-                    async for chunk in stream_iter:
-                        chunks_emitted += 1
-                        chunk_json = chunk.model_dump_json(exclude_none=True)
-                        yield f"data: {chunk_json}\n\n"
-
-                    # Successfully finished stream!
-                    yield "data: [DONE]\n\n"
-                    self.health.record_success(provider.name)
-                    return
-
-                except asyncio.CancelledError:
-                    logger.info(f"Stream cancelled by client for request {request_id}")
-                    raise
-                except Exception as e:
-                    attempt_failed = True
-                    error_to_raise = e
-
-                if attempt_failed and error_to_raise:
-                    classified = classify_failure(error_to_raise)
-                    self.metrics.inc_failures(provider.name)
-                    self.health.record_failure(provider.name, reason=classified.message)
-
-                    # CASE B: Partial stream was ALREADY sent to client!
-                    # CRITICAL RULE: DO NOT transparently restart request!
-                    if chunks_emitted > 0:
-                        logger.warning(
-                            f"Provider {provider.name} failed AFTER {chunks_emitted} chunks were emitted. "
-                            f"Terminating stream safely without restart."
+                if target_idx > 0:
+                    self.metrics.inc_fallbacks(provider.name)
+                    with tracer.start_as_current_span("provider.fallback") as fb_span:
+                        safe_set_attribute(fb_span, "tollgate.provider.fallback", True)
+                        safe_set_attribute(
+                            fb_span,
+                            "tollgate.fallback.from_provider",
+                            all_targets[target_idx - 1].provider_name,
                         )
-                        err_payload = {
-                            "error": {
-                                "message": "Stream interrupted by upstream failure",
-                                "type": classified.category.value,
-                                "code": "stream_interrupted",
-                            }
-                        }
-                        yield f"data: {json.dumps(err_payload)}\n\n"
+                        safe_set_attribute(fb_span, "tollgate.fallback.to_provider", provider.name)
+                        safe_set_attribute(
+                            fb_span, "tollgate.fallback.model", target.upstream_model
+                        )
+
+                for attempt in range(1, active_policy.max_attempts + 1):
+                    now = time.time()
+                    remaining_deadline = deadline - now
+                    if remaining_deadline <= 0:
+                        yield f"data: {json.dumps({'error': {'message': 'Overall request deadline exceeded', 'type': 'timeout_error', 'code': 'timeout'}})}\n\n"
                         yield "data: [DONE]\n\n"
                         return
 
-                    # CASE A: Failure happened BEFORE any chunks were sent!
-                    if not classified.is_retryable:
-                        break
+                    metadata.record_attempt(provider.name)
+                    self.metrics.inc_requests(provider.name)
 
-                    if attempt >= active_policy.max_attempts:
-                        break
+                    chunks_emitted = 0
+                    attempt_failed = False
+                    error_to_raise: Optional[Exception] = None
 
-                    delay = backoff.compute_delay(attempt, classified.retry_after)
-                    if time.time() + delay >= deadline:
-                        break
+                    with tracer.start_as_current_span("provider.attempt") as attempt_span:
+                        safe_set_attribute(attempt_span, "tollgate.provider", provider.name)
+                        safe_set_attribute(attempt_span, "tollgate.model", target.upstream_model)
+                        safe_set_attribute(attempt_span, "tollgate.provider.attempt", attempt)
+                        ttft_recorded = False
+                        attempt_start = time.perf_counter()
 
-                    self.metrics.inc_retries(provider.name)
-                    await backoff.sleep(delay)
+                        try:
+                            stream_iter = provider.stream(
+                                request, target.upstream_model, request_id
+                            )
+                            async for chunk in stream_iter:
+                                chunks_emitted += 1
+                                if not ttft_recorded:
+                                    ttft_ms = (time.perf_counter() - attempt_start) * 1000.0
+                                    safe_set_attribute(
+                                        attempt_span, "tollgate.time_to_first_token_ms", ttft_ms
+                                    )
+                                    ttft_recorded = True
+                                chunk_json = chunk.model_dump_json(exclude_none=True)
+                                yield f"data: {chunk_json}\n\n"
 
-            # Move to fallback target only if no chunks were emitted yet!
-            if chunks_emitted > 0:
-                return
+                            # Successfully finished stream!
+                            stream_dur_ms = (time.perf_counter() - attempt_start) * 1000.0
+                            safe_set_attribute(
+                                attempt_span, "tollgate.stream_duration_ms", stream_dur_ms
+                            )
+                            safe_set_attribute(
+                                attempt_span, "tollgate.chunks_emitted", chunks_emitted
+                            )
+                            safe_set_attribute(attempt_span, "status", "success")
+                            yield "data: [DONE]\n\n"
+                            self.health.record_success(provider.name)
+                            return
 
-        # If all providers failed before emitting any chunks
-        err_payload = {
-            "error": {
-                "message": "All upstream model providers failed to respond.",
-                "type": "upstream_error",
-                "code": "provider_unavailable",
+                        except asyncio.CancelledError:
+                            logger.info(f"Stream cancelled by client for request {request_id}")
+                            safe_set_attribute(attempt_span, "status", "client_cancelled")
+                            raise
+                        except Exception as e:
+                            attempt_failed = True
+                            error_to_raise = e
+                            safe_set_attribute(attempt_span, "status", "failure")
+
+                    if attempt_failed and error_to_raise:
+                        classified = classify_failure(error_to_raise)
+                        self.metrics.inc_failures(provider.name)
+                        self.health.record_failure(provider.name, reason=classified.message)
+
+                        # CASE B: Partial stream was ALREADY sent to client!
+                        # CRITICAL RULE: DO NOT transparently restart request!
+                        if chunks_emitted > 0:
+                            logger.warning(
+                                f"Provider {provider.name} failed AFTER {chunks_emitted} chunks were emitted. "
+                                f"Terminating stream safely without restart."
+                            )
+                            err_payload = {
+                                "error": {
+                                    "message": "Stream interrupted by upstream failure",
+                                    "type": classified.category.value,
+                                    "code": "stream_interrupted",
+                                }
+                            }
+                            yield f"data: {json.dumps(err_payload)}\n\n"
+                            yield "data: [DONE]\n\n"
+                            return
+
+                        # CASE A: Failure happened BEFORE any chunks were sent!
+                        if not classified.is_retryable:
+                            break
+
+                        if attempt >= active_policy.max_attempts:
+                            break
+
+                        delay = backoff.compute_delay(attempt, classified.retry_after)
+                        if time.time() + delay >= deadline:
+                            break
+
+                        self.metrics.inc_retries(provider.name)
+                        with tracer.start_as_current_span("provider.retry") as retry_span:
+                            safe_set_attribute(retry_span, "tollgate.provider", provider.name)
+                            safe_set_attribute(retry_span, "tollgate.provider.retry", attempt)
+                            safe_set_attribute(
+                                retry_span, "failure_category", classified.category.value
+                            )
+                            safe_set_attribute(retry_span, "retry_delay_seconds", delay)
+
+                        await backoff.sleep(delay)
+
+                # Move to fallback target only if no chunks were emitted yet!
+                if chunks_emitted > 0:
+                    return
+
+            # If all providers failed before emitting any chunks
+            err_payload = {
+                "error": {
+                    "message": "All upstream model providers failed to respond.",
+                    "type": "upstream_error",
+                    "code": "provider_unavailable",
+                }
             }
-        }
-        yield f"data: {json.dumps(err_payload)}\n\n"
-        yield "data: [DONE]\n\n"
+            yield f"data: {json.dumps(err_payload)}\n\n"
+            yield "data: [DONE]\n\n"

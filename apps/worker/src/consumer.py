@@ -7,12 +7,21 @@ from typing import Any, Optional
 import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tollgate_core.config import settings
+from tollgate_core.observability import (
+    current_project_id,
+    current_request_id,
+    current_tenant_id,
+    extract_trace_context,
+    get_tracer,
+    safe_set_attribute,
+)
 from tollgate_core.usage import DeadLetterPayload, UsageEventPayload
 from tollgate_core.usage_metrics import usage_metrics
 
 from apps.worker.src.persistence import persist_usage_event
 
 logger = logging.getLogger("tollgate.worker.consumer")
+tracer = get_tracer("tollgate.worker")
 
 
 class UsageWorkerConsumer:
@@ -125,34 +134,55 @@ class UsageWorkerConsumer:
             )
             return True
 
-        # 2. Database Persistence in Atomic Transaction
-        try:
-            async with self.session_factory() as session:
-                if session.in_transaction():
-                    await persist_usage_event(session, event)
-                    await session.commit()
-                else:
-                    async with session.begin():
-                        await persist_usage_event(session, event)
+        # 2. Extract Trace Context and Process in Span
+        extracted_ctx = (
+            extract_trace_context({"traceparent": event.traceparent}) if event.traceparent else None
+        )
 
-            # 3. Message Acknowledgement AFTER successful DB commit
-            await self.redis_client.xack(self.stream_name, self.consumer_group, message_id)
-            latency_ms = (time.perf_counter() - t0) * 1000.0
-            usage_metrics.record_latency(latency_ms)
-            usage_metrics.increment("usage_worker_events_processed_total")
-            logger.debug(
-                f"Usage event processed and ACKed: message_id={message_id} "
-                f"event_id={event.event_id} request_id={event.request_id} latency_ms={latency_ms:.2f}"
-            )
-            return True
-        except Exception as db_err:
-            logger.error(
-                f"Database persistence failed for message {message_id} "
-                f"(event_id={event.event_id} request_id={event.request_id}): {db_err}"
-            )
-            usage_metrics.increment("usage_worker_events_failed_total")
-            # CRITICAL: Do NOT ACK message on DB failure; message remains pending for retry/reclaim
-            return False
+        with tracer.start_as_current_span("usage.process", context=extracted_ctx) as proc_span:
+            safe_set_attribute(proc_span, "tollgate.request_id", event.request_id)
+            safe_set_attribute(proc_span, "tollgate.event_id", str(event.event_id))
+            safe_set_attribute(proc_span, "tollgate.tenant_id", str(event.tenant_id))
+            safe_set_attribute(proc_span, "tollgate.project_id", str(event.project_id))
+            safe_set_attribute(proc_span, "tollgate.provider", event.provider)
+            safe_set_attribute(proc_span, "tollgate.model", event.model)
+
+            current_request_id.set(event.request_id)
+            current_tenant_id.set(str(event.tenant_id))
+            current_project_id.set(str(event.project_id))
+
+            # Database Persistence in Atomic Transaction
+            try:
+                async with self.session_factory() as session:
+                    if session.in_transaction():
+                        await persist_usage_event(session, event)
+                        await session.commit()
+                    else:
+                        async with session.begin():
+                            await persist_usage_event(session, event)
+
+                # 3. Message Acknowledgement AFTER successful DB commit
+                await self.redis_client.xack(self.stream_name, self.consumer_group, message_id)
+                latency_ms = (time.perf_counter() - t0) * 1000.0
+                safe_set_attribute(proc_span, "duration_ms", latency_ms)
+                safe_set_attribute(proc_span, "status", "success")
+                usage_metrics.record_latency(latency_ms)
+                usage_metrics.increment("usage_worker_events_processed_total")
+                logger.debug(
+                    f"Usage event processed and ACKed: message_id={message_id} "
+                    f"event_id={event.event_id} request_id={event.request_id} latency_ms={latency_ms:.2f}"
+                )
+                return True
+            except Exception as db_err:
+                safe_set_attribute(proc_span, "status", "failure")
+                safe_set_attribute(proc_span, "failure_category", "database_error")
+                logger.error(
+                    f"Database persistence failed for message {message_id} "
+                    f"(event_id={event.event_id} request_id={event.request_id}): {db_err}"
+                )
+                usage_metrics.increment("usage_worker_events_failed_total")
+                # CRITICAL: Do NOT ACK message on DB failure; message remains pending for retry/reclaim
+                return False
 
     async def reclaim_stale_messages(self) -> int:
         """
