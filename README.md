@@ -28,6 +28,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ Daily/monthly cost rollups
 - ✓ Exact response caching
 - ✓ Semantic response caching
+- ✓ Learned model routing
 
 ## Implemented Phases
 
@@ -40,6 +41,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 6 — Usage Pipeline & Cost Accounting**: Asynchronous, durable usage ingestion via Redis Streams (`tg:usage:events`), consumer group background workers, crash recovery with `XAUTOCLAIM`, PostgreSQL event persistence, idempotent daily & monthly rollups, and paginated tenant-isolated usage query APIs.
 - **Phase 7 — Exact Response Cache**: High-performance, tenant-isolated exact-match response caching in Redis with SHA-256 canonicalization, O(1) project cache invalidation via generation counters, fail-open resilience, zero budget/usage overhead on hit, and `X-Tollgate-Cache` observability headers.
 - **Phase 8 — Semantic Response Cache**: Conservative, tenant-isolated vector response caching using PostgreSQL + pgvector (HNSW cosine index) and decoupled Redis response storage, tiered lookup (Exact L1 -> Semantic L2 -> Upstream L3), deterministic message representation, strict safety bypasses (`stream=true`, `tools`), shadow evaluation mode, offline evaluation harness, and zero budget/usage overhead on hit.
+- **Phase 9 — Learned Model Router**: Data-driven, cost-aware model-selection layer predicting whether incoming requests can be satisfied by a fast, cost-efficient model tier (`mock-fast`, `gpt-4o-mini`) or require a strong reasoning model tier (`mock-model`, `gpt-4o`). Features 15 structural/lexical prompt signals, calibrated logistic regression classification, fail-open resilience, shadow evaluation mode, benchmark evaluation suite, and full microdollar cost-quality tradeoff analysis.
 
 ---
 
@@ -102,6 +104,48 @@ Authentication & Distributed Rate Limit
 - **Offline ML Evaluation Harness**: Includes an evaluation suite (`evaluation/semantic_cache/`) and benchmark runner to empirically sweep similarity thresholds and measure precision, recall, and false-positive rates.
 
 See [`docs/semantic-cache.md`](docs/semantic-cache.md) for full architectural specifications and [`docs/semantic-cache-benchmarks.md`](docs/semantic-cache-benchmarks.md) for empirical benchmark and evaluation results.
+
+---
+
+## Learned Model Router
+
+Tollgate **Phase 9** introduces an intelligent, cost-aware model routing layer that evaluates prompt structure before calling providers, choosing whether to dispatch to a cheaper model or escalate to a stronger model:
+
+```text
+Client Request
+      ↓
+Authentication & Rate Limit
+      ↓
+Exact Response Cache Lookup (Phase 7)
+      ├── HIT  ──► Return Cached Response ($0.00 cost, 0ms router latency)
+      └── MISS ──┐
+Semantic Response Cache Lookup (Phase 8)
+      ├── HIT  ──► Return Cached Response ($0.00 cost, 0ms router latency)
+      └── MISS ──┐
+Model Router (Phase 9)
+      ├─ Extract 15 Prompt Signals (length, code, SQL, math, turn depth)
+      ├─ Classifier Inference: P(cheap_sufficient)
+      ├─ Decision: P >= threshold ? cheap_model : strong_model
+      └─ Fail-Open Resilience: Falls back safely on any ML/artifact error
+      ↓
+Atomic Budget Reservation (Phase 5)
+      (Estimated and reserved against the selected model tier)
+      ↓
+Provider Execution (Phase 3)
+      ↓
+Dual Cache Write (Phase 7 & 8)
+      ↓
+Asynchronous Usage Event Pipeline (Phase 6)
+```
+
+### Key Capabilities
+- **42.2% - 42.5% Cost Savings**: Reduces token spend without quality degradation (0.0% false positive rate at operating threshold $\tau = 0.70 - 0.80$).
+- **Sub-Millisecond Overhead**: Feature extraction (~0.04ms) and classifier inference (~0.06ms) add $<0.15\text{ms}$ total request latency.
+- **Fail-Open Resilience**: If model artifacts are missing or an unhandled exception occurs, the router automatically fails open to the original requested model or a designated fallback.
+- **Shadow Mode**: Evaluate routing quality and latency in real production traffic without altering actual model selection.
+- **Zero-Overhead Cache Hit Bypass**: Exact and semantic cache hits return immediately without executing feature extraction or ML inference.
+
+See [`docs/model-router.md`](docs/model-router.md) for architecture, configuration settings, and headers, and [`docs/model-router-evaluation.md`](docs/model-router-evaluation.md) for benchmark evaluation, threshold sweeps, and cost-quality tradeoff curves.
 
 ---
 

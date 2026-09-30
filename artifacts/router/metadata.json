@@ -1,0 +1,64 @@
+{
+  "model_version": "v1.0.0",
+  "feature_schema_version": 1,
+  "training_timestamp": "2026-09-30T06:50:58.391870+00:00",
+  "dataset_version": "1.0.0",
+  "cheap_model": "mock-fast",
+  "strong_model": "mock-model",
+  "threshold": 0.8,
+  "training_config": {
+    "model_type": "LogisticRegression",
+    "pipeline": [
+      "StandardScaler",
+      "LogisticRegression"
+    ],
+    "C": 1.0,
+    "penalty": "l2",
+    "solver": "lbfgs",
+    "max_iter": 1000,
+    "random_state": 42,
+    "feature_names": [
+      "token_count_estimate",
+      "char_count",
+      "message_count",
+      "user_turn_count",
+      "system_message_count",
+      "avg_message_length",
+      "max_message_length",
+      "question_mark_count",
+      "has_code_block",
+      "has_json_structure",
+      "has_sql_keywords",
+      "has_math_symbols",
+      "has_url",
+      "conversation_depth",
+      "last_user_message_length"
+    ],
+    "train_samples": 210,
+    "val_samples": 45,
+    "test_samples": 45
+  },
+  "evaluation_metrics": {
+    "threshold": 0.8,
+    "total_samples": 45,
+    "true_positives": 21,
+    "false_positives": 0,
+    "true_negatives": 23,
+    "false_negatives": 1,
+    "accuracy": 0.9778,
+    "precision": 1.0,
+    "recall": 0.9545,
+    "f1_score": 0.9767,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0455,
+    "brier_score": 0.0012,
+    "cheap_route_pct": 46.6667,
+    "strong_route_pct": 53.3333,
+    "estimated_cost_savings_pct": 39.6667,
+    "estimated_quality_degradation_pct": 0.0
+  },
+  "calibration": {
+    "brier_score": 0.0012,
+    "method": "sigmoid"
+  }
+}

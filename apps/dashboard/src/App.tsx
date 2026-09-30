@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Server, Database, Cpu, Activity, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Server, Database, Cpu, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
 import './App.css';
 
 interface ServiceStatus {
@@ -112,7 +112,7 @@ export default function App() {
           marginBottom: '2rem',
           display: 'flex',
           alignItems: 'center',
-          justifyCondition: 'space-between'
+          justifyContent: 'space-between'
         }}>
           <div>
             <strong>Gateway Connection Warning: </strong> {error}. Ensure FastAPI container is running.

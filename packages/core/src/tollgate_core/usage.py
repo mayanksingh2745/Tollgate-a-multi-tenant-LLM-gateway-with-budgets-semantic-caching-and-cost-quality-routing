@@ -52,6 +52,24 @@ class UsageEventPayload(BaseModel):
     attempt_count: int = Field(default=1, ge=1, description="Number of provider attempts made")
     fallback_used: bool = Field(default=False, description="Whether fallback route was triggered")
 
+    # Phase 9 Learned Model Router fields (backward-compatible)
+    router_mode: Optional[str] = Field(
+        default=None, description="Router mode (disabled, static, learned)"
+    )
+    router_route: Optional[str] = Field(
+        default=None, description="Tier selected by router (cheap, strong, passthrough, fallback)"
+    )
+    router_confidence: Optional[float] = Field(
+        default=None, ge=0.0, le=1.0, description="Router confidence score"
+    )
+    router_model_version: Optional[str] = Field(default=None, description="Router artifact version")
+    router_fallback: bool = Field(
+        default=False, description="Whether router failed open to fallback"
+    )
+    original_model: Optional[str] = Field(
+        default=None, description="Original model requested before routing"
+    )
+
     @field_validator("event_version")
     @classmethod
     def validate_version(cls, v: int) -> int:

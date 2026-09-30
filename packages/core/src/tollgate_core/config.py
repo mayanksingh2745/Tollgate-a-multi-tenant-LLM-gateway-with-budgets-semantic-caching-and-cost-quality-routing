@@ -257,7 +257,58 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Phase 9 Learned Model Router Settings
+    router_enabled: bool = Field(
+        False,
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_ENABLED", "router_enabled"),
+    )
+    router_mode: str = Field(
+        "disabled",
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_MODE", "router_mode"),
+    )
+    router_shadow_mode: bool = Field(
+        False,
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_SHADOW_MODE", "router_shadow_mode"),
+    )
+    router_cheap_model: str = Field(
+        "mock-fast",
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_CHEAP_MODEL", "router_cheap_model"),
+    )
+    router_strong_model: str = Field(
+        "mock-model",
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_STRONG_MODEL", "router_strong_model"),
+    )
+    router_quality_threshold: float = Field(
+        0.7,
+        validation_alias=AliasChoices(
+            "TOLLGATE_ROUTER_QUALITY_THRESHOLD", "router_quality_threshold"
+        ),
+    )
+    router_fallback_model: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_FALLBACK_MODEL", "router_fallback_model"),
+    )
+    router_model_version: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_MODEL_VERSION", "router_model_version"),
+    )
+    router_artifact_path: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("TOLLGATE_ROUTER_ARTIFACT_PATH", "router_artifact_path"),
+    )
+    router_max_quality_degradation: float = Field(
+        0.05,
+        validation_alias=AliasChoices(
+            "TOLLGATE_ROUTER_MAX_QUALITY_DEGRADATION",
+            "router_max_quality_degradation",
+        ),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 settings = Settings()
+
+
+def get_settings() -> Settings:
+    return settings

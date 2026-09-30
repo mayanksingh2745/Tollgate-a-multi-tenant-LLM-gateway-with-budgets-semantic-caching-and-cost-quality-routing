@@ -93,6 +93,34 @@ def test_semantic_cache_backend():
     semantic_cache._embedding_provider = original_provider
 
 
+@pytest_asyncio.fixture(autouse=True)
+def test_router_isolation():
+    from gateway.src.config import settings
+    from gateway.src.router import model_router
+
+    orig_router = model_router.active_router
+    orig_enabled = settings.router_enabled
+    orig_mode = settings.router_mode
+    orig_shadow = settings.router_shadow_mode
+    orig_threshold = settings.router_quality_threshold
+    orig_cheap = settings.router_cheap_model
+    orig_strong = settings.router_strong_model
+    orig_fallback = settings.router_fallback_model
+    orig_artifact = settings.router_artifact_path
+
+    yield
+
+    settings.router_enabled = orig_enabled
+    settings.router_mode = orig_mode
+    settings.router_shadow_mode = orig_shadow
+    settings.router_quality_threshold = orig_threshold
+    settings.router_cheap_model = orig_cheap
+    settings.router_strong_model = orig_strong
+    settings.router_fallback_model = orig_fallback
+    settings.router_artifact_path = orig_artifact
+    model_router.set_router(orig_router)
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     async with test_engine.begin() as conn:
