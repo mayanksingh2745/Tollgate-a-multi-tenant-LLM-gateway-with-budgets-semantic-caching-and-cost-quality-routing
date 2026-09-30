@@ -82,9 +82,7 @@ async def test_worker_crash_and_pending_reclaim(db_session: AsyncSession):
 
     # Mock Redis client simulating XAUTOCLAIM returning the abandoned message
     mock_redis = AsyncMock()
-    mock_redis.xautoclaim = AsyncMock(
-        return_value=("0-0", [(message_id, raw_message)], [])
-    )
+    mock_redis.xautoclaim = AsyncMock(return_value=("0-0", [(message_id, raw_message)], []))
     mock_redis.xack = AsyncMock(return_value=1)
 
     # Session factory returning the active test DB session
@@ -105,9 +103,7 @@ async def test_worker_crash_and_pending_reclaim(db_session: AsyncSession):
     assert reclaimed == 1
 
     # Verify XACK was called with message_id by Worker 2
-    mock_redis.xack.assert_called_once_with(
-        worker_2.stream_name, "tg-usage-workers", message_id
-    )
+    mock_redis.xack.assert_called_once_with(worker_2.stream_name, "tg-usage-workers", message_id)
 
     # Verify event was persisted to PostgreSQL
     stmt = select(UsageEvent).where(UsageEvent.event_id == event_id)

@@ -871,7 +871,9 @@ def record_circuit_half_open_probe(provider: str, model: str, result: str) -> No
 def record_recovery_event(component: str, status: str) -> None:
     """Records an infrastructure recovery event with bounded labels."""
     try:
-        RECOVERY_EVENTS_TOTAL.labels(component=str(component).lower(), status=str(status).lower()).inc()
+        RECOVERY_EVENTS_TOTAL.labels(
+            component=str(component).lower(), status=str(status).lower()
+        ).inc()
     except Exception as e:
         logger.debug(f"Failed to record recovery event metric: {e}")
 
@@ -879,7 +881,9 @@ def record_recovery_event(component: str, status: str) -> None:
 def record_failover_event(target_type: str, status: str) -> None:
     """Records a failover event with bounded labels."""
     try:
-        FAILOVER_TOTAL.labels(target_type=str(target_type).lower(), status=str(status).lower()).inc()
+        FAILOVER_TOTAL.labels(
+            target_type=str(target_type).lower(), status=str(status).lower()
+        ).inc()
     except Exception as e:
         logger.debug(f"Failed to record failover event metric: {e}")
 
@@ -887,7 +891,9 @@ def record_failover_event(target_type: str, status: str) -> None:
 def record_backup_operation(operation: str, status: str) -> None:
     """Records a backup or restore operation with bounded labels."""
     try:
-        BACKUP_OPERATIONS_TOTAL.labels(operation=str(operation).lower(), status=str(status).lower()).inc()
+        BACKUP_OPERATIONS_TOTAL.labels(
+            operation=str(operation).lower(), status=str(status).lower()
+        ).inc()
     except Exception as e:
         logger.debug(f"Failed to record backup operation metric: {e}")
 

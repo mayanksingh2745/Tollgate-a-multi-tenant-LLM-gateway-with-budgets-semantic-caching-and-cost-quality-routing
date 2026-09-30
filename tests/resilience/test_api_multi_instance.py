@@ -33,7 +33,9 @@ async def test_multi_instance_authentication_consistency(db_session: AsyncSessio
     project_id = uuid.uuid4()
     user_id = uuid.uuid4()
 
-    tenant = Tenant(id=tenant_id, name="Multi-Instance Tenant", slug=f"mi-tenant-{uuid.uuid4().hex[:6]}")
+    tenant = Tenant(
+        id=tenant_id, name="Multi-Instance Tenant", slug=f"mi-tenant-{uuid.uuid4().hex[:6]}"
+    )
     project = Project(id=project_id, tenant_id=tenant_id, name="MI Project", slug="mi-proj")
     user = User(
         id=user_id,
@@ -71,8 +73,10 @@ async def test_multi_instance_authentication_consistency(db_session: AsyncSessio
         transport_1 = ASGITransport(app=app)
         transport_2 = ASGITransport(app=app)
 
-        async with AsyncClient(transport=transport_1, base_url="http://gateway-1:8000") as client_1, \
-                   AsyncClient(transport=transport_2, base_url="http://gateway-2:8000") as client_2:
+        async with (
+            AsyncClient(transport=transport_1, base_url="http://gateway-1:8000") as client_1,
+            AsyncClient(transport=transport_2, base_url="http://gateway-2:8000") as client_2,
+        ):
 
             # Instance 1 verifies key
             res_1 = await client_1.get(
@@ -207,7 +211,11 @@ async def test_multi_instance_cache_sharing():
         id="chatcmpl-mi-123",
         created=1711800000,
         model="gpt-4o",
-        choices=[ChatChoice(index=0, message=ChatChoiceMessage(role="assistant", content="Shared cache answer"))],
+        choices=[
+            ChatChoice(
+                index=0, message=ChatChoiceMessage(role="assistant", content="Shared cache answer")
+            )
+        ],
         usage=UsageInfo(prompt_tokens=10, completion_tokens=15, total_tokens=25),
     )
 
@@ -242,8 +250,10 @@ async def test_multi_instance_load_balancer_failover_simulation():
     transport_1 = ASGITransport(app=app)
     transport_2 = ASGITransport(app=app)
 
-    async with AsyncClient(transport=transport_1, base_url="http://gateway-1:8000") as client_1, \
-               AsyncClient(transport=transport_2, base_url="http://gateway-2:8000") as client_2:
+    async with (
+        AsyncClient(transport=transport_1, base_url="http://gateway-1:8000") as client_1,
+        AsyncClient(transport=transport_2, base_url="http://gateway-2:8000") as client_2,
+    ):
 
         # Simulate client request attempt:
         # Proxy tries Instance 1 first; if healthz / live check succeeds, returns 200

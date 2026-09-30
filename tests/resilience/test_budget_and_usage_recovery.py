@@ -91,7 +91,7 @@ async def test_ledger_reconciliation_after_redis_state_loss(db_session: AsyncSes
             output_tokens=50,
             total_tokens=150,
             estimated_cost=3000,
-            actual_cost=2000 + (i * 500), # 2000, 2500, 3000 -> Total: 7500
+            actual_cost=2000 + (i * 500),  # 2000, 2500, 3000 -> Total: 7500
             latency_ms=100.0,
             attempt_count=1,
             fallback_used=False,
@@ -114,9 +114,7 @@ async def test_ledger_reconciliation_after_redis_state_loss(db_session: AsyncSes
     assert reconciled_total == 7500, f"Expected 7500 micro-cents, got {reconciled_total}"
 
     # Verify matching raw event sum
-    raw_sum_stmt = select(func.sum(UsageEvent.actual_cost)).where(
-        UsageEvent.tenant_id == tenant_id
-    )
+    raw_sum_stmt = select(func.sum(UsageEvent.actual_cost)).where(UsageEvent.tenant_id == tenant_id)
     raw_total = (await db_session.execute(raw_sum_stmt)).scalar()
     assert raw_total == 7500
 

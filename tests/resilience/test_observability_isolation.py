@@ -22,7 +22,7 @@ async def test_opentelemetry_collector_failure_isolation():
     init_tracer(
         service_name="tollgate-api-resilience-test",
         enabled=True,
-        endpoint="http://127.0.0.1:9999", # unreachable
+        endpoint="http://127.0.0.1:9999",  # unreachable
         sample_rate=1.0,
         timeout_seconds=0.1,
     )
@@ -73,8 +73,16 @@ async def test_http_request_succeeds_despite_observability_backend_crash():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # Patch tracer and metrics to simulate background crash
-        with patch("tollgate_core.observability.record_http_request", side_effect=Exception("Prometheus unavailable")), \
-             patch("tollgate_core.observability.extract_trace_context", side_effect=Exception("Trace context corrupted")):
+        with (
+            patch(
+                "tollgate_core.observability.record_http_request",
+                side_effect=Exception("Prometheus unavailable"),
+            ),
+            patch(
+                "tollgate_core.observability.extract_trace_context",
+                side_effect=Exception("Trace context corrupted"),
+            ),
+        ):
 
             res = await client.get("/healthz")
             # Must still succeed cleanly

@@ -53,7 +53,14 @@ async def test_cache_complete_loss_rebuild_without_side_effects():
         id="chatcmpl-rebuild-1",
         created=1711800000,
         model="gpt-4o",
-        choices=[ChatChoice(index=0, message=ChatChoiceMessage(role="assistant", content="Quantum computing uses qubits."))],
+        choices=[
+            ChatChoice(
+                index=0,
+                message=ChatChoiceMessage(
+                    role="assistant", content="Quantum computing uses qubits."
+                ),
+            )
+        ],
         usage=UsageInfo(prompt_tokens=15, completion_tokens=25, total_tokens=40),
     )
 
@@ -158,7 +165,11 @@ async def test_connection_storm_and_concurrency_stability():
             id=f"chatcmpl-storm-{idx}",
             created=1711800000,
             model="gpt-4o",
-            choices=[ChatChoice(index=0, message=ChatChoiceMessage(role="assistant", content=f"Response {idx}"))],
+            choices=[
+                ChatChoice(
+                    index=0, message=ChatChoiceMessage(role="assistant", content=f"Response {idx}")
+                )
+            ],
             usage=UsageInfo(prompt_tokens=5, completion_tokens=5, total_tokens=10),
         )
         # Concurrent write
@@ -214,7 +225,7 @@ async def test_usage_stream_recovery_under_load(db_session: AsyncSession):
 
     # Worker 1 crashes. Worker 2 processes remaining 10 events,
     # AND replays 3 events from Worker 1 due to simulated un-ACKed reclaim
-    replayed_and_new_events = events[7:] # 7, 8, 9 replayed, 10-19 new
+    replayed_and_new_events = events[7:]  # 7, 8, 9 replayed, 10-19 new
     for ev in replayed_and_new_events:
         await persist_usage_event(db_session, ev)
     await db_session.commit()

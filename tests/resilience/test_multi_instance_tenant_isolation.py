@@ -43,8 +43,12 @@ async def test_multi_instance_cross_tenant_isolation(db_session: AsyncSession):
 
     tenant_a = Tenant(id=tenant_a_id, name="Tenant Alpha", slug=f"alpha-{uuid.uuid4().hex[:6]}")
     tenant_b = Tenant(id=tenant_b_id, name="Tenant Beta", slug=f"beta-{uuid.uuid4().hex[:6]}")
-    project_a = Project(id=project_a_id, tenant_id=tenant_a_id, name="Project Alpha", slug="proj-alpha")
-    project_b = Project(id=project_b_id, tenant_id=tenant_b_id, name="Project Beta", slug="proj-beta")
+    project_a = Project(
+        id=project_a_id, tenant_id=tenant_a_id, name="Project Alpha", slug="proj-alpha"
+    )
+    project_b = Project(
+        id=project_b_id, tenant_id=tenant_b_id, name="Project Beta", slug="proj-beta"
+    )
     user_a = User(
         id=user_a_id,
         tenant_id=tenant_a_id,
@@ -67,8 +71,16 @@ async def test_multi_instance_cross_tenant_isolation(db_session: AsyncSession):
     await db_session.commit()
 
     # Create API keys for both tenants
-    key_a = (await create_api_key(db_session, project_a_id, tenant_a_id, APIKeyCreate(name="Key A", user_id=user_a_id))).key
-    key_b = (await create_api_key(db_session, project_b_id, tenant_b_id, APIKeyCreate(name="Key B", user_id=user_b_id))).key
+    key_a = (
+        await create_api_key(
+            db_session, project_a_id, tenant_a_id, APIKeyCreate(name="Key A", user_id=user_a_id)
+        )
+    ).key
+    key_b = (
+        await create_api_key(
+            db_session, project_b_id, tenant_b_id, APIKeyCreate(name="Key B", user_id=user_b_id)
+        )
+    ).key
 
     # 2. Verify API and Dashboard isolation across two gateway instances
     async def _override_get_db():
@@ -80,16 +92,22 @@ async def test_multi_instance_cross_tenant_isolation(db_session: AsyncSession):
         transport_1 = ASGITransport(app=app)
         transport_2 = ASGITransport(app=app)
 
-        async with AsyncClient(transport=transport_1, base_url="http://gateway-1:8000") as client_1, \
-                   AsyncClient(transport=transport_2, base_url="http://gateway-2:8000") as client_2:
+        async with (
+            AsyncClient(transport=transport_1, base_url="http://gateway-1:8000") as client_1,
+            AsyncClient(transport=transport_2, base_url="http://gateway-2:8000") as client_2,
+        ):
 
             # Instance 1 checks Tenant A
-            res_a1 = await client_1.get("/api/v1/dashboard/me", headers={"Authorization": f"Bearer {key_a}"})
+            res_a1 = await client_1.get(
+                "/api/v1/dashboard/me", headers={"Authorization": f"Bearer {key_a}"}
+            )
             assert res_a1.status_code == 200
             assert res_a1.json()["tenant_id"] == str(tenant_a_id)
 
             # Instance 2 checks Tenant B
-            res_b2 = await client_2.get("/api/v1/dashboard/me", headers={"Authorization": f"Bearer {key_b}"})
+            res_b2 = await client_2.get(
+                "/api/v1/dashboard/me", headers={"Authorization": f"Bearer {key_b}"}
+            )
             assert res_b2.status_code == 200
             assert res_b2.json()["tenant_id"] == str(tenant_b_id)
 
@@ -112,7 +130,7 @@ async def test_multi_instance_cross_tenant_isolation(db_session: AsyncSession):
     res_a_3 = await limiter.check(tenant_id=tenant_a_id, cost=1)
     assert res_a_1.allowed is True
     assert res_a_2.allowed is True
-    assert res_a_3.allowed is False # Rate limited
+    assert res_a_3.allowed is False  # Rate limited
 
     # Tenant B must NOT be affected by Tenant A's exhausted quota
     res_b_1 = await limiter.check(tenant_id=tenant_b_id, cost=1)
@@ -146,7 +164,12 @@ async def test_multi_instance_cross_tenant_isolation(db_session: AsyncSession):
         id="chatcmpl-a-1",
         created=1711800000,
         model="gpt-4o",
-        choices=[ChatChoice(index=0, message=ChatChoiceMessage(role="assistant", content="Confidential Alpha data"))],
+        choices=[
+            ChatChoice(
+                index=0,
+                message=ChatChoiceMessage(role="assistant", content="Confidential Alpha data"),
+            )
+        ],
         usage=UsageInfo(prompt_tokens=5, completion_tokens=5, total_tokens=10),
     )
 

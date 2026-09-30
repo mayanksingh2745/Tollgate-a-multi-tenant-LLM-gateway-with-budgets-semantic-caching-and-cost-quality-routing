@@ -23,15 +23,19 @@ async def test_database_outage_readiness_probe_fails():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
 
         # 1. Baseline: Healthy
-        with patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=True)), \
-             patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=True)):
+        with (
+            patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=True)),
+            patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=True)),
+        ):
             res = await client.get("/health/ready")
             assert res.status_code == 200
             assert res.json()["status"] == "ready"
 
         # 2. Database Outage Simulated
-        with patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=False)), \
-             patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=True)):
+        with (
+            patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=False)),
+            patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=True)),
+        ):
             # Liveness remains alive
             live_res = await client.get("/health/live")
             assert live_res.status_code == 200
@@ -45,8 +49,10 @@ async def test_database_outage_readiness_probe_fails():
             assert data["detail"]["database"] == "unreachable"
 
         # 3. Database Restoration Simulated
-        with patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=True)), \
-             patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=True)):
+        with (
+            patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=True)),
+            patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=True)),
+        ):
             res_restored = await client.get("/health/ready")
             assert res_restored.status_code == 200
             assert res_restored.json()["status"] == "ready"
@@ -60,8 +66,10 @@ async def test_redis_outage_readiness_probe_fails():
     """
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        with patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=True)), \
-             patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=False)):
+        with (
+            patch("gateway.src.api.health.check_db_health", AsyncMock(return_value=True)),
+            patch("gateway.src.api.health.check_redis_health", AsyncMock(return_value=False)),
+        ):
             res = await client.get("/health/ready")
             assert res.status_code == 503
             assert res.json()["detail"]["redis"] == "unreachable"

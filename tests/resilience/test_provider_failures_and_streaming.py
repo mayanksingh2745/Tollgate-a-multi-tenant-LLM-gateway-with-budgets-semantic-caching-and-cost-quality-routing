@@ -33,7 +33,9 @@ class MockFlakyProvider(LLMProvider):
     ) -> ChatCompletionResponse:
         self.call_count += 1
         # Determine failure deterministically based on rate
-        if (self.call_count % int(1.0 / max(0.01, self.failure_rate))) == 1 and self.failure_rate > 0.0:
+        if (
+            self.call_count % int(1.0 / max(0.01, self.failure_rate))
+        ) == 1 and self.failure_rate > 0.0:
             raise ProviderException(f"{self.name} simulated 500 error", status_code=500)
 
         return ChatCompletionResponse(
@@ -76,7 +78,9 @@ class MockDeterministicProvider(LLMProvider):
             choices=[
                 ChatChoice(
                     index=0,
-                    message=ChatChoiceMessage(role="assistant", content=f"Success from {self.name}"),
+                    message=ChatChoiceMessage(
+                        role="assistant", content=f"Success from {self.name}"
+                    ),
                     finish_reason="stop",
                 )
             ],
@@ -169,7 +173,11 @@ async def test_provider_100_percent_failure_fallback_routing():
     route = FallbackRoute(
         logical_model="gpt-4o",
         primary=ProviderTarget(provider_name="primary-openai", upstream_model="gpt-4o"),
-        fallbacks=[ProviderTarget(provider_name="fallback-anthropic", upstream_model="claude-3-5-sonnet-20241022")],
+        fallbacks=[
+            ProviderTarget(
+                provider_name="fallback-anthropic", upstream_model="claude-3-5-sonnet-20241022"
+            )
+        ],
     )
 
     executor = ReliableExecutor()
@@ -201,6 +209,7 @@ async def test_streaming_interruption_graceful_abort():
     1. The generator terminates cleanly without hanging.
     2. Connection resources are released.
     """
+
     class BrokenStreamProvider(LLMProvider):
         def __init__(self):
             super().__init__(name="broken-stream")
@@ -241,6 +250,7 @@ async def test_client_disconnect_task_cancellation():
     Simulates client disconnect while upstream request is executing:
     The gateway cancels the provider task and frees execution resources.
     """
+
     async def slow_upstream_call():
         await asyncio.sleep(5.0)
         return "finished"
