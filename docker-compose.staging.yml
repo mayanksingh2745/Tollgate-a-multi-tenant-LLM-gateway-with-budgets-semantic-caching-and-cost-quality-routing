@@ -70,7 +70,7 @@ services:
       REDIS_PORT: 6379
       REDIS_URL: redis://:${REDIS_PASSWORD:-staging_redis_pass}@redis:6379/0
       TOLLGATE_DOCS_ENABLED: "true"
-      TOLLGATE_CORS_ALLOWED_ORIGINS: "*"
+      TOLLGATE_CORS_ALLOWED_ORIGINS: '["*"]'
       TOLLGATE_METRICS_ENABLED: "true"
       TOLLGATE_METRICS_AUTH_ENABLED: "false"
     depends_on:

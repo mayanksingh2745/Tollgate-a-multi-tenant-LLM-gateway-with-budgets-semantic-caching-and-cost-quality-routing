@@ -1,8 +1,8 @@
 import os
 import subprocess
-from typing import Optional
+from typing import Any, Optional, Union
 
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     gateway_port: int = 8000
 
     # CORS configuration
-    cors_allowed_origins: list[str] = Field(
+    cors_allowed_origins: Union[list[str], str] = Field(
         default=["*"],
         validation_alias=AliasChoices("TOLLGATE_CORS_ALLOWED_ORIGINS", "cors_allowed_origins"),
     )
@@ -58,10 +58,29 @@ class Settings(BaseSettings):
         False,
         validation_alias=AliasChoices("TOLLGATE_ENABLE_HSTS", "enable_hsts"),
     )
-    trusted_proxies: list[str] = Field(
+    trusted_proxies: Union[list[str], str] = Field(
         default=["127.0.0.1", "::1"],
         validation_alias=AliasChoices("TOLLGATE_TRUSTED_PROXIES", "trusted_proxies"),
     )
+
+    @field_validator("cors_allowed_origins", "trusted_proxies", mode="after")
+    @classmethod
+    def _normalize_string_or_list(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    import json
+
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(x).strip() for x in parsed]
+                except Exception:
+                    pass
+            return [x.strip() for x in v.split(",") if x.strip()]
+        if isinstance(v, list):
+            return [str(x).strip() for x in v]
+        return [str(v)]
 
     postgres_user: str = "tollgate"
     postgres_password: str = "tollgate_secret_pass"
