@@ -1,0 +1,42 @@
+# Exact & Semantic Cache Benchmark Configuration
+
+benchmark_name: "cache_evaluation"
+
+exact_cache:
+  smoke_requests: 200
+  full_requests: 2000
+  hit_rates_to_test: [0.10, 0.25, 0.50, 0.75, 0.90] # Mixed workload test ratios
+  correctness_tests:
+    - name: "identical_match"
+      expected: "hit"
+    - name: "temperature_mismatch"
+      expected: "miss"
+    - name: "model_mismatch"
+      expected: "miss"
+    - name: "system_prompt_mismatch"
+      expected: "miss"
+    - name: "cross_tenant_isolation"
+      expected: "miss"
+    - name: "cross_project_isolation"
+      expected: "miss"
+    - name: "tools_difference"
+      expected: "miss"
+
+semantic_cache:
+  threshold_sweep: [0.80, 0.85, 0.90, 0.92, 0.95]
+  default_threshold: 0.90
+  smoke_samples: 30
+  full_samples: 150
+  adversarial_cases:
+    - query: "What is the capital of France?"
+      adversarial_variation: "What was the capital of France in 1800?"
+      should_hit: false
+    - query: "What is the capital of France?"
+      adversarial_variation: "What is the capital of Germany?"
+      should_hit: false
+    - query: "What is the capital of France?"
+      adversarial_variation: "How do I travel to France?"
+      should_hit: false
+    - query: "What is the capital of France?"
+      adversarial_variation: "What is France's GDP?"
+      should_hit: false

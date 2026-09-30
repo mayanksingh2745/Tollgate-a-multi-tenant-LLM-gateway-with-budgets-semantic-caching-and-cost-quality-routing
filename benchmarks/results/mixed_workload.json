@@ -1,0 +1,46 @@
+{
+  "benchmark": "mixed_workload",
+  "scenario": "realistic_traffic_blend",
+  "timestamp": "2026-09-30T13:04:32.416555+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 150,
+  "requests_successful": 150,
+  "requests_failed": 0,
+  "duration_seconds": 0.443,
+  "throughput_rps": 338.54,
+  "latency_ms": {
+    "count": 150,
+    "mean": 22.89,
+    "stddev": 16.845,
+    "min": 0.368,
+    "p50": 21.0,
+    "p75": 34.774,
+    "p90": 46.029,
+    "p95": 50.549,
+    "p99": 70.816,
+    "max": 71.029
+  },
+  "details": {
+    "concurrency": 10,
+    "cache_hits": 30,
+    "cache_misses": 120,
+    "cache_hit_rate": 0.2,
+    "streaming_requests": 40,
+    "fallbacks_triggered": 5,
+    "p50_ms": 21.0,
+    "p95_ms": 50.549,
+    "p99_ms": 70.816
+  }
+}

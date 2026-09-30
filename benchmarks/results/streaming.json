@@ -1,0 +1,45 @@
+{
+  "benchmark": "streaming_load",
+  "scenario": "ttft_and_client_disconnect",
+  "timestamp": "2026-09-30T13:04:30.540138+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 50,
+  "requests_successful": 50,
+  "requests_failed": 0,
+  "duration_seconds": 0.115,
+  "throughput_rps": 434.4,
+  "latency_ms": {
+    "count": 50,
+    "mean": 16.834,
+    "stddev": 11.084,
+    "min": 9.446,
+    "p50": 12.642,
+    "p75": 15.269,
+    "p90": 44.183,
+    "p95": 47.173,
+    "p99": 48.001,
+    "max": 48.001
+  },
+  "details": {
+    "concurrent_streams": 10,
+    "ttft_p50_ms": 12.642,
+    "ttft_p95_ms": 47.173,
+    "ttft_p99_ms": 48.001,
+    "stream_duration_p50_ms": 13.055,
+    "stream_duration_p95_ms": 47.669,
+    "total_chunks_emitted": 600,
+    "client_early_disconnect_verified": true
+  }
+}

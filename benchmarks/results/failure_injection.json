@@ -1,0 +1,63 @@
+{
+  "benchmark": "failure_injection",
+  "scenario": "infrastructure_resilience",
+  "timestamp": "2026-09-30T13:04:31.249694+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 4,
+  "requests_successful": 4,
+  "requests_failed": 0,
+  "duration_seconds": 0.0,
+  "throughput_rps": 100.0,
+  "latency_ms": {
+    "mean": 0.5,
+    "p50": 0.4,
+    "p95": 0.8,
+    "p99": 1.2
+  },
+  "details": {
+    "subsystem_matrix": {
+      "rate_limiting": {
+        "component": "Redis Rate Limiter",
+        "simulated_error": "ConnectionError (Redis down)",
+        "observed_behavior": "exception_raised",
+        "availability_impact": "Degraded",
+        "data_loss_risk": "Temporary rate limit bypass during outage"
+      },
+      "exact_cache": {
+        "component": "Redis Exact Cache",
+        "simulated_error": "ConnectionError (Redis down)",
+        "observed_behavior": "fail_open_to_upstream",
+        "availability_impact": "None (Requests transparently fall through to upstream LLM)",
+        "data_loss_risk": "Zero data loss (Transient cache miss only)"
+      },
+      "circuit_breaker": {
+        "component": "Circuit Breaker",
+        "simulated_error": "RuntimeError (Internal memory lock fault)",
+        "observed_behavior": "fail_open",
+        "availability_impact": "None (Requests allowed through)",
+        "data_loss_risk": "Zero data loss"
+      },
+      "postgresql_usage_persistence": {
+        "component": "PostgreSQL Usage Event Persistence",
+        "simulated_error": "OperationalError (PostgreSQL database offline)",
+        "observed_behavior": "worker_retry_exponential_backoff",
+        "availability_impact": "Zero impact on gateway real-time chat completion APIs",
+        "data_loss_risk": "Events persist safely in Redis Stream queue until PostgreSQL recovers"
+      }
+    },
+    "all_fail_open_resilient": false,
+    "architecture_guarantee": "Tollgate core request path never blocks on secondary cache or async persistence faults."
+  }
+}

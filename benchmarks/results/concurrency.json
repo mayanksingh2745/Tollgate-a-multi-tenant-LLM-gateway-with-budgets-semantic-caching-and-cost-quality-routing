@@ -1,0 +1,131 @@
+{
+  "benchmark": "concurrency_scaling",
+  "scenario": "concurrency_ladder",
+  "timestamp": "2026-09-30T13:03:47.676761+00:00",
+  "git_sha": "d06122b393e00ecbeae88902acc2562b8887c9ee",
+  "environment": {
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.19045",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 60 Stepping 3, GenuineIntel",
+    "logical_cpus": 4,
+    "total_ram_gb": 7.9,
+    "python_version": "3.13.2",
+    "python_compiler": "MSC v.1942 64 bit (AMD64)"
+  },
+  "configuration": {},
+  "requests_total": 900,
+  "requests_successful": 900,
+  "requests_failed": 0,
+  "duration_seconds": 3.437,
+  "throughput_rps": 261.82,
+  "latency_ms": {
+    "count": 900,
+    "mean": 19.924,
+    "stddev": 12.151,
+    "min": 5.979,
+    "p50": 15.483,
+    "p75": 17.237,
+    "p90": 44.494,
+    "p95": 49.633,
+    "p99": 55.663,
+    "max": 58.907
+  },
+  "details": {
+    "levels_evaluated": [
+      1,
+      5,
+      10,
+      25,
+      50,
+      100
+    ],
+    "sustainable_rps": 1836.91,
+    "max_sustainable_concurrency": 100,
+    "saturation_criteria": {
+      "max_p95_sla_ms": 50.0,
+      "max_error_rate": 0.01
+    },
+    "ladder": {
+      "1": {
+        "concurrency": 1,
+        "requests": 150,
+        "successful": 150,
+        "errors": 0,
+        "error_rate": 0.0,
+        "duration_seconds": 2.358,
+        "rps": 63.62,
+        "p50_ms": 15.844,
+        "p95_ms": 16.687,
+        "p99_ms": 17.839,
+        "is_sustainable": true
+      },
+      "5": {
+        "concurrency": 5,
+        "requests": 150,
+        "successful": 150,
+        "errors": 0,
+        "error_rate": 0.0,
+        "duration_seconds": 0.477,
+        "rps": 314.43,
+        "p50_ms": 15.49,
+        "p95_ms": 16.906,
+        "p99_ms": 17.447,
+        "is_sustainable": true
+      },
+      "10": {
+        "concurrency": 10,
+        "requests": 150,
+        "successful": 150,
+        "errors": 0,
+        "error_rate": 0.0,
+        "duration_seconds": 0.238,
+        "rps": 631.33,
+        "p50_ms": 14.722,
+        "p95_ms": 16.207,
+        "p99_ms": 16.694,
+        "is_sustainable": true
+      },
+      "25": {
+        "concurrency": 25,
+        "requests": 150,
+        "successful": 150,
+        "errors": 0,
+        "error_rate": 0.0,
+        "duration_seconds": 0.178,
+        "rps": 843.85,
+        "p50_ms": 13.876,
+        "p95_ms": 57.968,
+        "p99_ms": 58.859,
+        "is_sustainable": false
+      },
+      "50": {
+        "concurrency": 50,
+        "requests": 150,
+        "successful": 150,
+        "errors": 0,
+        "error_rate": 0.0,
+        "duration_seconds": 0.106,
+        "rps": 1419.4,
+        "p50_ms": 14.0,
+        "p95_ms": 47.924,
+        "p99_ms": 49.633,
+        "is_sustainable": true
+      },
+      "100": {
+        "concurrency": 100,
+        "requests": 150,
+        "successful": 150,
+        "errors": 0,
+        "error_rate": 0.0,
+        "duration_seconds": 0.082,
+        "rps": 1836.91,
+        "p50_ms": 30.451,
+        "p95_ms": 44.561,
+        "p99_ms": 47.251,
+        "is_sustainable": true
+      }
+    }
+  }
+}

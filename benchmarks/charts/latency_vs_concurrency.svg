@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="650" height="320" viewBox="0 0 650 320" style="background:#0d1117; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;">
+  <text x="20" y="32" fill="#58a6ff" font-size="16" font-weight="600">Latency Distribution vs Concurrency</text>
+  <line x1="60" y1="270" x2="620" y2="270" stroke="#21262d" stroke-dasharray="3,3"/>
+  <text x="52" y="274" fill="#8b949e" font-size="10" text-anchor="end">0.0 ms</text>
+  <line x1="60" y1="215" x2="620" y2="215" stroke="#21262d" stroke-dasharray="3,3"/>
+  <text x="52" y="219" fill="#8b949e" font-size="10" text-anchor="end">14.7 ms</text>
+  <line x1="60" y1="160" x2="620" y2="160" stroke="#21262d" stroke-dasharray="3,3"/>
+  <text x="52" y="164" fill="#8b949e" font-size="10" text-anchor="end">29.4 ms</text>
+  <line x1="60" y1="105" x2="620" y2="105" stroke="#21262d" stroke-dasharray="3,3"/>
+  <text x="52" y="109" fill="#8b949e" font-size="10" text-anchor="end">44.1 ms</text>
+  <line x1="60" y1="50" x2="620" y2="50" stroke="#21262d" stroke-dasharray="3,3"/>
+  <text x="52" y="54" fill="#8b949e" font-size="10" text-anchor="end">58.9 ms</text>
+  <circle cx="60.0" cy="210.0" r="3.5" fill="#58a6ff"/>
+  <circle cx="172.0" cy="212.0" r="3.5" fill="#58a6ff"/>
+  <circle cx="284.0" cy="214.0" r="3.5" fill="#58a6ff"/>
+  <circle cx="396.0" cy="218.0" r="3.5" fill="#58a6ff"/>
+  <circle cx="508.0" cy="217.0" r="3.5" fill="#58a6ff"/>
+  <circle cx="620.0" cy="156.0" r="3.5" fill="#58a6ff"/>
+  <polyline fill="none" stroke="#58a6ff" stroke-width="2.5" points="60.0,210.0 172.0,212.0 284.0,214.0 396.0,218.0 508.0,217.0 620.0,156.0"/>
+  <rect x="60" y="300" width="12" height="12" rx="2" fill="#58a6ff"/>
+  <text x="78" y="310" fill="#8b949e" font-size="11">p50 (ms)</text>
+  <circle cx="60.0" cy="207.0" r="3.5" fill="#f0883e"/>
+  <circle cx="172.0" cy="206.0" r="3.5" fill="#f0883e"/>
+  <circle cx="284.0" cy="209.0" r="3.5" fill="#f0883e"/>
+  <circle cx="396.0" cy="53.0" r="3.5" fill="#f0883e"/>
+  <circle cx="508.0" cy="90.0" r="3.5" fill="#f0883e"/>
+  <circle cx="620.0" cy="103.0" r="3.5" fill="#f0883e"/>
+  <polyline fill="none" stroke="#f0883e" stroke-width="2.5" points="60.0,207.0 172.0,206.0 284.0,209.0 396.0,53.0 508.0,90.0 620.0,103.0"/>
+  <rect x="200" y="300" width="12" height="12" rx="2" fill="#f0883e"/>
+  <text x="218" y="310" fill="#8b949e" font-size="11">p95 (ms)</text>
+  <circle cx="60.0" cy="203.0" r="3.5" fill="#238636"/>
+  <circle cx="172.0" cy="204.0" r="3.5" fill="#238636"/>
+  <circle cx="284.0" cy="207.0" r="3.5" fill="#238636"/>
+  <circle cx="396.0" cy="50.0" r="3.5" fill="#238636"/>
+  <circle cx="508.0" cy="84.0" r="3.5" fill="#238636"/>
+  <circle cx="620.0" cy="93.0" r="3.5" fill="#238636"/>
+  <polyline fill="none" stroke="#238636" stroke-width="2.5" points="60.0,203.0 172.0,204.0 284.0,207.0 396.0,50.0 508.0,84.0 620.0,93.0"/>
+  <rect x="340" y="300" width="12" height="12" rx="2" fill="#238636"/>
+  <text x="358" y="310" fill="#8b949e" font-size="11">p99 (ms)</text>
+  <text x="60.0" y="288" fill="#8b949e" font-size="11" text-anchor="middle">C=1</text>
+  <text x="172.0" y="288" fill="#8b949e" font-size="11" text-anchor="middle">C=5</text>
+  <text x="284.0" y="288" fill="#8b949e" font-size="11" text-anchor="middle">C=10</text>
+  <text x="396.0" y="288" fill="#8b949e" font-size="11" text-anchor="middle">C=25</text>
+  <text x="508.0" y="288" fill="#8b949e" font-size="11" text-anchor="middle">C=50</text>
+  <text x="620.0" y="288" fill="#8b949e" font-size="11" text-anchor="middle">C=100</text>
+</svg>
