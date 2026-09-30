@@ -42,6 +42,9 @@ dev = [
     "pip-audit>=2.7.0"
 ]
 
+[tool.setuptools]
+packages = []
+
 [tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
