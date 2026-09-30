@@ -1,0 +1,122 @@
+# ==============================================================================
+# Tollgate Staging Docker Compose
+# Mirrors production configuration with relaxed constraints for pre-deployment
+# testing. Uses the same images, network topology, and security settings.
+# ==============================================================================
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: tollgate-staging-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tollgate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-staging_pg_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-tollgate_staging_db}
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    networks:
+      - tollgate-staging-backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tollgate} -d ${POSTGRES_DB:-tollgate_staging_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tollgate-staging-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-staging_redis_pass}
+      --maxmemory 512mb
+      --maxmemory-policy volatile-lru
+    volumes:
+      - staging_redis_data:/data
+    networks:
+      - tollgate-staging-backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-staging_redis_pass}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    image: tollgate-api:${TOLLGATE_GIT_COMMIT:-staging}
+    container_name: tollgate-staging-gateway
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8000"
+    environment:
+      ENVIRONMENT: staging
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+      TOLLGATE_VERSION: ${TOLLGATE_VERSION:-1.0.0-staging}
+      TOLLGATE_GIT_COMMIT: ${TOLLGATE_GIT_COMMIT:-unknown}
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORT: 8000
+      POSTGRES_USER: ${POSTGRES_USER:-tollgate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-staging_pg_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-tollgate_staging_db}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tollgate}:${POSTGRES_PASSWORD:-staging_pg_pass}@postgres:5432/${POSTGRES_DB:-tollgate_staging_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-staging_redis_pass}@redis:6379/0
+      TOLLGATE_DOCS_ENABLED: "true"
+      TOLLGATE_CORS_ALLOWED_ORIGINS: "*"
+      TOLLGATE_METRICS_ENABLED: "true"
+      TOLLGATE_METRICS_AUTH_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tollgate-staging-frontend
+      - tollgate-staging-backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    image: tollgate-worker:${TOLLGATE_GIT_COMMIT:-staging}
+    container_name: tollgate-staging-worker
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      ENVIRONMENT: staging
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-staging_redis_pass}@redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tollgate}:${POSTGRES_PASSWORD:-staging_pg_pass}@postgres:5432/${POSTGRES_DB:-tollgate_staging_db}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tollgate-staging-backend
+
+networks:
+  tollgate-staging-frontend:
+    driver: bridge
+  tollgate-staging-backend:
+    driver: bridge
+
+volumes:
+  staging_postgres_data:
+  staging_redis_data:

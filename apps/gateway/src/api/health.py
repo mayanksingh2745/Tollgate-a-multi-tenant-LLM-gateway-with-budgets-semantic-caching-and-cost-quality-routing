@@ -22,7 +22,31 @@ class SystemHealthResponse(BaseModel):
     services: list[ComponentStatus]
 
 
+from tollgate_core.config import settings
 from tollgate_core.observability import update_infrastructure_health
+
+
+class VersionResponse(BaseModel):
+    service: str = "tollgate-api"
+    version: str
+    git_commit: str
+    environment: str
+
+
+@router.get(
+    "/health/version", response_model=VersionResponse, summary="Application Version Metadata"
+)
+@router.get(
+    "/version", response_model=VersionResponse, summary="Application Version Metadata Alias"
+)
+async def version_info():
+    """Returns safe application version and deployment metadata without exposing secrets."""
+    return VersionResponse(
+        service="tollgate-api",
+        version=settings.app_version,
+        git_commit=settings.git_commit,
+        environment=settings.environment,
+    )
 
 
 @router.get("/healthz", summary="Simple System Health Check")

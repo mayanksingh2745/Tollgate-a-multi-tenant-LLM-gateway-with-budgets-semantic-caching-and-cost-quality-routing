@@ -122,7 +122,10 @@ def test_label_cardinality_sanitizers():
     # Route normalization
     assert normalize_route("/v1/chat/completions") == "/v1/chat/completions"
     assert normalize_route("/healthz") == "/healthz"
-    assert normalize_route("/api/v1/projects/550e8400-e29b-41d4-a716-446655440000") == "/api/v1/projects"
+    assert (
+        normalize_route("/api/v1/projects/550e8400-e29b-41d4-a716-446655440000")
+        == "/api/v1/projects"
+    )
     assert normalize_route("/unknown/random/endpoint") == "other"
     assert normalize_route(None) == "unknown"
 
@@ -151,16 +154,27 @@ def test_label_cardinality_sanitizers():
 def test_provider_reliability_telemetry():
     """Verify provider retry, fallback, timeout, and call metrics recordings."""
     record_provider_call("openai", "gpt-4o", 200, 0.42)
-    record_provider_call("anthropic", "claude-3-5-sonnet", 502, 1.25, failure_category="provider_internal")
+    record_provider_call(
+        "anthropic", "claude-3-5-sonnet", 502, 1.25, failure_category="provider_internal"
+    )
     record_provider_retry("openai", "gpt-4o")
     record_provider_fallback("openai", "anthropic")
     record_provider_timeout("anthropic", "claude-3-5-sonnet")
 
     metrics_text = export_metrics().decode("utf-8")
-    assert 'tollgate_provider_requests_total{model="gpt-4o",provider="openai",status_class="2xx"}' in metrics_text
+    assert (
+        'tollgate_provider_requests_total{model="gpt-4o",provider="openai",status_class="2xx"}'
+        in metrics_text
+    )
     assert 'tollgate_provider_retries_total{model="gpt-4o",provider="openai"}' in metrics_text
-    assert 'tollgate_provider_fallbacks_total{provider="openai",target_provider="anthropic"}' in metrics_text
-    assert 'tollgate_provider_timeouts_total{model="claude-3-5-sonnet",provider="anthropic"}' in metrics_text
+    assert (
+        'tollgate_provider_fallbacks_total{provider="openai",target_provider="anthropic"}'
+        in metrics_text
+    )
+    assert (
+        'tollgate_provider_timeouts_total{model="claude-3-5-sonnet",provider="anthropic"}'
+        in metrics_text
+    )
 
 
 def test_cache_telemetry():
@@ -192,7 +206,9 @@ def test_router_telemetry():
     metrics_text = export_metrics().decode("utf-8")
     assert 'tollgate_router_decisions_total{mode="active",route="cheap"}' in metrics_text
     assert 'tollgate_router_fallbacks_total{mode="active"}' in metrics_text
-    assert 'tollgate_router_errors_total{error_type="inference_error",mode="active"}' in metrics_text
+    assert (
+        'tollgate_router_errors_total{error_type="inference_error",mode="active"}' in metrics_text
+    )
     assert 'tollgate_router_confidence_score_bucket{le="0.9",mode="active"}' in metrics_text
 
 
@@ -219,7 +235,10 @@ def test_redis_operations_telemetry():
     record_redis_operation("eval", "budget", 0.0025, success=False)
 
     metrics_text = export_metrics().decode("utf-8")
-    assert 'tollgate_redis_operations_total{component="cache",operation="get",status="success"}' in metrics_text
+    assert (
+        'tollgate_redis_operations_total{component="cache",operation="get",status="success"}'
+        in metrics_text
+    )
     assert 'tollgate_redis_errors_total{component="budget",operation="eval"}' in metrics_text
 
 
@@ -232,7 +251,10 @@ def test_streaming_telemetry():
 
     metrics_text = export_metrics().decode("utf-8")
     assert 'tollgate_stream_requests_total{model="gpt-4o",provider="openai"}' in metrics_text
-    assert 'tollgate_stream_time_to_first_token_seconds_bucket{le="0.25",model="gpt-4o",provider="openai"}' in metrics_text
+    assert (
+        'tollgate_stream_time_to_first_token_seconds_bucket{le="0.25",model="gpt-4o",provider="openai"}'
+        in metrics_text
+    )
     assert 'tollgate_stream_failures_total{failure_class="client_disconnect"}' in metrics_text
     assert 'tollgate_stream_disconnects_total{reason="client_disconnect"}' in metrics_text
 
@@ -251,11 +273,11 @@ def test_worker_and_queue_health_telemetry():
     assert 'tollgate_usage_events_consumed_total{stream="tg:usage:events"}' in metrics_text
     assert 'tollgate_usage_events_processed_total{status="success"}' in metrics_text
     assert 'tollgate_usage_events_failed_total{failure_type="database_error"}' in metrics_text
-    assert 'tollgate_usage_events_reclaimed_total' in metrics_text
+    assert "tollgate_usage_events_reclaimed_total" in metrics_text
     assert 'tollgate_usage_queue_pending_messages{stream="tg:usage:events"} 42.0' in metrics_text
     assert 'tollgate_usage_dead_letter_queue_messages{stream="tg:usage:events"} 3.0' in metrics_text
-    assert 'tollgate_infrastructure_redis_healthy 1.0' in metrics_text
-    assert 'tollgate_infrastructure_postgres_healthy 1.0' in metrics_text
+    assert "tollgate_infrastructure_redis_healthy 1.0" in metrics_text
+    assert "tollgate_infrastructure_postgres_healthy 1.0" in metrics_text
 
 
 def test_health_endpoints_liveness_and_readiness(client):

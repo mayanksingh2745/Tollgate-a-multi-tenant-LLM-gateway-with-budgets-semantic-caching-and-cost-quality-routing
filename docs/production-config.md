@@ -18,11 +18,16 @@ All settings are categorized into five operational tiers:
 | Environment Variable | Category | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `ENVIRONMENT` | [REQUIRED] | `development` | Deployment environment: `production`, `staging`, or `development`. |
+| `DEBUG` | [REQUIRED] | `false` (prod) | Debug mode. Must strictly be `false` in production. |
+| `TOLLGATE_VERSION` | [RECOMMENDED] | `1.0.0` | Semantic release version exposed on `/health/version`. |
+| `TOLLGATE_GIT_COMMIT` | [RECOMMENDED] | auto-detected | Immutable Git commit SHA for deployment tracking. |
 | `DATABASE_URL` | [REQUIRED] [SECURITY SENSITIVE] | None | PostgreSQL async connection string with least-privilege credentials. |
 | `POSTGRES_PASSWORD` | [REQUIRED] [SECURITY SENSITIVE] | None | Secret password for PostgreSQL application role. |
+| `REDIS_PASSWORD` | [REQUIRED] [SECURITY SENSITIVE] | None | Secret password for Redis authentication. |
 | `REDIS_URL` | [REQUIRED] [SECURITY SENSITIVE] | `redis://redis:6379/0` | Authenticated Redis connection URL (`redis://:password@host:port/0`). |
 | `SECRET_KEY` | [REQUIRED] [SECURITY SENSITIVE] | None | Cryptographic secret for signing session/JWT authentication tokens. |
 | `METRICS_TOKEN` | [REQUIRED] [SECURITY SENSITIVE] | None | Bearer token required to access the Prometheus `/metrics` endpoint. |
+| `GRAFANA_ADMIN_PASSWORD` | [SECURITY SENSITIVE] | None | Administrative password for Grafana monitoring dashboards. |
 | `OPENAI_API_KEY` | [SECURITY SENSITIVE] | None | Upstream provider API credential for OpenAI model endpoints. |
 | `ANTHROPIC_API_KEY` | [SECURITY SENSITIVE] | None | Upstream provider API credential for Anthropic model endpoints. |
 | `TOLLGATE_CORS_ALLOWED_ORIGINS` | [RECOMMENDED] | `["*"]` (dev only) | Explicit list of trusted origins (e.g., `["https://app.tollgate.ai"]`). |

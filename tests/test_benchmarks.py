@@ -96,18 +96,18 @@ def test_regression_detection_logic():
 
     # 50% p95 increase -> regression flagged
     degraded = {
-        "latency_ms": {"p50": 10.0, "p95": 30.0}, # +50%
+        "latency_ms": {"p50": 10.0, "p95": 30.0},  # +50%
         "throughput_rps": 100.0,
         "error_rate": 0.01,
     }
     comps_deg = compare_single(base, degraded, threshold_percent=10.0)
     p95_check = next(c for c in comps_deg if "p95" in c[0])
-    assert p95_check[4] is True # is_regression == True
+    assert p95_check[4] is True  # is_regression == True
 
     # 30% throughput drop -> regression flagged
     slow = {
         "latency_ms": {"p50": 10.0, "p95": 20.0},
-        "throughput_rps": 60.0, # -40%
+        "throughput_rps": 60.0,  # -40%
         "error_rate": 0.01,
     }
     comps_slow = compare_single(base, slow, threshold_percent=10.0)
@@ -119,7 +119,9 @@ def test_regression_detection_logic():
 async def test_smoke_baseline_scenario():
     from benchmarks.scenarios.baseline import run_baseline_benchmark
 
-    res = await run_baseline_benchmark(concurrency=1, request_count=5, warmup_count=2, provider_latency_seconds=0.001)
+    res = await run_baseline_benchmark(
+        concurrency=1, request_count=5, warmup_count=2, provider_latency_seconds=0.001
+    )
     assert res.requests_total == 5
     assert res.requests_successful == 5
     assert "overhead_ms" in res.details

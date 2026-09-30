@@ -46,7 +46,9 @@ def test_resolve_client_ip_anti_spoofing():
     # 1. Untrusted direct client sends spoofed X-Forwarded-For
     untrusted_peer = "198.51.100.5"
     spoofed_xff = "203.0.113.195, 10.0.0.1"
-    resolved = resolve_client_ip(untrusted_peer, x_forwarded_for=spoofed_xff, trusted_proxies=trusted)
+    resolved = resolve_client_ip(
+        untrusted_peer, x_forwarded_for=spoofed_xff, trusted_proxies=trusted
+    )
     # Since peer is untrusted, XFF MUST be ignored
     assert resolved == untrusted_peer
 

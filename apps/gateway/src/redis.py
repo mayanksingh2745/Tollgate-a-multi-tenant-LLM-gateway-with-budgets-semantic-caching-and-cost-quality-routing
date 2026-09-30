@@ -22,9 +22,11 @@ class InstrumentedRedis:
     def __getattr__(self, name: str):
         attr = getattr(self._client, name)
         if callable(attr):
+
             def wrapper(*args, **kwargs):
                 res = attr(*args, **kwargs)
                 if asyncio.iscoroutine(res):
+
                     async def async_call():
                         t0 = time.perf_counter()
                         try:
@@ -44,8 +46,10 @@ class InstrumentedRedis:
                                 success=False,
                             )
                             raise
+
                     return async_call()
                 return res
+
             return wrapper
         return attr
 

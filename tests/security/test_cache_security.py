@@ -10,7 +10,10 @@ async def test_exact_cache_cross_tenant_isolation(async_client: AsyncClient):
     tenant_a = await create_security_tenant_fixture(async_client, "ciso1a")
     tenant_b = await create_security_tenant_fixture(async_client, "ciso1b")
 
-    prompt = {"model": "mock-model", "messages": [{"role": "user", "content": "universal question"}]}
+    prompt = {
+        "model": "mock-model",
+        "messages": [{"role": "user", "content": "universal question"}],
+    }
 
     # 1. Tenant A sends request: MISS -> writes cache
     res_a1 = await async_client.post(

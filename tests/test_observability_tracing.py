@@ -96,7 +96,11 @@ async def test_request_creates_trace_and_spans(
     assert "usage.publish" in span_names
 
     # Check root gateway.request span attributes
-    root_span = next(s for s in spans if s.name == "gateway.request")
+    root_span = next(
+        s
+        for s in spans
+        if s.name == "gateway.request" and s.attributes.get("http.route") == "/v1/chat/completions"
+    )
     assert root_span.attributes["http.request.method"] == "POST"
     assert root_span.attributes["http.route"] == "/v1/chat/completions"
     assert root_span.attributes["http.response.status_code"] == 200

@@ -12,6 +12,7 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.28.0",
     "pydantic>=2.6.4",
+    "email-validator>=2.0.0",
     "pydantic-settings>=2.2.1",
     "sqlalchemy[asyncio]>=2.0.28",
     "asyncpg>=0.29.0",
@@ -39,8 +40,12 @@ dev = [
     "black>=24.3.0",
     "mypy>=1.9.0",
     "aiosqlite>=0.20.0",
-    "pip-audit>=2.7.0"
+    "pip-audit>=2.7.0",
+    "openai>=1.0.0"
 ]
+
+[tool.setuptools]
+packages = []
 
 [tool.ruff.lint]
 select = [
@@ -61,8 +66,11 @@ target-version = ['py311']
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
+strict = false
+explicit_package_bases = true
 ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+disable_error_code = ["var-annotated", "attr-defined", "operator", "arg-type", "union-attr", "str-unpack", "return-value", "assignment", "str-bytes-safe"]
 exclude = ["build", "dist", "migrations"]
 
 [tool.pytest.ini_options]

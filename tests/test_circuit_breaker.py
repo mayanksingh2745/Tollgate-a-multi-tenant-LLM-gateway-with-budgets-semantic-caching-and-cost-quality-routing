@@ -343,8 +343,12 @@ async def test_executor_skips_open_circuit_to_fallback():
         fallbacks=[ProviderTarget(provider_name="fallback_prov", upstream_model="fallback-model")],
     )
 
-    req = ChatCompletionRequest(model="standard-chat", messages=[ChatMessage(role="user", content="hi")])
-    ctx = AuthenticatedContext(api_key_id=uuid4(), user_id=None, project_id=uuid4(), tenant_id=uuid4(), role="admin")
+    req = ChatCompletionRequest(
+        model="standard-chat", messages=[ChatMessage(role="user", content="hi")]
+    )
+    ctx = AuthenticatedContext(
+        api_key_id=uuid4(), user_id=None, project_id=uuid4(), tenant_id=uuid4(), role="admin"
+    )
 
     res, meta = await executor.execute_chat(
         request=req,
@@ -352,7 +356,9 @@ async def test_executor_skips_open_circuit_to_fallback():
         providers_map=providers_map,
         ctx=ctx,
         request_id="req-test-1",
-        policy=ReliabilityPolicy(max_attempts=1, provider_timeout_seconds=5.0, overall_timeout_seconds=10.0),
+        policy=ReliabilityPolicy(
+            max_attempts=1, provider_timeout_seconds=5.0, overall_timeout_seconds=10.0
+        ),
     )
 
     # Primary provider should NEVER have been called because circuit was OPEN!
@@ -383,8 +389,12 @@ async def test_executor_all_circuits_open_fails_gracefully():
         primary=ProviderTarget(provider_name="primary_prov", upstream_model="primary-model"),
         fallbacks=[],
     )
-    req = ChatCompletionRequest(model="standard-chat", messages=[ChatMessage(role="user", content="hi")])
-    ctx = AuthenticatedContext(api_key_id=uuid4(), user_id=None, project_id=uuid4(), tenant_id=uuid4(), role="admin")
+    req = ChatCompletionRequest(
+        model="standard-chat", messages=[ChatMessage(role="user", content="hi")]
+    )
+    ctx = AuthenticatedContext(
+        api_key_id=uuid4(), user_id=None, project_id=uuid4(), tenant_id=uuid4(), role="admin"
+    )
 
     with pytest.raises(ProviderException) as exc_info:
         await executor.execute_chat(
@@ -418,8 +428,12 @@ async def test_streaming_executor_skips_open_circuit():
         primary=ProviderTarget(provider_name="primary_prov", upstream_model="primary-model"),
         fallbacks=[ProviderTarget(provider_name="fallback_prov", upstream_model="fallback-model")],
     )
-    req = ChatCompletionRequest(model="standard-chat", messages=[ChatMessage(role="user", content="hi")])
-    ctx = AuthenticatedContext(api_key_id=uuid4(), user_id=None, project_id=uuid4(), tenant_id=uuid4(), role="admin")
+    req = ChatCompletionRequest(
+        model="standard-chat", messages=[ChatMessage(role="user", content="hi")]
+    )
+    ctx = AuthenticatedContext(
+        api_key_id=uuid4(), user_id=None, project_id=uuid4(), tenant_id=uuid4(), role="admin"
+    )
 
     chunks = []
     async for chunk in executor.execute_stream(
@@ -446,7 +460,9 @@ async def test_streaming_executor_skips_open_circuit():
 async def test_fail_open_on_circuit_registry_error():
     registry = CircuitBreakerRegistry()
     # Force an internal error in before_call
-    with patch.object(registry, "_get_or_create_circuit", side_effect=RuntimeError("Unexpected error")):
+    with patch.object(
+        registry, "_get_or_create_circuit", side_effect=RuntimeError("Unexpected error")
+    ):
         decision = await registry.before_call("provider", "model")
         # Fail-open: Must allow request to proceed!
         assert decision.allowed is True

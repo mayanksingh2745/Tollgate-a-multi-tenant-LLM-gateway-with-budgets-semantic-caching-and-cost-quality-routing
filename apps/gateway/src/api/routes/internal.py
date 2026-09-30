@@ -58,9 +58,7 @@ async def get_provider_health(request: Request) -> Dict[str, Any]:
         }
 
     # Calculate overall health
-    any_open = any(
-        c.get("state") == "open" for c in circuit_statuses.values()
-    )
+    any_open = any(c.get("state") == "open" for c in circuit_statuses.values())
     all_open = bool(circuit_statuses) and all(
         c.get("state") == "open" for c in circuit_statuses.values()
     )

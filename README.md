@@ -31,6 +31,8 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ Learned model routing
 - ✓ Production dashboard & tenant analytics
 - ✓ Advanced benchmarking & evaluation
+- ✓ Application & infrastructure security hardening
+- ✓ Production deployment, CI/CD & operational readiness
 
 ## Implemented Phases
 
@@ -49,6 +51,8 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 11B — Prometheus Metrics & Grafana Dashboards**: 35+ operational metrics with bounded label cardinality covering HTTP latencies (p50/p95/p99), provider reliability, exact/semantic caching, router decisions, Redis commands, usage worker queues, and provisioned Grafana dashboards.
 - **Phase 12 — Circuit Breaker & Adaptive Provider Health**: 3-state circuit breaker (`CLOSED` → `OPEN` → `HALF_OPEN`) scoped per provider+model, sliding window failure tracking, consecutive 429 rate-limit thresholding, single-probe recovery, fail-open resilience, operator diagnostic endpoint (`GET /internal/provider-health`), and Grafana dashboard panels.
 - **Phase 13 — Advanced Benchmarking & Evaluation**: Production-grade, reproducible benchmarking suite measuring real gateway overhead (36 µs), concurrency scaling (up to 1,836 RPS), exact cache hit latency (287 µs), semantic cache precision/recall, router cost savings (42.5%), retry amplification, zero-overspend budget invariants, worker throughput (40,180 eps), and automated regression detection.
+- **Phase 14 — Security Hardening**: Application-level security audit (14A) covering authentication, authorization, tenant isolation, request validation, cache security, error leakage, and SQL injection. Infrastructure security (14B) covering dependency auditing, CI/CD hardening, Docker security, container runtime, network exposure, and supply chain integrity.
+- **Phase 15 — Production Deployment & Operations**: Production Docker Compose with NGINX reverse proxy, staging environment, automated deployment/rollback/backup/restore scripts, health/readiness/version endpoints, Alembic migration validation, CI/CD pipeline with staging deployment and automated smoke tests, failure injection testing, security validation, and operational drill runbooks.
 
 ---
 
@@ -397,3 +401,69 @@ python benchmarks/scripts/detect_regression.py --baseline benchmarks/results --c
 
 See [`docs/benchmarking.md`](docs/benchmarking.md), [`docs/benchmark-methodology.md`](docs/benchmark-methodology.md), and [`docs/benchmark-results.md`](docs/benchmark-results.md) for full benchmarking methodology and actual run results.
 
+---
+
+## Production Deployment & Operations (Phase 15)
+
+### Architecture
+Tollgate deploys as a modular monolith via Docker Compose behind an NGINX reverse proxy with HTTP/2 and SSE streaming support. Public traffic is isolated on `tollgate-frontend`, while PostgreSQL, Redis, Worker, and Observability services run securely within `tollgate-backend`.
+
+### Deployment Environments
+
+| Environment | Compose File | Purpose |
+|-------------|-------------|--------|
+| Development | `docker-compose.yml` | Local development with relaxed defaults |
+| Staging | `docker-compose.staging.yml` | Pre-production testing, mirrors prod topology |
+| Production | `docker-compose.prod.yml` | Hardened, no host port exposure for data stores |
+
+### Health & Version Endpoints
+* **Liveness**: `GET /health/live` — Instant process check (`{"status": "alive"}`).
+* **Readiness**: `GET /health/ready` — Verifies PostgreSQL and Redis health (`200 OK` or `503 Unavailable`).
+* **Version**: `GET /health/version` — Returns immutable Git SHA, semantic version, and environment.
+
+### Database Migrations
+```bash
+python -m alembic upgrade head
+```
+
+### Automated Deployment
+```bash
+cp .env.example .env        # Configure production secrets
+./scripts/deploy.sh         # Build, migrate, deploy, verify
+```
+
+### Post-Deployment Validation
+```bash
+./scripts/smoke_test.sh          # Endpoint health & auth checks
+./scripts/validate_deployment.sh # Container security & network checks
+./scripts/security_validate.sh   # Security posture validation
+```
+
+### Rollback & Recovery
+```bash
+./scripts/rollback.sh <known_good_git_sha>   # Image-based rollback
+./scripts/backup_postgres.sh                  # Create database backup
+./scripts/restore_postgres.sh backups/<file>  # Restore from backup
+```
+
+### Failure Testing
+```bash
+./scripts/failure_test.sh   # Redis/Postgres/Worker failure injection
+```
+
+### CI/CD Pipeline
+The GitHub Actions CI pipeline (`.github/workflows/ci.yml`) runs:
+1. **Dependency audit** and secret scanning
+2. **Lint**, type checking, and full test suite
+3. **Docker image builds** for gateway, worker, and dashboard
+4. **Staging deployment** with automated smoke tests (on `main` and `feat/*`)
+
+### Documentation
+* [`docs/deployment.md`](docs/deployment.md) — Production architecture and setup
+* [`docs/deployment-checklist.md`](docs/deployment-checklist.md) — Pre/post-deployment checklist
+* [`docs/production-config.md`](docs/production-config.md) — Environment variable reference
+* [`docs/rollback.md`](docs/rollback.md) — Rollback strategy
+* [`docs/rollback-drill.md`](docs/rollback-drill.md) — Rollback drill runbook
+* [`docs/backup-restore.md`](docs/backup-restore.md) — Backup/restore procedures
+* [`docs/restore-drill.md`](docs/restore-drill.md) — Restore drill runbook
+* [`docs/security.md`](docs/security.md) — Security audit and known limitations

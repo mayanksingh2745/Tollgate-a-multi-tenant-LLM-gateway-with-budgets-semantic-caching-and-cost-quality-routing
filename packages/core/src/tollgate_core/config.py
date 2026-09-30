@@ -1,11 +1,43 @@
+import os
+import subprocess
 from typing import Optional
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _detect_git_commit() -> str:
+    commit = os.getenv("TOLLGATE_GIT_COMMIT") or os.getenv("GIT_COMMIT")
+    if commit:
+        return commit[:12]
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            return res.stdout.strip()
+    except Exception:
+        pass
+    return "unknown"
 
 
 class Settings(BaseSettings):
     environment: str = "development"
+    debug: bool = Field(
+        False,
+        validation_alias=AliasChoices("TOLLGATE_DEBUG", "DEBUG", "debug"),
+    )
+    app_version: str = Field(
+        "1.0.0",
+        validation_alias=AliasChoices("TOLLGATE_VERSION", "app_version"),
+    )
+    git_commit: str = Field(
+        default_factory=_detect_git_commit,
+        validation_alias=AliasChoices("TOLLGATE_GIT_COMMIT", "GIT_COMMIT", "git_commit"),
+    )
     log_level: str = "INFO"
 
     gateway_host: str = "0.0.0.0"
@@ -401,6 +433,33 @@ class Settings(BaseSettings):
         "tollgate-metrics-secret-token",
         validation_alias=AliasChoices("TOLLGATE_METRICS_TOKEN", "metrics_token"),
     )
+
+    @model_validator(mode="after")
+    def validate_production_settings(self) -> "Settings":
+        env = self.environment.lower()
+        if env not in ("development", "staging", "production", "test"):
+            raise ValueError(
+                f"Invalid environment: '{self.environment}'. Must be development, staging, or production."
+            )
+
+        if env == "production":
+            if self.debug:
+                raise ValueError("CRITICAL: DEBUG must be false in production.")
+            if (
+                "tollgate_secret_pass" in self.database_url
+                or self.postgres_password == "tollgate_secret_pass"
+            ):
+                raise ValueError(
+                    "CRITICAL: Insecure default PostgreSQL password is forbidden in production."
+                )
+            if self.metrics_token == "tollgate-metrics-secret-token":
+                raise ValueError(
+                    "CRITICAL: Insecure default METRICS_TOKEN is forbidden in production."
+                )
+            if "*" in self.cors_allowed_origins:
+                raise ValueError("CRITICAL: Wildcard CORS origin '*' is forbidden in production.")
+
+        return self
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

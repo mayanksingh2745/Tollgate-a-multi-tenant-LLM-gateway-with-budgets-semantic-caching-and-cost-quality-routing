@@ -88,6 +88,11 @@ async def create_chat_completion(
     if tp:
         headers["traceparent"] = tp
 
+    raw_request.state.tenant_id = str(ctx.tenant_id)
+    raw_request.state.project_id = str(ctx.project_id)
+    raw_request.state.requested_model = request.model
+    raw_request.state.is_stream = bool(request.stream)
+
     from opentelemetry import trace
 
     active_span = trace.get_current_span()
@@ -392,6 +397,7 @@ async def create_chat_completion(
                             safe_set_attribute(up_span, "tollgate.stream", True)
                             await usage_publisher.publish(usage_event)
                         import json
+
                         yield f"data: {json.dumps({'error': {'message': 'Stream terminated due to provider failure', 'type': 'upstream_error', 'code': 'provider_failure'}})}\n\n"
                     raise
 

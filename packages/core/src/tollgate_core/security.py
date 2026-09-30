@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 try:
     from argon2 import PasswordHasher
 
-    _ph = PasswordHasher()
+    _ph: Optional[PasswordHasher] = PasswordHasher()
 except ImportError:
     _ph = None
 
@@ -100,4 +100,3 @@ def resolve_client_ip(
             return hop
 
     return peer_ip
-

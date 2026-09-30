@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 
 class BackoffStrategy:
@@ -14,7 +14,7 @@ class BackoffStrategy:
         base_delay: float = 0.25,
         max_delay: float = 5.0,
         jitter: bool = True,
-        sleep_func: Optional[Callable[[float], any]] = None,
+        sleep_func: Optional[Callable[[float], Any]] = None,
         random_func: Optional[Callable[[float, float], float]] = None,
     ):
         self.base_delay = base_delay
