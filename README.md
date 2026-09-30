@@ -33,6 +33,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ Advanced benchmarking & evaluation
 - ✓ Application & infrastructure security hardening
 - ✓ Production deployment, CI/CD & operational readiness
+- ✓ High availability & disaster recovery foundation
 
 ## Implemented Phases
 
@@ -53,6 +54,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 13 — Advanced Benchmarking & Evaluation**: Production-grade, reproducible benchmarking suite measuring real gateway overhead (36 µs), concurrency scaling (up to 1,836 RPS), exact cache hit latency (287 µs), semantic cache precision/recall, router cost savings (42.5%), retry amplification, zero-overspend budget invariants, worker throughput (40,180 eps), and automated regression detection.
 - **Phase 14 — Security Hardening**: Application-level security audit (14A) covering authentication, authorization, tenant isolation, request validation, cache security, error leakage, and SQL injection. Infrastructure security (14B) covering dependency auditing, CI/CD hardening, Docker security, container runtime, network exposure, and supply chain integrity.
 - **Phase 15 — Production Deployment & Operations**: Production Docker Compose with NGINX reverse proxy, staging environment, automated deployment/rollback/backup/restore scripts, health/readiness/version endpoints, Alembic migration validation, CI/CD pipeline with staging deployment and automated smoke tests, failure injection testing, security validation, and operational drill runbooks.
+- **Phase 16A — High Availability & Disaster Recovery Foundation**: Realistic resilience architecture and recovery foundations for the single-host and multi-replica deployment model. Covers 13 failure domains ([`docs/availability-architecture.md`](docs/availability-architecture.md)), rigorous RTO/RPO targets and data store classification ([`docs/recovery-objectives.md`](docs/recovery-objectives.md)), disaster recovery procedures for PostgreSQL, Redis, worker crashed pending events, budget leak prevention, and cold host reconstitution ([`docs/disaster-recovery.md`](docs/disaster-recovery.md)), automated resilience test suite with 22 reproducible failure scenarios ([`docs/resilience-testing.md`](docs/resilience-testing.md)), and expanded incident recovery runbooks ([`docs/operations-runbook.md`](docs/operations-runbook.md)). Multi-instance NGINX upstream load balancing with `least_conn` and automatic 502/503/504 failover.
 
 ---
 

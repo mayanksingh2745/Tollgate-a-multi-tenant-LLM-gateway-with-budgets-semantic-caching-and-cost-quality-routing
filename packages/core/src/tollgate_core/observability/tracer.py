@@ -189,30 +189,33 @@ def safe_set_attribute(span: trace.Span, key: str, value: Any) -> None:
     if not span or not span.is_recording():
         return
 
-    # 1. Check key name against sensitive patterns
-    for pat in SENSITIVE_KEY_PATTERNS:
-        if pat.search(key):
-            # Block key entirely
-            return
+    try:
+        # 1. Check key name against sensitive patterns
+        for pat in SENSITIVE_KEY_PATTERNS:
+            if pat.search(key):
+                # Block key entirely
+                return
 
-    # 2. Check string value against sensitive patterns
-    if isinstance(value, str):
-        # Bound length
-        val_str = value[:1024]
-        for pat in SENSITIVE_VALUE_PATTERNS:
-            if pat.search(val_str):
-                val_str = "[REDACTED]"
-                break
-        span.set_attribute(key, val_str)
-    elif isinstance(value, (int, float, bool)):
-        span.set_attribute(key, value)
-    elif value is None:
-        return
-    else:
-        # Complex object, safely convert to bounded string
-        val_str = str(value)[:512]
-        for pat in SENSITIVE_VALUE_PATTERNS:
-            if pat.search(val_str):
-                val_str = "[REDACTED]"
-                break
-        span.set_attribute(key, val_str)
+        # 2. Check string value against sensitive patterns
+        if isinstance(value, str):
+            # Bound length
+            val_str = value[:1024]
+            for pat in SENSITIVE_VALUE_PATTERNS:
+                if pat.search(val_str):
+                    val_str = "[REDACTED]"
+                    break
+            span.set_attribute(key, val_str)
+        elif isinstance(value, (int, float, bool)):
+            span.set_attribute(key, value)
+        elif value is None:
+            return
+        else:
+            # Complex object, safely convert to bounded string
+            val_str = str(value)[:512]
+            for pat in SENSITIVE_VALUE_PATTERNS:
+                if pat.search(val_str):
+                    val_str = "[REDACTED]"
+                    break
+            span.set_attribute(key, val_str)
+    except Exception as exc:
+        logger.debug("Failed to set span attribute: %s", exc)

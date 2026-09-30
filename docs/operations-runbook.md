@@ -395,3 +395,321 @@ docker exec tollgate-redis redis-cli -a "${REDIS_PASSWORD}" XLEN tg:usage:events
 # 4. If PostgreSQL: check slow queries
 docker exec tollgate-postgres psql -U tollgate -d tollgate_db -c "SELECT pid, query, state, now() - query_start as duration FROM pg_stat_activity WHERE state = 'active' ORDER BY duration DESC LIMIT 5;"
 ```
+
+---
+
+## 16. API Host Failure & Cold Reconstitution
+
+**Detect**: External synthetic uptime checks report TCP connection refused or timeouts; cloud provider console reports VM unreachable.
+
+**Diagnose**:
+```bash
+ping <host_ip>
+ssh user@<host_ip>
+# Check cloud provider hypervisor status / system event logs
+```
+
+**Contain**: Update DNS or Cloud Load Balancer to route incoming traffic to standby maintenance page (HTTP 503 with Retry-After).
+
+**Recover**:
+```bash
+# 1. Boot new virtual machine in same cloud region / VPC
+# 2. Clone repository & configure environment:
+git clone https://github.com/mayanksingh2745/Tollgate-a-multi-tenant-LLM-gateway-with-budgets-semantic-caching-and-cost-quality-routing.git /app/tollgate
+cd /app/tollgate
+git checkout main
+cp /mnt/secure-storage/.env .env
+
+# 3. Pull latest encrypted backup from object storage:
+aws s3 cp s3://tollgate-backups/latest.dump /var/backups/tollgate/postgres_latest.dump
+
+# 4. Start database & restore schema/data:
+docker compose -f docker-compose.prod.yml up -d postgres redis
+docker compose -f docker-compose.prod.yml exec -T postgres pg_restore -U tollgate -d tollgate_db < /var/backups/tollgate/postgres_latest.dump
+
+# 5. Launch full stack with multi-instance redundancy:
+docker compose -f docker-compose.prod.yml up -d --scale gateway=2 --scale worker=2
+```
+
+**Verify**:
+```bash
+bash scripts/smoke_test.sh
+curl -s http://localhost:8000/health/ready
+```
+
+---
+
+## 17. PostgreSQL Total Failure & Split-Brain Mitigation
+
+**Detect**: `/health/ready` returns 503; error logs report `asyncpg.exceptions.CannotConnectNowError`.
+
+**Diagnose**:
+```bash
+docker compose -f docker-compose.prod.yml ps postgres
+docker logs tollgate-postgres --tail=100
+docker exec tollgate-postgres pg_isready -U tollgate -d tollgate_db
+```
+
+**Contain**:
+- Gateway API automatically marks readiness as degraded (HTTP 503).
+- NGINX proxy sheds non-essential traffic.
+- Redis Stream buffers usage events to prevent revenue event loss.
+
+**Recover**:
+```bash
+# 1. Check if database simply stopped or suffered corruption
+docker compose -f docker-compose.prod.yml restart postgres
+
+# 2. If storage corrupted, recreate from backup:
+docker compose -f docker-compose.prod.yml stop postgres
+docker volume rm tollgate_postgres_data && docker volume create tollgate_postgres_data
+docker compose -f docker-compose.prod.yml up -d postgres
+docker compose -f docker-compose.prod.yml exec -T postgres pg_restore -U tollgate -d tollgate_db < /var/backups/tollgate/postgres_latest.dump
+```
+
+**Verify**:
+```bash
+curl -s http://localhost:8000/health/ready | jq .
+# Verify database returns "ok" and latency < 10ms
+```
+
+---
+
+## 18. Redis Complete Failure & Stream Backlog Recovery
+
+**Detect**: Rate limiter enters fallback mode; usage event publisher logs warnings; `/health/ready` shows `redis: ok` as false.
+
+**Diagnose**:
+```bash
+docker logs tollgate-redis --tail=100
+docker exec tollgate-redis redis-cli ping
+```
+
+**Contain**:
+- Exact cache fails open (bypassed).
+- In-memory rate limiting and circuit breakers protect upstream providers.
+
+**Recover**:
+```bash
+# 1. Restart Redis container
+docker compose -f docker-compose.prod.yml restart redis
+
+# 2. If AOF corruption prevents boot:
+docker compose -f docker-compose.prod.yml run --rm redis redis-check-aof --fix /data/appendonlydir/appendonly.aof.*
+
+# 3. If total wipe needed:
+docker compose -f docker-compose.prod.yml rm -f -s redis
+docker volume rm tollgate_redis_data
+docker compose -f docker-compose.prod.yml up -d redis
+```
+
+**Verify**:
+```bash
+docker exec tollgate-redis redis-cli -a "${REDIS_PASSWORD}" ping
+# Expected: PONG
+curl -s http://localhost:8000/health/ready
+```
+
+---
+
+## 19. Worker Failover & Consumer Group Lag
+
+**Detect**: Prometheus metric `tollgate_usage_stream_pending_events` climbs steadily; database rollups lag behind real-time traffic.
+
+**Diagnose**:
+```bash
+# Check worker process status
+docker compose -f docker-compose.prod.yml ps worker
+
+# Inspect Redis consumer group pending messages:
+docker exec tollgate-redis redis-cli -a "${REDIS_PASSWORD}" XINFO GROUPS tg:usage:events
+docker exec tollgate-redis redis-cli -a "${REDIS_PASSWORD}" XINFO CONSUMERS tg:usage:events tg-usage-workers
+```
+
+**Contain**:
+```bash
+# Scale worker pool dynamically to drain queue backlog
+docker compose -f docker-compose.prod.yml up -d --scale worker=4
+```
+
+**Recover**:
+- Surviving workers automatically trigger `XAUTOCLAIM` to steal and process messages left unacknowledged by crashed workers.
+- Database idempotency (`ON CONFLICT (event_id) DO NOTHING`) prevents any double-accounting.
+
+**Verify**:
+```bash
+docker exec tollgate-redis redis-cli -a "${REDIS_PASSWORD}" XPENDING tg:usage:events tg-usage-workers
+# Pending count decreases towards 0
+```
+
+---
+
+## 20. Upstream Provider Outage & Circuit Tripping
+
+**Detect**: Alert `TollgateProviderOutage` fires; HTTP 502/503 rates spike on specific upstream model (e.g. `openai:gpt-4o`).
+
+**Diagnose**:
+```bash
+# Check circuit breaker metrics in Prometheus:
+# rate(tollgate_circuit_breaker_tripped_total[5m])
+# Check gateway application logs for upstream responses:
+docker logs tollgate-gateway | grep "CircuitBreaker"
+```
+
+**Contain**:
+- Circuit breaker trips to `OPEN` within 5 consecutive failures, fast-failing traffic in <1ms without network wait.
+- Router routes requests to fallback provider (`TOLLGATE_ROUTER_FALLBACK_MODEL`).
+
+**Recover**:
+- Circuit breaker periodically transitions to `HALF_OPEN` and permits trial probes.
+- When provider recovers, circuit resets to `CLOSED`.
+
+**Verify**:
+```bash
+curl -s http://localhost:8000/api/v1/health | jq .
+```
+
+---
+
+## 21. Backup Failure & Stale Recovery Point
+
+**Detect**: Alert `TollgateBackupStale` triggers; latest backup file timestamp > 2 hours old.
+
+**Diagnose**:
+```bash
+ls -lh /var/backups/tollgate/
+systemctl status tollgate-backup.timer
+journalctl -u tollgate-backup.service --no-pager -n 50
+```
+
+**Contain**: Run manual backup immediately to prevent expanding the RPO window.
+
+**Recover**:
+```bash
+bash scripts/backup.sh
+# Verify checksum and file size
+sha256sum /var/backups/tollgate/postgres_latest.dump
+```
+
+**Verify**:
+```bash
+pg_restore -l /var/backups/tollgate/postgres_latest.dump | head -20
+# Confirms backup is valid and intact
+```
+
+---
+
+## 22. Corrupted Deployment & Emergency Rollback
+
+**Detect**: Smoke test failure during post-deployment validation; error rates jump immediately following image update.
+
+**Diagnose**:
+```bash
+curl -s http://localhost:8000/health/version
+docker logs tollgate-gateway --tail=50
+```
+
+**Contain & Recover**:
+```bash
+# Execute immediate deterministic rollback
+bash scripts/rollback.sh <previous_git_sha>
+```
+
+**Verify**:
+```bash
+bash scripts/smoke_test.sh
+curl -s http://localhost:8000/health/version
+# Reports previous known-good git_commit
+```
+
+---
+
+## 23. Disk Exhaustion & Non-destructive Space Reclaim
+
+**Detect**: Alert `TollgateHostDiskSpaceLow` (disk space > 85%); database logs warning `could not extend file`.
+
+**Diagnose**:
+```bash
+df -h /
+du -sh /var/lib/docker/* | sort -hr | head -10
+```
+
+**Contain**:
+```bash
+# 1. Truncate docker container stdout logs without restarting containers:
+truncate -s 0 /var/lib/docker/containers/*/*-json.log
+
+# 2. Prune obsolete builder cache and dangling image layers:
+docker system prune -f
+```
+
+**Recover**:
+```bash
+# 3. Clean up historical database backups older than retention policy (7 days):
+find /var/backups/tollgate/ -type f -mtime +7 -delete
+```
+
+**Verify**:
+```bash
+df -h /
+# Disk usage below 70%
+```
+
+---
+
+## 24. TLS Certificate Failure & Emergency Renewal
+
+**Detect**: Alert `TollgateTLSCertificateExpiring` or client SSL handshakes fail with `CERT_HAS_EXPIRED`.
+
+**Diagnose**:
+```bash
+openssl x509 -in /etc/ssl/certs/tollgate.crt -noout -dates
+```
+
+**Contain**:
+- Internal traffic can temporarily route over HTTP on internal loopback while cert is renewed.
+
+**Recover**:
+```bash
+# 1. Renew via Let's Encrypt / Certbot:
+certbot certonly --standalone -d app.tollgate.ai --dry-run
+certbot renew --force-renewal
+
+# 2. Copy renewed cert to NGINX mount and reload:
+cp /etc/letsencrypt/live/app.tollgate.ai/fullchain.pem /etc/ssl/certs/tollgate.crt
+cp /etc/letsencrypt/live/app.tollgate.ai/privkey.pem /etc/ssl/private/tollgate.key
+docker exec tollgate-nginx nginx -s reload
+```
+
+**Verify**:
+```bash
+openssl s_client -connect localhost:443 -servername app.tollgate.ai < /dev/null | grep "Verify return code"
+# Expected: 0 (ok)
+```
+
+---
+
+## 25. Observability Pipeline Outage
+
+**Detect**: Prometheus alerts fail to report; Jaeger UI unreachable; OTel logs report connection timeout.
+
+**Diagnose**:
+```bash
+docker compose -f docker-compose.prod.yml ps jaeger prometheus grafana
+docker logs tollgate-jaeger --tail=50
+```
+
+**Contain**:
+- Gateway API automatically isolates OTel exports with a 2-second timeout and fails silent.
+- Zero client requests are blocked or delayed.
+
+**Recover**:
+```bash
+docker compose -f docker-compose.prod.yml restart jaeger prometheus grafana
+```
+
+**Verify**:
+```bash
+curl -s http://localhost:9090/-/healthy
+curl -s http://localhost:16686/
+```
