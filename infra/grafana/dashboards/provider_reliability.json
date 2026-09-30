@@ -191,6 +191,100 @@
       ],
       "title": "Upstream Provider Latency Quantiles",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
+      "id": 103,
+      "title": "Circuit Breaker State & Adaptive Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "green", "text": "CLOSED" }, "1": { "color": "red", "text": "OPEN" }, "2": { "color": "yellow", "text": "HALF-OPEN" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 },
+              { "color": "yellow", "value": 2 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 26 },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "tollgate_circuit_state",
+          "legendFormat": "{{provider}} / {{model}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Circuit State",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 26 },
+      "id": 9,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (provider, model) (rate(tollgate_circuit_rejections_total[5m]))",
+          "legendFormat": "Rejections ({{provider}}/{{model}})",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (provider, model, result) (rate(tollgate_circuit_half_open_probes_total[5m]))",
+          "legendFormat": "Probes ({{result}}: {{provider}}/{{model}})",
+          "refId": "B"
+        }
+      ],
+      "title": "Circuit Rejections & Probe Rates",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 26 },
+      "id": 10,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (provider, from_state, to_state) (increase(tollgate_circuit_transitions_total[1h]))",
+          "legendFormat": "{{provider}}: {{from_state}} → {{to_state}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Circuit Transitions (Past 1h)",
+      "type": "timeseries"
     }
   ],
   "refresh": "5s",
@@ -201,5 +295,5 @@
   "timezone": "browser",
   "title": "2 — Tollgate Provider Reliability",
   "uid": "tollgate-providers",
-  "version": 1
+  "version": 2
 }

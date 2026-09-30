@@ -460,6 +460,35 @@ INFRASTRUCTURE_POSTGRES_POOL_CHECKEDOUT = Gauge(
 
 
 # ==============================================================================
+# 11. Circuit Breaker Metrics
+# ==============================================================================
+
+CIRCUIT_TRANSITIONS_TOTAL = Counter(
+    "tollgate_circuit_transitions_total",
+    "Total circuit breaker state transitions",
+    ["provider", "model", "from_state", "to_state"],
+)
+
+CIRCUIT_REJECTIONS_TOTAL = Counter(
+    "tollgate_circuit_rejections_total",
+    "Total requests rejected because provider circuit was OPEN",
+    ["provider", "model"],
+)
+
+CIRCUIT_HALF_OPEN_PROBES_TOTAL = Counter(
+    "tollgate_circuit_half_open_probes_total",
+    "Total half-open probe requests permitted",
+    ["provider", "model", "result"],  # result: success|failure
+)
+
+CIRCUIT_STATE = Gauge(
+    "tollgate_circuit_state",
+    "Current circuit breaker state (0=closed, 1=open, 2=half_open)",
+    ["provider", "model"],
+)
+
+
+# ==============================================================================
 # Helper Functions (Fail-Safe: Never crash caller on telemetry errors)
 # ==============================================================================
 
@@ -798,6 +827,42 @@ def update_infrastructure_health(redis_ok: bool, postgres_ok: bool) -> None:
         logger.debug(f"Failed to update infrastructure health: {e}")
 
 
+def record_circuit_transition(
+    provider: str, model: str, from_state: str, to_state: str
+) -> None:
+    """Records a circuit breaker state transition."""
+    try:
+        norm_model = normalize_model(model)
+        CIRCUIT_TRANSITIONS_TOTAL.labels(
+            provider=provider, model=norm_model, from_state=from_state, to_state=to_state
+        ).inc()
+        state_val = {"closed": 0.0, "open": 1.0, "half_open": 2.0}.get(to_state, 0.0)
+        CIRCUIT_STATE.labels(provider=provider, model=norm_model).set(state_val)
+    except Exception as e:
+        logger.debug(f"Failed to record circuit transition: {e}")
+
+
+def record_circuit_rejection(provider: str, model: str) -> None:
+    """Records a request rejected because the circuit was OPEN."""
+    try:
+        norm_model = normalize_model(model)
+        CIRCUIT_REJECTIONS_TOTAL.labels(provider=provider, model=norm_model).inc()
+    except Exception as e:
+        logger.debug(f"Failed to record circuit rejection: {e}")
+
+
+def record_circuit_half_open_probe(provider: str, model: str, result: str) -> None:
+    """Records a half-open probe result (success or failure)."""
+    try:
+        norm_model = normalize_model(model)
+        CIRCUIT_HALF_OPEN_PROBES_TOTAL.labels(
+            provider=provider, model=norm_model, result=result
+        ).inc()
+    except Exception as e:
+        logger.debug(f"Failed to record circuit probe: {e}")
+
+
 def export_metrics() -> bytes:
     """Serializes all Prometheus metrics into the standard Prometheus exposition format."""
     return generate_latest(REGISTRY)
+

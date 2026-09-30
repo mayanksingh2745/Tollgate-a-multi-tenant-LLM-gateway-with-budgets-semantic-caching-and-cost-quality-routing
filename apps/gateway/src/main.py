@@ -200,12 +200,14 @@ from gateway.src.api.routes.auth import router as auth_router
 from gateway.src.api.routes.budgets import router as budgets_router
 from gateway.src.api.routes.cache import router as cache_router
 from gateway.src.api.routes.dashboard import router as dashboard_router
+from gateway.src.api.routes.internal import router as internal_router
 from gateway.src.api.routes.metrics import router as metrics_router
 from gateway.src.api.routes.usage import router as usage_router
 
 # Include routers
 app.include_router(health_router)
 app.include_router(metrics_router)
+app.include_router(internal_router)
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(tenants_router)
@@ -222,7 +224,7 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "11A - OpenTelemetry, Distributed Tracing & Log Correlation",
+        "phase": "12 - Circuit Breaker & Adaptive Provider Health",
         "status": "online",
         "docs_url": "/docs",
     }

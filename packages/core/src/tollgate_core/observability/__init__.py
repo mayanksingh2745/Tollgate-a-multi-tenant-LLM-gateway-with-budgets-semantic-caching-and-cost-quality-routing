@@ -44,6 +44,9 @@ from tollgate_core.observability.metrics import (
     record_worker_failed,
     record_worker_processed,
     record_worker_reclaimed,
+    record_circuit_half_open_probe,
+    record_circuit_rejection,
+    record_circuit_transition,
     status_code_to_class,
     update_infrastructure_health,
     update_queue_health,
@@ -114,4 +117,7 @@ __all__ = [
     "normalize_model",
     "normalize_error_category",
     "status_code_to_class",
+    "record_circuit_transition",
+    "record_circuit_rejection",
+    "record_circuit_half_open_probe",
 ]
