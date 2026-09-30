@@ -63,10 +63,14 @@ class RouterMetrics:
             self.inference_errors_total += 1
         record_router_error(mode=mode, error_type="inference_error")
 
-    def record_feature_extraction_latency(self, latency_seconds: float, mode: str = "active") -> None:
+    def record_feature_extraction_latency(
+        self, latency_seconds: float, mode: str = "active"
+    ) -> None:
         with self._lock:
             self.feature_extraction_latencies.append(latency_seconds)
-        record_router_duration(mode=mode, stage="feature_extraction", duration_seconds=latency_seconds)
+        record_router_duration(
+            mode=mode, stage="feature_extraction", duration_seconds=latency_seconds
+        )
 
     def record_inference_latency(self, latency_seconds: float, mode: str = "active") -> None:
         with self._lock:

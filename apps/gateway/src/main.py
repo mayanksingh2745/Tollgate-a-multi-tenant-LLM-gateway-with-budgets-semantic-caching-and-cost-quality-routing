@@ -111,7 +111,6 @@ async def security_headers_middleware(request: Request, call_next):
     return response
 
 
-
 @app.middleware("http")
 async def observability_middleware(request: Request, call_next):
     """

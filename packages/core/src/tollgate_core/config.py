@@ -438,15 +438,24 @@ class Settings(BaseSettings):
     def validate_production_settings(self) -> "Settings":
         env = self.environment.lower()
         if env not in ("development", "staging", "production", "test"):
-            raise ValueError(f"Invalid environment: '{self.environment}'. Must be development, staging, or production.")
+            raise ValueError(
+                f"Invalid environment: '{self.environment}'. Must be development, staging, or production."
+            )
 
         if env == "production":
             if self.debug:
                 raise ValueError("CRITICAL: DEBUG must be false in production.")
-            if "tollgate_secret_pass" in self.database_url or self.postgres_password == "tollgate_secret_pass":
-                raise ValueError("CRITICAL: Insecure default PostgreSQL password is forbidden in production.")
+            if (
+                "tollgate_secret_pass" in self.database_url
+                or self.postgres_password == "tollgate_secret_pass"
+            ):
+                raise ValueError(
+                    "CRITICAL: Insecure default PostgreSQL password is forbidden in production."
+                )
             if self.metrics_token == "tollgate-metrics-secret-token":
-                raise ValueError("CRITICAL: Insecure default METRICS_TOKEN is forbidden in production.")
+                raise ValueError(
+                    "CRITICAL: Insecure default METRICS_TOKEN is forbidden in production."
+                )
             if "*" in self.cors_allowed_origins:
                 raise ValueError("CRITICAL: Wildcard CORS origin '*' is forbidden in production.")
 

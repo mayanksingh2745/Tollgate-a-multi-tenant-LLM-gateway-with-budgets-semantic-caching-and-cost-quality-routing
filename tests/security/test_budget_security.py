@@ -51,7 +51,11 @@ async def test_budget_idempotent_settlement(async_client: AsyncClient):
     # 2. Second (replayed) settlement on the same reservation
     settle2 = await budget_manager.settle(reservation_id=res_id, actual_cost=400_000)
     # Must be idempotent: no additional refund or status error
-    assert settle2.refund == 0 or settle2.success is False or settle2.status in ("settled", "already_settled")
+    assert (
+        settle2.refund == 0
+        or settle2.success is False
+        or settle2.status in ("settled", "already_settled")
+    )
 
 
 @pytest.mark.asyncio

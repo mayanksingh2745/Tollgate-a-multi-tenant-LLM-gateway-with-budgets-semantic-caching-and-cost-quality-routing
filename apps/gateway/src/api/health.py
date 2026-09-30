@@ -33,8 +33,12 @@ class VersionResponse(BaseModel):
     environment: str
 
 
-@router.get("/health/version", response_model=VersionResponse, summary="Application Version Metadata")
-@router.get("/version", response_model=VersionResponse, summary="Application Version Metadata Alias")
+@router.get(
+    "/health/version", response_model=VersionResponse, summary="Application Version Metadata"
+)
+@router.get(
+    "/version", response_model=VersionResponse, summary="Application Version Metadata Alias"
+)
 async def version_info():
     """Returns safe application version and deployment metadata without exposing secrets."""
     return VersionResponse(

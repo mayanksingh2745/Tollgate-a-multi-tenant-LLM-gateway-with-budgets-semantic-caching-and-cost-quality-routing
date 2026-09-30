@@ -42,5 +42,7 @@ def test_alembic_revision_descriptions():
     script = ScriptDirectory.from_config(config)
 
     for rev in script.walk_revisions():
-        assert rev.doc is not None and len(rev.doc) > 0, f"Revision {rev.revision} is missing a docstring."
+        assert (
+            rev.doc is not None and len(rev.doc) > 0
+        ), f"Revision {rev.revision} is missing a docstring."
         assert rev.revision is not None

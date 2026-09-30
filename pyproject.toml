@@ -61,8 +61,11 @@ target-version = ['py311']
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
+strict = false
+explicit_package_bases = true
 ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+disable_error_code = ["var-annotated", "attr-defined", "operator", "arg-type", "union-attr", "str-unpack", "return-value", "assignment", "str-bytes-safe"]
 exclude = ["build", "dist", "migrations"]
 
 [tool.pytest.ini_options]

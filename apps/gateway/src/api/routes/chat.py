@@ -392,6 +392,7 @@ async def create_chat_completion(
                             safe_set_attribute(up_span, "tollgate.stream", True)
                             await usage_publisher.publish(usage_event)
                         import json
+
                         yield f"data: {json.dumps({'error': {'message': 'Stream terminated due to provider failure', 'type': 'upstream_error', 'code': 'provider_failure'}})}\n\n"
                     raise
 

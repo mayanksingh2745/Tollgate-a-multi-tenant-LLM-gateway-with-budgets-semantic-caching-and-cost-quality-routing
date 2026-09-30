@@ -14,7 +14,9 @@ class ChatMessage(BaseModel):
     @classmethod
     def validate_content_size(cls, v: Optional[Union[str, List[Dict[str, Any]]]]):
         if isinstance(v, str) and len(v) > 500_000:
-            raise ValueError("Message content exceeds maximum allowed length of 500,000 characters.")
+            raise ValueError(
+                "Message content exceeds maximum allowed length of 500,000 characters."
+            )
         elif isinstance(v, list) and len(v) > 100:
             raise ValueError("Message content parts exceed maximum allowed count of 100 parts.")
         return v
@@ -28,7 +30,9 @@ class ResponseFormat(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     model: str = Field(..., min_length=1, max_length=256, description="Model identifier")
-    messages: List[ChatMessage] = Field(..., min_length=1, max_length=1000, description="List of messages")
+    messages: List[ChatMessage] = Field(
+        ..., min_length=1, max_length=1000, description="List of messages"
+    )
     stream: bool = Field(default=False, description="Whether to stream back partial progress")
     temperature: Optional[float] = Field(default=None, ge=0.0, le=2.0)
     top_p: Optional[float] = Field(default=None, ge=0.0, le=1.0)
@@ -55,7 +59,9 @@ class ChatCompletionRequest(BaseModel):
             elif isinstance(msg.content, list):
                 total_chars += sum(len(str(part)) for part in msg.content)
             if total_chars > 2_000_000:
-                raise ValueError("Total prompt size exceeds maximum allowed length of 2,000,000 characters.")
+                raise ValueError(
+                    "Total prompt size exceeds maximum allowed length of 2,000,000 characters."
+                )
         return messages
 
     @field_validator("stop")
@@ -84,10 +90,14 @@ class ChatCompletionRequest(BaseModel):
                 if isinstance(fn, dict):
                     name = fn.get("name", "")
                     if len(str(name)) > 64:
-                        raise ValueError("Tool function name exceeds maximum length of 64 characters.")
+                        raise ValueError(
+                            "Tool function name exceeds maximum length of 64 characters."
+                        )
                     desc = fn.get("description", "")
                     if desc and len(str(desc)) > 1024:
-                        raise ValueError("Tool description exceeds maximum length of 1024 characters.")
+                        raise ValueError(
+                            "Tool description exceeds maximum length of 1024 characters."
+                        )
         return tools
 
 

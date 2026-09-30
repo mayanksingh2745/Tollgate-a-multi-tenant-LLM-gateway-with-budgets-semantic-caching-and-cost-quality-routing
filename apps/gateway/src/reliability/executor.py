@@ -176,7 +176,9 @@ class ReliableExecutor:
                         metadata.circuit_rejections += 1
                         record_circuit_rejection(provider.name, target.upstream_model)
                         with tracer.start_as_current_span("circuit.check") as cb_span:
-                            safe_set_attribute(cb_span, "tollgate.circuit.state", circuit_decision.state.value)
+                            safe_set_attribute(
+                                cb_span, "tollgate.circuit.state", circuit_decision.state.value
+                            )
                             safe_set_attribute(cb_span, "tollgate.circuit.action", "reject")
                             safe_set_attribute(cb_span, "tollgate.provider", provider.name)
                             safe_set_attribute(cb_span, "tollgate.model", target.upstream_model)

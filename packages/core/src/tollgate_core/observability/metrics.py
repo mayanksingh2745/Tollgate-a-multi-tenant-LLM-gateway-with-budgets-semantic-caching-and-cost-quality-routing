@@ -568,9 +568,7 @@ def record_provider_timeout(provider: str, model: str) -> None:
 def record_cache_request(cache_type: str, result: str) -> None:
     """Records exact or semantic cache hit/miss/bypass."""
     try:
-        CACHE_REQUESTS_TOTAL.labels(
-            cache_type=cache_type, result=result.lower()
-        ).inc()
+        CACHE_REQUESTS_TOTAL.labels(cache_type=cache_type, result=result.lower()).inc()
     except Exception as e:
         logger.debug(f"Failed to record cache request: {e}")
 
@@ -578,9 +576,9 @@ def record_cache_request(cache_type: str, result: str) -> None:
 def record_cache_operation(cache_type: str, operation: str, duration_seconds: float) -> None:
     """Records cache lookup or store duration."""
     try:
-        CACHE_OPERATION_DURATION_SECONDS.labels(
-            cache_type=cache_type, operation=operation
-        ).observe(duration_seconds)
+        CACHE_OPERATION_DURATION_SECONDS.labels(cache_type=cache_type, operation=operation).observe(
+            duration_seconds
+        )
     except Exception as e:
         logger.debug(f"Failed to record cache operation: {e}")
 
@@ -612,9 +610,7 @@ def record_router_decision(mode: str, route: str) -> None:
 def record_router_duration(mode: str, stage: str, duration_seconds: float) -> None:
     """Records router feature extraction or inference duration."""
     try:
-        ROUTER_DECISION_DURATION_SECONDS.labels(mode=mode, stage=stage).observe(
-            duration_seconds
-        )
+        ROUTER_DECISION_DURATION_SECONDS.labels(mode=mode, stage=stage).observe(duration_seconds)
     except Exception as e:
         logger.debug(f"Failed to record router duration: {e}")
 
@@ -648,9 +644,7 @@ def record_budget_reservation(status: str, duration_seconds: Optional[float] = N
     try:
         BUDGET_RESERVATIONS_TOTAL.labels(status=status).inc()
         if duration_seconds is not None:
-            BUDGET_OPERATION_DURATION_SECONDS.labels(operation="reserve").observe(
-                duration_seconds
-            )
+            BUDGET_OPERATION_DURATION_SECONDS.labels(operation="reserve").observe(duration_seconds)
     except Exception as e:
         logger.debug(f"Failed to record budget reservation: {e}")
 
@@ -668,9 +662,7 @@ def record_budget_settlement(status: str, duration_seconds: Optional[float] = No
     try:
         BUDGET_SETTLEMENTS_TOTAL.labels(status=status).inc()
         if duration_seconds is not None:
-            BUDGET_OPERATION_DURATION_SECONDS.labels(operation="settle").observe(
-                duration_seconds
-            )
+            BUDGET_OPERATION_DURATION_SECONDS.labels(operation="settle").observe(duration_seconds)
     except Exception as e:
         logger.debug(f"Failed to record budget settlement: {e}")
 
@@ -680,9 +672,7 @@ def record_budget_release(status: str, duration_seconds: Optional[float] = None)
     try:
         BUDGET_RELEASES_TOTAL.labels(status=status).inc()
         if duration_seconds is not None:
-            BUDGET_OPERATION_DURATION_SECONDS.labels(operation="release").observe(
-                duration_seconds
-            )
+            BUDGET_OPERATION_DURATION_SECONDS.labels(operation="release").observe(duration_seconds)
     except Exception as e:
         logger.debug(f"Failed to record budget release: {e}")
 
@@ -696,9 +686,9 @@ def record_redis_operation(
         REDIS_OPERATIONS_TOTAL.labels(
             operation=operation, component=component, status=status_str
         ).inc()
-        REDIS_OPERATION_DURATION_SECONDS.labels(
-            operation=operation, component=component
-        ).observe(duration_seconds)
+        REDIS_OPERATION_DURATION_SECONDS.labels(operation=operation, component=component).observe(
+            duration_seconds
+        )
         if not success:
             REDIS_ERRORS_TOTAL.labels(operation=operation, component=component).inc()
     except Exception as e:
@@ -718,22 +708,20 @@ def record_stream_ttft(provider: str, model: str, ttft_seconds: float) -> None:
     """Records time to first token for streaming responses."""
     try:
         norm_model = normalize_model(model)
-        STREAM_TIME_TO_FIRST_TOKEN_SECONDS.labels(
-            provider=provider, model=norm_model
-        ).observe(ttft_seconds)
+        STREAM_TIME_TO_FIRST_TOKEN_SECONDS.labels(provider=provider, model=norm_model).observe(
+            ttft_seconds
+        )
     except Exception as e:
         logger.debug(f"Failed to record stream TTFT: {e}")
 
 
-def record_stream_duration(
-    provider: str, model: str, duration_seconds: float, status: str
-) -> None:
+def record_stream_duration(provider: str, model: str, duration_seconds: float, status: str) -> None:
     """Records total stream duration."""
     try:
         norm_model = normalize_model(model)
-        STREAM_DURATION_SECONDS.labels(
-            provider=provider, model=norm_model, status=status
-        ).observe(duration_seconds)
+        STREAM_DURATION_SECONDS.labels(provider=provider, model=norm_model, status=status).observe(
+            duration_seconds
+        )
     except Exception as e:
         logger.debug(f"Failed to record stream duration: {e}")
 
@@ -778,9 +766,7 @@ def record_worker_processed(status: str, duration_seconds: float) -> None:
     """Records usage event processing outcome and latency."""
     try:
         USAGE_EVENTS_PROCESSED_TOTAL.labels(status=status).inc()
-        USAGE_PROCESSING_DURATION_SECONDS.labels(status=status).observe(
-            duration_seconds
-        )
+        USAGE_PROCESSING_DURATION_SECONDS.labels(status=status).observe(duration_seconds)
     except Exception as e:
         logger.debug(f"Failed to record worker processed: {e}")
 
@@ -827,9 +813,7 @@ def update_infrastructure_health(redis_ok: bool, postgres_ok: bool) -> None:
         logger.debug(f"Failed to update infrastructure health: {e}")
 
 
-def record_circuit_transition(
-    provider: str, model: str, from_state: str, to_state: str
-) -> None:
+def record_circuit_transition(provider: str, model: str, from_state: str, to_state: str) -> None:
     """Records a circuit breaker state transition."""
     try:
         norm_model = normalize_model(model)
@@ -865,4 +849,3 @@ def record_circuit_half_open_probe(provider: str, model: str, result: str) -> No
 def export_metrics() -> bytes:
     """Serializes all Prometheus metrics into the standard Prometheus exposition format."""
     return generate_latest(REGISTRY)
-

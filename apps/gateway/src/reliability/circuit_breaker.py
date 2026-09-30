@@ -134,7 +134,9 @@ class CircuitBreakerState:
             f"from_state={old_state.value} to_state={new_state.value}"
         )
 
-    async def before_call(self, provider_key: str, now: Optional[float] = None) -> "CircuitDecision":
+    async def before_call(
+        self, provider_key: str, now: Optional[float] = None
+    ) -> "CircuitDecision":
         """
         Check if a call is permitted.
         Returns a CircuitDecision with allow/reject and state info.
@@ -382,9 +384,7 @@ class CircuitBreakerRegistry:
         except Exception as e:
             logger.debug(f"Circuit breaker record_failure failed: {e}")
 
-    def is_available(
-        self, provider_name: str, model: str, now: Optional[float] = None
-    ) -> bool:
+    def is_available(self, provider_name: str, model: str, now: Optional[float] = None) -> bool:
         """
         Synchronous availability check (for quick pre-filtering).
         Does NOT consume a half-open probe slot.
@@ -450,9 +450,7 @@ def create_circuit_breaker_registry_from_settings() -> CircuitBreakerRegistry:
             rate_limit_threshold=s.circuit_rate_limit_threshold,
         )
     except Exception as e:
-        logger.warning(
-            f"Failed to load circuit breaker settings, falling back to defaults: {e}"
-        )
+        logger.warning(f"Failed to load circuit breaker settings, falling back to defaults: {e}")
         return CircuitBreakerRegistry()
 
 

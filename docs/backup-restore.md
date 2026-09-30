@@ -21,9 +21,50 @@
 * **Monthly Backups**: Retained for 12 months.
 
 ### C. Storage & Encryption
-* **Format**: Compressed Gzip SQL archives (`.sql.gz`) with SHA-256 checksum manifests.
+* **Format**: Compressed Gzip SQL archives (`.sql.gz`) with SHA-256 checksum manifests (`.sql.gz.sha256`).
 * **Encryption**: Backups stored off-host must be encrypted at rest using AES-256 or GPG keys.
 * **Git Safety**: Backup directories (`backups/`) and database dump files (`*.sql`, `*.sql.gz`) are strictly ignored in `.gitignore`.
+
+### D. Automated Scheduling Mechanisms
+Production backup execution is scheduled using one of the following automated runners:
+
+1. **Linux Cron Job** (`/etc/cron.d/tollgate-backup`):
+   ```cron
+   # Run logical database backup daily at 02:00 UTC
+   0 2 * * * root /opt/tollgate/scripts/backup_postgres.sh >> /var/log/tollgate/backup.log 2>&1
+   ```
+
+2. **Systemd Timer** (`/etc/systemd/system/tollgate-backup.timer`):
+   ```ini
+   [Unit]
+   Description=Run Tollgate PostgreSQL Backup Daily
+   
+   [Timer]
+   OnCalendar=*-*-* 02:00:00 UTC
+   Persistent=true
+   
+   [Install]
+   WantedBy=timers.target
+   ```
+
+3. **Kubernetes CronJob** (`deploy/k8s/backup-cronjob.yaml`):
+   ```yaml
+   apiVersion: batch/v1
+   kind: CronJob
+   metadata:
+     name: tollgate-db-backup
+   spec:
+     schedule: "0 2 * * *"
+     jobTemplate:
+       spec:
+         template:
+           spec:
+             containers:
+             - name: postgres-backup
+               image: postgres:16-alpine
+               command: ["/bin/sh", "/scripts/backup_postgres.sh"]
+             restartPolicy: OnFailure
+   ```
 
 ---
 

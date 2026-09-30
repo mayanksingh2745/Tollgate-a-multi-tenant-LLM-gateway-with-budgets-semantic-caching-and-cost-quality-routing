@@ -80,9 +80,7 @@ class SemanticRepresentation:
             elif isinstance(request.stop, list):
                 stop_val = ",".join(sorted(request.stop))
 
-        system_prompts = [
-            str(m.content or "") for m in request.messages if m.role == "system"
-        ]
+        system_prompts = [str(m.content or "") for m in request.messages if m.role == "system"]
         system_hash = (
             hashlib.sha256("".join(system_prompts).encode("utf-8")).hexdigest()
             if system_prompts

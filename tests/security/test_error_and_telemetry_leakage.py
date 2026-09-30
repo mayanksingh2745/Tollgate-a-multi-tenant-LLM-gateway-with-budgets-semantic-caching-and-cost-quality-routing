@@ -21,7 +21,9 @@ async def test_unhandled_exception_sanitization(async_client: AsyncClient):
 
     @dummy_router.get("/api/v1/test-faulty-crash")
     async def crash_endpoint():
-        raise RuntimeError("Database connection string postgresql://user:secret_pass@10.0.0.1:5432/db failed")
+        raise RuntimeError(
+            "Database connection string postgresql://user:secret_pass@10.0.0.1:5432/db failed"
+        )
 
     app.include_router(dummy_router)
 
@@ -69,9 +71,13 @@ async def test_opentelemetry_trace_sanitization(async_client: AsyncClient):
         for k, v in attrs.items():
             val_str = str(v)
             # Sensitive prompt text must not be in span attributes
-            assert sensitive_prompt not in val_str, f"Prompt leaked in span attribute '{k}': {val_str}"
+            assert (
+                sensitive_prompt not in val_str
+            ), f"Prompt leaked in span attribute '{k}': {val_str}"
             # Raw API key must not be in span attributes
-            assert fixture.owner_api_key not in val_str, f"Raw API key leaked in span attribute '{k}'"
+            assert (
+                fixture.owner_api_key not in val_str
+            ), f"Raw API key leaked in span attribute '{k}'"
             # Forbidden key names
             assert "prompt" not in k.lower(), f"Forbidden attribute key: {k}"
             assert "authorization" not in k.lower(), f"Forbidden attribute key: {k}"
