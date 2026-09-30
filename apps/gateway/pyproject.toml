@@ -14,6 +14,7 @@ dependencies = [
     "asyncpg>=0.29.0",
     "redis>=5.0.3",
     "pydantic>=2.6.4",
+    "email-validator>=2.0.0",
     "pydantic-settings>=2.2.1"
 ]
 

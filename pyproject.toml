@@ -12,6 +12,7 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.28.0",
     "pydantic>=2.6.4",
+    "email-validator>=2.0.0",
     "pydantic-settings>=2.2.1",
     "sqlalchemy[asyncio]>=2.0.28",
     "asyncpg>=0.29.0",

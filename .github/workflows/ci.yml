@@ -112,7 +112,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio httpx pgvector aiosqlite
+          pip install pytest pytest-asyncio httpx pgvector aiosqlite email-validator
           pip install -e ".[dev]"
           pip install -e packages/core
           pip install -e apps/gateway
@@ -173,7 +173,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio httpx pgvector aiosqlite
+          pip install pytest pytest-asyncio httpx pgvector aiosqlite email-validator
           pip install -e ".[dev]"
           pip install -e packages/core
           pip install -e apps/gateway
