@@ -4,7 +4,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app:/app/packages/core/src:/app/apps/gateway
+    PYTHONPATH=/app:/app/apps:/app/packages/core/src:/app/apps/gateway
 
 # Install minimal OS dependencies and clean up cache in same layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,10 +18,12 @@ RUN groupadd -g 10001 tollgate && \
     useradd -u 10001 -g tollgate -d /app -s /sbin/nologin tollgate
 
 COPY pyproject.toml /app/
+COPY alembic.ini /app/
+COPY infra /app/infra
 COPY packages/core /app/packages/core
 COPY apps/gateway /app/apps/gateway
 
-RUN pip install --no-cache-dir -e /app/packages/core -e /app/apps/gateway && \
+RUN pip install --no-cache-dir . -e /app/packages/core -e /app/apps/gateway && \
     chown -R tollgate:tollgate /app
 
 # Switch to non-root runtime user

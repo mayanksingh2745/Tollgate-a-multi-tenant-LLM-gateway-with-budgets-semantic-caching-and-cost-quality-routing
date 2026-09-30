@@ -4,7 +4,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app:/app/packages/core/src:/app/apps/worker
+    PYTHONPATH=/app:/app/apps:/app/packages/core/src:/app/apps/worker
 
 # Install minimal OS dependencies and clean up cache in same layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,7 +21,7 @@ COPY pyproject.toml /app/
 COPY packages/core /app/packages/core
 COPY apps/worker /app/apps/worker
 
-RUN pip install --no-cache-dir -e /app/packages/core -e /app/apps/worker && \
+RUN pip install --no-cache-dir . -e /app/packages/core -e /app/apps/worker && \
     chown -R tollgate:tollgate /app
 
 # Switch to non-root runtime user

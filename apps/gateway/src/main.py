@@ -4,9 +4,10 @@ from pathlib import Path
 # Add workspace root to sys.path so imports work seamlessly regardless of launch directory
 root_dir = Path(__file__).resolve().parents[3]
 core_src = root_dir / "packages" / "core" / "src"
+apps_dir = root_dir / "apps"
 gateway_src = root_dir / "apps" / "gateway"
 
-for p in [str(root_dir), str(core_src), str(gateway_src)]:
+for p in [str(root_dir), str(apps_dir), str(core_src), str(gateway_src)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
@@ -63,6 +64,16 @@ async def lifespan(app: FastAPI):
     print(
         f"[Tollgate Gateway] Starting in {settings.environment} mode (OTel enabled: {settings.otel_enabled}, Metrics enabled: {settings.metrics_enabled})..."
     )
+    # Ensure database schema is initialized if running in fresh environment
+    try:
+        from gateway.src.db import engine
+        from tollgate_core.models import Base
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        logger.warning("Auto schema init skipped or failed (migrations may be used): %s", e)
+
     yield
     # Shutdown sequence
     print("[Tollgate Gateway] Shutting down...")
