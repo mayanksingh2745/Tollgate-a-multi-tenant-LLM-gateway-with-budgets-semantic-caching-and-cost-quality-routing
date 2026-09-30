@@ -10,9 +10,12 @@ for p in [str(root_dir), str(core_src), str(gateway_src)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
+import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -28,7 +31,9 @@ from gateway.src.config import settings
 from gateway.src.redis import close_redis_connection
 from gateway.src.schemas.chat import OpenAIErrorDetail, OpenAIErrorResponse
 from tollgate_core.observability import (
+    current_project_id,
     current_request_id,
+    current_tenant_id,
     extract_trace_context,
     get_current_trace_id,
     get_current_traceparent,
@@ -144,6 +149,20 @@ async def observability_middleware(request: Request, call_next):
                 duration_seconds=duration_s,
             )
 
+            # Enrich root span with tenant, project, and request metadata
+            tid = getattr(request.state, "tenant_id", None) or current_tenant_id.get(None)
+            if tid:
+                safe_set_attribute(span, "tollgate.tenant_id", str(tid))
+            pid = getattr(request.state, "project_id", None) or current_project_id.get(None)
+            if pid:
+                safe_set_attribute(span, "tollgate.project_id", str(pid))
+            req_model = getattr(request.state, "requested_model", None)
+            if req_model:
+                safe_set_attribute(span, "tollgate.requested_model", str(req_model))
+            is_stream = getattr(request.state, "is_stream", None)
+            if is_stream is not None:
+                safe_set_attribute(span, "tollgate.stream", bool(is_stream))
+
             response.headers["X-Request-ID"] = request_id
             trace_id = get_current_trace_id()
             if trace_id:
@@ -153,7 +172,8 @@ async def observability_middleware(request: Request, call_next):
                 response.headers["traceparent"] = tp
 
             return response
-        except Exception:
+        except Exception as e:
+            logger.error("Exception during request: %s", e, exc_info=True)
             duration_s = time.perf_counter() - t0
             duration_ms = duration_s * 1000.0
             safe_set_attribute(span, "http.response.status_code", 500)

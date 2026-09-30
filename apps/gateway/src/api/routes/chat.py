@@ -88,6 +88,11 @@ async def create_chat_completion(
     if tp:
         headers["traceparent"] = tp
 
+    raw_request.state.tenant_id = str(ctx.tenant_id)
+    raw_request.state.project_id = str(ctx.project_id)
+    raw_request.state.requested_model = request.model
+    raw_request.state.is_stream = bool(request.stream)
+
     from opentelemetry import trace
 
     active_span = trace.get_current_span()
