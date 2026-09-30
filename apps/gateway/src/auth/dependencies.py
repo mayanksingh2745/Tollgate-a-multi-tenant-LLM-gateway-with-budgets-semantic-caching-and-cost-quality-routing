@@ -6,8 +6,15 @@ from gateway.src.auth.context import AuthenticatedContext
 from gateway.src.db import get_db
 from gateway.src.services.api_key_service import verify_and_authenticate_key
 from sqlalchemy.ext.asyncio import AsyncSession
+from tollgate_core.observability import (
+    current_project_id,
+    current_tenant_id,
+    get_tracer,
+    safe_set_attribute,
+)
 
 logger = logging.getLogger("tollgate.auth")
+tracer = get_tracer("tollgate.auth")
 
 
 async def get_optional_api_key(
@@ -22,35 +29,51 @@ async def get_optional_api_key(
     if not authorization:
         return None
 
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        logger.warning("Authentication failed: Malformed Authorization header")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired API key",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    with tracer.start_as_current_span("authenticate") as span:
+        safe_set_attribute(span, "auth.type", "api_key")
 
-    raw_key = parts[1]
-    result = await verify_and_authenticate_key(db, raw_key)
-    if not result:
-        logger.warning("Authentication failed: Secret verification failed or key expired/revoked")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired API key",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            logger.warning("Authentication failed: Malformed Authorization header")
+            safe_set_attribute(span, "auth.success", False)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired API key",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-    api_key, project, tenant, user = result
-    role = user.role if user else "admin"
-    user_id = user.id if user else None
-    return AuthenticatedContext(
-        api_key_id=api_key.id,
-        user_id=user_id,
-        project_id=project.id,
-        tenant_id=tenant.id,
-        role=role,
-    )
+        raw_key = parts[1]
+        result = await verify_and_authenticate_key(db, raw_key)
+        if not result:
+            logger.warning(
+                "Authentication failed: Secret verification failed or key expired/revoked"
+            )
+            safe_set_attribute(span, "auth.success", False)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired API key",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        api_key, project, tenant, user = result
+        role = user.role if user else "admin"
+        user_id = user.id if user else None
+
+        safe_set_attribute(span, "auth.success", True)
+        safe_set_attribute(span, "tollgate.tenant_id", str(tenant.id))
+        safe_set_attribute(span, "tollgate.project_id", str(project.id))
+        safe_set_attribute(span, "tollgate.role", role)
+
+        current_tenant_id.set(str(tenant.id))
+        current_project_id.set(str(project.id))
+
+        return AuthenticatedContext(
+            api_key_id=api_key.id,
+            user_id=user_id,
+            project_id=project.id,
+            tenant_id=tenant.id,
+            role=role,
+        )
 
 
 async def get_current_api_key(

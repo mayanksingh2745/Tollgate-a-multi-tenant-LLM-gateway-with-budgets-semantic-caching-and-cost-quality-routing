@@ -8,8 +8,10 @@ from gateway.src.ratelimit.limiter import (
     RateLimitResult,
     rate_limiter,
 )
+from tollgate_core.observability import get_tracer, safe_set_attribute
 
 logger = logging.getLogger("tollgate.ratelimit")
+tracer = get_tracer("tollgate.ratelimit")
 
 
 class RateLimitExceeded(Exception):
@@ -29,33 +31,40 @@ async def rate_limit_dependency(
     Checks token bucket capacity against Redis before allowing request execution.
     Attaches rate limit result to request.state for downstream header injection.
     """
-    try:
-        result = await rate_limiter.check(
-            api_key_id=ctx.api_key_id,
-            tenant_id=ctx.tenant_id,
-            project_id=ctx.project_id,
-        )
-    except RateLimitBackendError as e:
-        logger.error("Rate limiter backend failure: %s", e)
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={
-                "error": {
-                    "message": "Rate limiter backend is temporarily unavailable.",
-                    "type": "service_unavailable",
-                    "code": "rate_limiter_unavailable",
-                }
-            },
-        ) from e
+    with tracer.start_as_current_span("rate_limit") as span:
+        try:
+            result = await rate_limiter.check(
+                api_key_id=ctx.api_key_id,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+            )
+        except RateLimitBackendError as e:
+            logger.error("Rate limiter backend failure: %s", e)
+            safe_set_attribute(span, "rate_limit.error", True)
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail={
+                    "error": {
+                        "message": "Rate limiter backend is temporarily unavailable.",
+                        "type": "service_unavailable",
+                        "code": "rate_limiter_unavailable",
+                    }
+                },
+            ) from e
 
-    if not result.allowed:
-        logger.warning(
-            "Rate limit exceeded for API key %s (retry_after=%.2fs)",
-            ctx.api_key_id,
-            result.retry_after,
-        )
-        raise RateLimitExceeded(result)
+        safe_set_attribute(span, "rate_limit.allowed", result.allowed)
+        safe_set_attribute(span, "rate_limit.remaining", result.remaining)
+        safe_set_attribute(span, "rate_limit.limit", result.limit)
 
-    # Store in request.state so routes can easily inspect and inject rate limit headers
-    request.state.rate_limit_result = result
-    return result
+        if not result.allowed:
+            safe_set_attribute(span, "rate_limit.retry_after", result.retry_after)
+            logger.warning(
+                "Rate limit exceeded for API key %s (retry_after=%.2fs)",
+                ctx.api_key_id,
+                result.retry_after,
+            )
+            raise RateLimitExceeded(result)
+
+        # Store in request.state so routes can easily inspect and inject rate limit headers
+        request.state.rate_limit_result = result
+        return result

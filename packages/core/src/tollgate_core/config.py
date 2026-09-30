@@ -304,6 +304,32 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Phase 11A OpenTelemetry & Distributed Tracing Settings
+    otel_enabled: bool = Field(
+        False,
+        validation_alias=AliasChoices("TOLLGATE_OTEL_ENABLED", "otel_enabled"),
+    )
+    otel_endpoint: str = Field(
+        "http://localhost:4318",
+        validation_alias=AliasChoices("TOLLGATE_OTEL_ENDPOINT", "otel_endpoint"),
+    )
+    otel_service_name: str = Field(
+        "tollgate-api",
+        validation_alias=AliasChoices("TOLLGATE_OTEL_SERVICE_NAME", "otel_service_name"),
+    )
+    otel_trace_sample_rate: float = Field(
+        1.0,
+        ge=0.0,
+        le=1.0,
+        validation_alias=AliasChoices("TOLLGATE_OTEL_TRACE_SAMPLE_RATE", "otel_trace_sample_rate"),
+    )
+    otel_export_timeout_seconds: float = Field(
+        2.0,
+        validation_alias=AliasChoices(
+            "TOLLGATE_OTEL_EXPORT_TIMEOUT_SECONDS", "otel_export_timeout_seconds"
+        ),
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 

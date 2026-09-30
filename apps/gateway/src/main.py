@@ -10,6 +10,8 @@ for p in [str(root_dir), str(core_src), str(gateway_src)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
+import time
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
@@ -25,12 +27,35 @@ from gateway.src.api.routes.users import router as users_router
 from gateway.src.config import settings
 from gateway.src.redis import close_redis_connection
 from gateway.src.schemas.chat import OpenAIErrorDetail, OpenAIErrorResponse
+from tollgate_core.observability import (
+    current_request_id,
+    extract_trace_context,
+    get_current_trace_id,
+    get_current_traceparent,
+    get_tracer,
+    init_tracer,
+    safe_set_attribute,
+    setup_logging,
+)
+
+tracer = get_tracer("tollgate.gateway")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup sequence
-    print(f"[Tollgate Gateway] Starting in {settings.environment} mode...")
+    setup_logging(service_name="tollgate-api", log_level=settings.log_level)
+    init_tracer(
+        service_name="tollgate-api",
+        enabled=settings.otel_enabled,
+        endpoint=settings.otel_endpoint,
+        sample_rate=settings.otel_trace_sample_rate,
+        environment=settings.environment,
+        timeout_seconds=settings.otel_export_timeout_seconds,
+    )
+    print(
+        f"[Tollgate Gateway] Starting in {settings.environment} mode (OTel enabled: {settings.otel_enabled})..."
+    )
     yield
     # Shutdown sequence
     print("[Tollgate Gateway] Shutting down...")
@@ -43,6 +68,46 @@ app = FastAPI(
     version="0.2.0",
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def observability_middleware(request: Request, call_next):
+    """
+    Root HTTP middleware establishing W3C trace propagation, application request_id,
+    root 'gateway.request' span, and HTTP response headers.
+    """
+    request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
+    current_request_id.set(request_id)
+
+    headers_dict = dict(request.headers)
+    extracted_ctx = extract_trace_context(headers_dict)
+
+    t0 = time.perf_counter()
+    with tracer.start_as_current_span("gateway.request", context=extracted_ctx) as span:
+        safe_set_attribute(span, "http.request.method", request.method)
+        safe_set_attribute(span, "http.route", request.url.path)
+        safe_set_attribute(span, "tollgate.request_id", request_id)
+
+        try:
+            response = await call_next(request)
+            duration_ms = (time.perf_counter() - t0) * 1000.0
+            safe_set_attribute(span, "http.response.status_code", response.status_code)
+            safe_set_attribute(span, "duration_ms", duration_ms)
+
+            response.headers["X-Request-ID"] = request_id
+            trace_id = get_current_trace_id()
+            if trace_id:
+                response.headers["X-Trace-ID"] = trace_id
+            tp = get_current_traceparent()
+            if tp:
+                response.headers["traceparent"] = tp
+
+            return response
+        except Exception:
+            duration_ms = (time.perf_counter() - t0) * 1000.0
+            safe_set_attribute(span, "http.response.status_code", 500)
+            safe_set_attribute(span, "duration_ms", duration_ms)
+            raise
 
 
 from gateway.src.ratelimit import RateLimitExceeded
@@ -133,7 +198,7 @@ app.include_router(chat_router)
 async def root():
     return {
         "service": "Tollgate LLM Gateway",
-        "phase": "10 - Production Dashboard & Tenant Analytics",
+        "phase": "11A - OpenTelemetry, Distributed Tracing & Log Correlation",
         "status": "online",
         "docs_url": "/docs",
     }

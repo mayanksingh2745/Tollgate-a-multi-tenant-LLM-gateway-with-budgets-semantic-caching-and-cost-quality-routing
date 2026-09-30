@@ -4,10 +4,12 @@ from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from tollgate_core.models import UsageDailyRollup, UsageEvent, UsageMonthlyRollup
+from tollgate_core.observability import get_tracer, safe_set_attribute
 from tollgate_core.usage import UsageEventPayload
 from tollgate_core.usage_metrics import usage_metrics
 
 logger = logging.getLogger("tollgate.worker.persistence")
+tracer = get_tracer("tollgate.worker")
 
 
 async def persist_usage_event(session: AsyncSession, event: UsageEventPayload) -> bool:
@@ -66,97 +68,106 @@ async def persist_usage_event(session: AsyncSession, event: UsageEventPayload) -
         .returning(UsageEvent.id)
     )
 
-    result = await session.execute(event_stmt)
-    inserted_id = result.scalar_one_or_none()
+    with tracer.start_as_current_span("usage.persist") as p_span:
+        safe_set_attribute(p_span, "tollgate.event_id", str(event.event_id))
+        safe_set_attribute(p_span, "tollgate.request_id", event.request_id)
+        result = await session.execute(event_stmt)
+        inserted_id = result.scalar_one_or_none()
 
-    if inserted_id is None:
-        # Event already exists! Duplicate event safely skipped.
-        usage_metrics.increment("usage_event_duplicate_total")
-        logger.info(
-            f"Duplicate usage event detected and idempotently skipped: "
-            f"event_id={event.event_id} request_id={event.request_id}"
-        )
-        return False
+        if inserted_id is None:
+            # Event already exists! Duplicate event safely skipped.
+            usage_metrics.increment("usage_event_duplicate_total")
+            safe_set_attribute(p_span, "duplicate", True)
+            logger.info(
+                f"Duplicate usage event detected and idempotently skipped: "
+                f"event_id={event.event_id} request_id={event.request_id}"
+            )
+            return False
+        safe_set_attribute(p_span, "persisted", True)
 
-    # 2. Update Daily Rollup
-    date_str = event.timestamp.strftime("%Y-%m-%d")
-    is_success = 1 if event.status == "success" else 0
-    is_failure = 1 if event.status != "success" else 0
-    now_utc = datetime.now(timezone.utc)
+    with tracer.start_as_current_span("usage.rollup") as r_span:
+        safe_set_attribute(r_span, "tollgate.event_id", str(event.event_id))
+        safe_set_attribute(r_span, "tollgate.tenant_id", str(event.tenant_id))
 
-    daily_stmt = (
-        dialect_insert(UsageDailyRollup)
-        .values(
-            id=uuid.uuid4(),
-            date=date_str,
-            tenant_id=event.tenant_id,
-            project_id=event.project_id,
-            provider=event.provider,
-            model=event.model,
-            request_count=1,
-            success_count=is_success,
-            failure_count=is_failure,
-            input_tokens=event.input_tokens,
-            output_tokens=event.output_tokens,
-            total_tokens=event.total_tokens,
-            estimated_cost=event.estimated_cost,
-            actual_cost=event.actual_cost,
-            updated_at=now_utc,
-        )
-        .on_conflict_do_update(
-            index_elements=["date", "tenant_id", "project_id", "provider", "model"],
-            set_={
-                "request_count": UsageDailyRollup.request_count + 1,
-                "success_count": UsageDailyRollup.success_count + is_success,
-                "failure_count": UsageDailyRollup.failure_count + is_failure,
-                "input_tokens": UsageDailyRollup.input_tokens + event.input_tokens,
-                "output_tokens": UsageDailyRollup.output_tokens + event.output_tokens,
-                "total_tokens": UsageDailyRollup.total_tokens + event.total_tokens,
-                "estimated_cost": UsageDailyRollup.estimated_cost + event.estimated_cost,
-                "actual_cost": UsageDailyRollup.actual_cost + event.actual_cost,
-                "updated_at": now_utc,
-            },
-        )
-    )
-    await session.execute(daily_stmt)
+        # 2. Update Daily Rollup
+        date_str = event.timestamp.strftime("%Y-%m-%d")
+        is_success = 1 if event.status == "success" else 0
+        is_failure = 1 if event.status != "success" else 0
+        now_utc = datetime.now(timezone.utc)
 
-    # 3. Update Monthly Rollup
-    month_str = event.timestamp.strftime("%Y-%m")
-    monthly_stmt = (
-        dialect_insert(UsageMonthlyRollup)
-        .values(
-            id=uuid.uuid4(),
-            month=month_str,
-            tenant_id=event.tenant_id,
-            project_id=event.project_id,
-            provider=event.provider,
-            model=event.model,
-            request_count=1,
-            success_count=is_success,
-            failure_count=is_failure,
-            input_tokens=event.input_tokens,
-            output_tokens=event.output_tokens,
-            total_tokens=event.total_tokens,
-            estimated_cost=event.estimated_cost,
-            actual_cost=event.actual_cost,
-            updated_at=now_utc,
+        daily_stmt = (
+            dialect_insert(UsageDailyRollup)
+            .values(
+                id=uuid.uuid4(),
+                date=date_str,
+                tenant_id=event.tenant_id,
+                project_id=event.project_id,
+                provider=event.provider,
+                model=event.model,
+                request_count=1,
+                success_count=is_success,
+                failure_count=is_failure,
+                input_tokens=event.input_tokens,
+                output_tokens=event.output_tokens,
+                total_tokens=event.total_tokens,
+                estimated_cost=event.estimated_cost,
+                actual_cost=event.actual_cost,
+                updated_at=now_utc,
+            )
+            .on_conflict_do_update(
+                index_elements=["date", "tenant_id", "project_id", "provider", "model"],
+                set_={
+                    "request_count": UsageDailyRollup.request_count + 1,
+                    "success_count": UsageDailyRollup.success_count + is_success,
+                    "failure_count": UsageDailyRollup.failure_count + is_failure,
+                    "input_tokens": UsageDailyRollup.input_tokens + event.input_tokens,
+                    "output_tokens": UsageDailyRollup.output_tokens + event.output_tokens,
+                    "total_tokens": UsageDailyRollup.total_tokens + event.total_tokens,
+                    "estimated_cost": UsageDailyRollup.estimated_cost + event.estimated_cost,
+                    "actual_cost": UsageDailyRollup.actual_cost + event.actual_cost,
+                    "updated_at": now_utc,
+                },
+            )
         )
-        .on_conflict_do_update(
-            index_elements=["month", "tenant_id", "project_id", "provider", "model"],
-            set_={
-                "request_count": UsageMonthlyRollup.request_count + 1,
-                "success_count": UsageMonthlyRollup.success_count + is_success,
-                "failure_count": UsageMonthlyRollup.failure_count + is_failure,
-                "input_tokens": UsageMonthlyRollup.input_tokens + event.input_tokens,
-                "output_tokens": UsageMonthlyRollup.output_tokens + event.output_tokens,
-                "total_tokens": UsageMonthlyRollup.total_tokens + event.total_tokens,
-                "estimated_cost": UsageMonthlyRollup.estimated_cost + event.estimated_cost,
-                "actual_cost": UsageMonthlyRollup.actual_cost + event.actual_cost,
-                "updated_at": now_utc,
-            },
+        await session.execute(daily_stmt)
+
+        # 3. Update Monthly Rollup
+        month_str = event.timestamp.strftime("%Y-%m")
+        monthly_stmt = (
+            dialect_insert(UsageMonthlyRollup)
+            .values(
+                id=uuid.uuid4(),
+                month=month_str,
+                tenant_id=event.tenant_id,
+                project_id=event.project_id,
+                provider=event.provider,
+                model=event.model,
+                request_count=1,
+                success_count=is_success,
+                failure_count=is_failure,
+                input_tokens=event.input_tokens,
+                output_tokens=event.output_tokens,
+                total_tokens=event.total_tokens,
+                estimated_cost=event.estimated_cost,
+                actual_cost=event.actual_cost,
+                updated_at=now_utc,
+            )
+            .on_conflict_do_update(
+                index_elements=["month", "tenant_id", "project_id", "provider", "model"],
+                set_={
+                    "request_count": UsageMonthlyRollup.request_count + 1,
+                    "success_count": UsageMonthlyRollup.success_count + is_success,
+                    "failure_count": UsageMonthlyRollup.failure_count + is_failure,
+                    "input_tokens": UsageMonthlyRollup.input_tokens + event.input_tokens,
+                    "output_tokens": UsageMonthlyRollup.output_tokens + event.output_tokens,
+                    "total_tokens": UsageMonthlyRollup.total_tokens + event.total_tokens,
+                    "estimated_cost": UsageMonthlyRollup.estimated_cost + event.estimated_cost,
+                    "actual_cost": UsageMonthlyRollup.actual_cost + event.actual_cost,
+                    "updated_at": now_utc,
+                },
+            )
         )
-    )
-    await session.execute(monthly_stmt)
+        await session.execute(monthly_stmt)
 
     logger.debug(
         f"Persisted usage event and rollups: event_id={event.event_id} request_id={event.request_id} "

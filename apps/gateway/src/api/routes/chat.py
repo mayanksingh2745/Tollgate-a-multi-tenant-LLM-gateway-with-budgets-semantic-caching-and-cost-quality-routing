@@ -29,7 +29,17 @@ from gateway.src.services.budget_service import get_effective_budget_limits
 from gateway.src.services.gateway_service import gateway_service
 from gateway.src.usage.publisher import usage_publisher
 from sqlalchemy.ext.asyncio import AsyncSession
+from tollgate_core.observability import (
+    current_request_id,
+    get_current_span_id,
+    get_current_trace_id,
+    get_current_traceparent,
+    get_tracer,
+    safe_set_attribute,
+)
 from tollgate_core.usage import UsageEventPayload
+
+tracer = get_tracer("tollgate.gateway")
 
 router = APIRouter(tags=["Chat Completions"])
 
@@ -63,12 +73,29 @@ async def create_chat_completion(
     Integrates rate limiting, exact response caching, budget enforcement, and usage accounting.
     """
     # 1. Resolve or generate Request ID
-    request_id = x_request_id or f"req_{uuid.uuid4().hex[:16]}"
+    request_id = x_request_id or current_request_id.get() or f"req_{uuid.uuid4().hex[:16]}"
+    current_request_id.set(request_id)
 
     headers = {
         "X-Request-ID": request_id,
         **rate_limit.headers,
     }
+    trace_id = get_current_trace_id()
+    if trace_id:
+        headers["X-Trace-ID"] = trace_id
+    tp = get_current_traceparent()
+    if tp:
+        headers["traceparent"] = tp
+
+    from opentelemetry import trace
+
+    active_span = trace.get_current_span()
+    if active_span and active_span.is_recording():
+        safe_set_attribute(active_span, "tollgate.request_id", request_id)
+        safe_set_attribute(active_span, "tollgate.tenant_id", str(ctx.tenant_id))
+        safe_set_attribute(active_span, "tollgate.project_id", str(ctx.project_id))
+        safe_set_attribute(active_span, "tollgate.requested_model", request.model)
+        safe_set_attribute(active_span, "tollgate.stream", bool(request.stream))
 
     reservation = None
     routing_decision = None
@@ -78,13 +105,23 @@ async def create_chat_completion(
         provider_name = route.primary.provider_name if route and route.primary else "openai"
 
         # 2. Exact Cache Lookup (evaluated before budget reservation to avoid consuming budget on hit)
-        cached_response = await exact_cache.get(
-            request=request,
-            tenant_id=ctx.tenant_id,
-            project_id=ctx.project_id,
-            provider=provider_name,
-        )
+        with tracer.start_as_current_span("cache.lookup") as c_span:
+            safe_set_attribute(c_span, "cache.type", "exact")
+            safe_set_attribute(c_span, "tollgate.cache.type", "exact")
+            cached_response = await exact_cache.get(
+                request=request,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                provider=provider_name,
+            )
+            hit = cached_response is not None
+            safe_set_attribute(c_span, "cache.hit", hit)
+            safe_set_attribute(c_span, "tollgate.cache.hit", hit)
+
         if cached_response is not None:
+            if active_span and active_span.is_recording():
+                safe_set_attribute(active_span, "tollgate.cache.type", "exact")
+                safe_set_attribute(active_span, "tollgate.cache.hit", True)
             if settings.cache_header_enabled:
                 headers["X-Tollgate-Cache"] = "HIT"
             headers["X-Tollgate-Provider"] = provider_name
@@ -94,14 +131,24 @@ async def create_chat_completion(
             )
 
         # 2b. Semantic Cache Lookup (evaluated when exact cache misses)
-        semantic_response, _ = await semantic_cache.get(
-            request=request,
-            tenant_id=ctx.tenant_id,
-            project_id=ctx.project_id,
-            provider=provider_name,
-            session=db,
-        )
+        with tracer.start_as_current_span("cache.lookup") as sc_span:
+            safe_set_attribute(sc_span, "cache.type", "semantic")
+            safe_set_attribute(sc_span, "tollgate.cache.type", "semantic")
+            semantic_response, _ = await semantic_cache.get(
+                request=request,
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                provider=provider_name,
+                session=db,
+            )
+            hit = semantic_response is not None
+            safe_set_attribute(sc_span, "cache.hit", hit)
+            safe_set_attribute(sc_span, "tollgate.cache.hit", hit)
+
         if semantic_response is not None:
+            if active_span and active_span.is_recording():
+                safe_set_attribute(active_span, "tollgate.cache.type", "semantic")
+                safe_set_attribute(active_span, "tollgate.cache.hit", True)
             if settings.cache_header_enabled:
                 headers["X-Tollgate-Cache"] = "SEMANTIC_HIT"
             headers["X-Tollgate-Provider"] = provider_name
@@ -110,12 +157,35 @@ async def create_chat_completion(
                 headers=headers,
             )
 
+        if active_span and active_span.is_recording():
+            safe_set_attribute(active_span, "tollgate.cache.hit", False)
+
         if settings.cache_header_enabled:
-            is_cacheable, _ = Canonicalizer.is_cacheable(request)
+            is_cacheable, bypass_reason = Canonicalizer.is_cacheable(request)
             headers["X-Tollgate-Cache"] = "BYPASS" if not is_cacheable else "MISS"
+            if not is_cacheable and bypass_reason and active_span and active_span.is_recording():
+                safe_set_attribute(active_span, "cache.bypass_reason", bypass_reason)
 
         # 2c. Model Router Evaluation (evaluated on cache miss, before budget reservation)
-        routing_decision = await model_router.route(request)
+        with tracer.start_as_current_span("router.decision") as r_span:
+            routing_decision = await model_router.route(request)
+            mode = settings.router_mode if settings.router_enabled else "disabled"
+            safe_set_attribute(r_span, "router.mode", mode)
+            safe_set_attribute(r_span, "tollgate.router.mode", mode)
+            safe_set_attribute(r_span, "router.route", routing_decision.route)
+            safe_set_attribute(r_span, "tollgate.router.route", routing_decision.route)
+            safe_set_attribute(r_span, "router.confidence", routing_decision.confidence)
+            safe_set_attribute(r_span, "tollgate.router.confidence", routing_decision.confidence)
+            if hasattr(routing_decision, "threshold") and routing_decision.threshold is not None:
+                safe_set_attribute(r_span, "router.threshold", routing_decision.threshold)
+            safe_set_attribute(
+                r_span, "requested_model", routing_decision.original_model or request.model
+            )
+            safe_set_attribute(r_span, "selected_model", routing_decision.selected_model)
+            if active_span and active_span.is_recording():
+                safe_set_attribute(active_span, "tollgate.router.mode", mode)
+                safe_set_attribute(active_span, "tollgate.router.route", routing_decision.route)
+
         if settings.router_enabled and settings.router_mode != "disabled":
             headers["X-Tollgate-Router-Route"] = routing_decision.route
             headers["X-Tollgate-Router-Selected-Model"] = routing_decision.selected_model
@@ -132,18 +202,24 @@ async def create_chat_completion(
             provider_name = route.primary.provider_name if route and route.primary else "openai"
 
         # 3. Atomic Budget Reservation (Multi-scope: Tenant + Project)
-        limits = await get_effective_budget_limits(
-            db=db, tenant_id=ctx.tenant_id, project_id=ctx.project_id
-        )
-        estimated_cost = estimate_request_cost(request)
+        with tracer.start_as_current_span("budget.reserve") as b_res_span:
+            limits = await get_effective_budget_limits(
+                db=db, tenant_id=ctx.tenant_id, project_id=ctx.project_id
+            )
+            estimated_cost = estimate_request_cost(request)
 
-        reservation = await budget_manager.reserve(
-            tenant_id=ctx.tenant_id,
-            project_id=ctx.project_id,
-            estimated_cost=estimated_cost,
-            limits=limits,
-            reservation_id=request_id,
-        )
+            reservation = await budget_manager.reserve(
+                tenant_id=ctx.tenant_id,
+                project_id=ctx.project_id,
+                estimated_cost=estimated_cost,
+                limits=limits,
+                reservation_id=request_id,
+            )
+            safe_set_attribute(b_res_span, "budget.allowed", reservation.allowed)
+            if reservation.scope:
+                safe_set_attribute(b_res_span, "budget.scope", reservation.scope)
+            safe_set_attribute(b_res_span, "reservation_id", reservation.reservation_id)
+
         if not reservation.allowed:
             raise BudgetExceededError(
                 f"Budget exceeded for {reservation.scope or 'account'}. Insufficient spending balance.",
@@ -186,7 +262,13 @@ async def create_chat_completion(
                         output_tokens=output_tokens,
                         provider=stream_provider,
                     )
-                    await budget_manager.settle(reservation.reservation_id, actual_cost)
+                    with tracer.start_as_current_span("budget.settle") as b_settle_span:
+                        safe_set_attribute(
+                            b_settle_span, "reservation_id", reservation.reservation_id
+                        )
+                        await budget_manager.settle(reservation.reservation_id, actual_cost)
+                        safe_set_attribute(b_settle_span, "budget.settled", True)
+
                     stream_latency_ms = (time.perf_counter() - t0_stream) * 1000.0
 
                     usage_event = UsageEventPayload(
@@ -226,12 +308,23 @@ async def create_chat_completion(
                             else request.model
                         ),
                         cache_status=headers.get("X-Tollgate-Cache", "MISS"),
+                        traceparent=get_current_traceparent(),
+                        trace_id=get_current_trace_id(),
+                        span_id=get_current_span_id(),
                     )
-                    await usage_publisher.publish(usage_event)
+                    with tracer.start_as_current_span("usage.publish") as up_span:
+                        safe_set_attribute(up_span, "tollgate.request_id", request_id)
+                        safe_set_attribute(up_span, "tollgate.stream", True)
+                        await usage_publisher.publish(usage_event)
                 except Exception as e:
                     stream_latency_ms = (time.perf_counter() - t0_stream) * 1000.0
                     if chunks_emitted == 0:
-                        await budget_manager.release(reservation.reservation_id)
+                        with tracer.start_as_current_span("budget.release") as b_rel_span:
+                            safe_set_attribute(
+                                b_rel_span, "reservation_id", reservation.reservation_id
+                            )
+                            await budget_manager.release(reservation.reservation_id)
+                            safe_set_attribute(b_rel_span, "budget.released", True)
                     else:
                         actual_cost = pricing_service.calculate_cost(
                             model=request.model,
@@ -239,7 +332,13 @@ async def create_chat_completion(
                             output_tokens=output_tokens,
                             provider=stream_provider,
                         )
-                        await budget_manager.settle(reservation.reservation_id, actual_cost)
+                        with tracer.start_as_current_span("budget.settle") as b_settle_span:
+                            safe_set_attribute(
+                                b_settle_span, "reservation_id", reservation.reservation_id
+                            )
+                            await budget_manager.settle(reservation.reservation_id, actual_cost)
+                            safe_set_attribute(b_settle_span, "budget.settled", True)
+
                         usage_event = UsageEventPayload(
                             request_id=request_id,
                             reservation_id=reservation.reservation_id,
@@ -283,8 +382,14 @@ async def create_chat_completion(
                                 else request.model
                             ),
                             cache_status=headers.get("X-Tollgate-Cache", "MISS"),
+                            traceparent=get_current_traceparent(),
+                            trace_id=get_current_trace_id(),
+                            span_id=get_current_span_id(),
                         )
-                        await usage_publisher.publish(usage_event)
+                        with tracer.start_as_current_span("usage.publish") as up_span:
+                            safe_set_attribute(up_span, "tollgate.request_id", request_id)
+                            safe_set_attribute(up_span, "tollgate.stream", True)
+                            await usage_publisher.publish(usage_event)
                     raise
 
             return StreamingResponse(
@@ -309,71 +414,79 @@ async def create_chat_completion(
                 output_tokens=actual_out,
                 provider=metadata.final_provider,
             )
-            await budget_manager.settle(reservation.reservation_id, actual_cost)
+            with tracer.start_as_current_span("budget.settle") as b_settle_span:
+                safe_set_attribute(b_settle_span, "reservation_id", reservation.reservation_id)
+                await budget_manager.settle(reservation.reservation_id, actual_cost)
+                safe_set_attribute(b_settle_span, "budget.settled", True)
 
-            # Store in exact response cache
-            final_prov = metadata.final_provider or provider_name
-            await exact_cache.set(
-                request=request,
-                response=response,
-                tenant_id=ctx.tenant_id,
-                project_id=ctx.project_id,
-                provider=final_prov,
-            )
-
-            # Index in semantic response cache
-            response_key = await exact_cache.build_cache_key(
-                request=request,
-                tenant_id=ctx.tenant_id,
-                project_id=ctx.project_id,
-                provider=final_prov,
-            )
-            await semantic_cache.set(
-                request=request,
-                response=response,
-                response_cache_key=response_key,
-                tenant_id=ctx.tenant_id,
-                project_id=ctx.project_id,
-                provider=final_prov,
-                session=db,
-            )
-
-            # If model was rewritten from original_model, also cache under original_model
-            # so subsequent requests for original_model hit exact cache directly
-            if (
-                routing_decision
-                and routing_decision.original_model
-                and routing_decision.original_model != request.model
-            ):
-                orig_request = request.model_copy(update={"model": routing_decision.original_model})
-                orig_route = gateway_service.registry.get_route(routing_decision.original_model)
-                orig_prov = (
-                    orig_route.primary.provider_name
-                    if orig_route and orig_route.primary
-                    else final_prov
-                )
+            # Store in exact & semantic response cache
+            with tracer.start_as_current_span("cache.write") as cw_span:
+                safe_set_attribute(cw_span, "cache.type", "exact_and_semantic")
+                safe_set_attribute(cw_span, "tollgate.cache.type", "exact_and_semantic")
+                final_prov = metadata.final_provider or provider_name
                 await exact_cache.set(
-                    request=orig_request,
+                    request=request,
                     response=response,
                     tenant_id=ctx.tenant_id,
                     project_id=ctx.project_id,
-                    provider=orig_prov,
+                    provider=final_prov,
                 )
-                orig_response_key = await exact_cache.build_cache_key(
-                    request=orig_request,
+
+                # Index in semantic response cache
+                response_key = await exact_cache.build_cache_key(
+                    request=request,
                     tenant_id=ctx.tenant_id,
                     project_id=ctx.project_id,
-                    provider=orig_prov,
+                    provider=final_prov,
                 )
                 await semantic_cache.set(
-                    request=orig_request,
+                    request=request,
                     response=response,
-                    response_cache_key=orig_response_key,
+                    response_cache_key=response_key,
                     tenant_id=ctx.tenant_id,
                     project_id=ctx.project_id,
-                    provider=orig_prov,
+                    provider=final_prov,
                     session=db,
                 )
+
+                # If model was rewritten from original_model, also cache under original_model
+                # so subsequent requests for original_model hit exact cache directly
+                if (
+                    routing_decision
+                    and routing_decision.original_model
+                    and routing_decision.original_model != request.model
+                ):
+                    orig_request = request.model_copy(
+                        update={"model": routing_decision.original_model}
+                    )
+                    orig_route = gateway_service.registry.get_route(routing_decision.original_model)
+                    orig_prov = (
+                        orig_route.primary.provider_name
+                        if orig_route and orig_route.primary
+                        else final_prov
+                    )
+                    await exact_cache.set(
+                        request=orig_request,
+                        response=response,
+                        tenant_id=ctx.tenant_id,
+                        project_id=ctx.project_id,
+                        provider=orig_prov,
+                    )
+                    orig_response_key = await exact_cache.build_cache_key(
+                        request=orig_request,
+                        tenant_id=ctx.tenant_id,
+                        project_id=ctx.project_id,
+                        provider=orig_prov,
+                    )
+                    await semantic_cache.set(
+                        request=orig_request,
+                        response=response,
+                        response_cache_key=orig_response_key,
+                        tenant_id=ctx.tenant_id,
+                        project_id=ctx.project_id,
+                        provider=orig_prov,
+                        session=db,
+                    )
 
             # Publish usage event to Redis Stream (non-blocking, asynchronous)
             usage_event = UsageEventPayload(
@@ -409,8 +522,14 @@ async def create_chat_completion(
                     else request.model
                 ),
                 cache_status=headers.get("X-Tollgate-Cache", "MISS"),
+                traceparent=get_current_traceparent(),
+                trace_id=get_current_trace_id(),
+                span_id=get_current_span_id(),
             )
-            await usage_publisher.publish(usage_event)
+            with tracer.start_as_current_span("usage.publish") as up_span:
+                safe_set_attribute(up_span, "tollgate.request_id", request_id)
+                safe_set_attribute(up_span, "tollgate.stream", False)
+                await usage_publisher.publish(usage_event)
 
             if metadata.final_provider:
                 headers["X-Tollgate-Provider"] = metadata.final_provider
@@ -424,11 +543,17 @@ async def create_chat_completion(
 
     except BudgetExceededError:
         if reservation and reservation.allowed:
-            await budget_manager.release(reservation.reservation_id)
+            with tracer.start_as_current_span("budget.release") as b_rel_span:
+                safe_set_attribute(b_rel_span, "reservation_id", reservation.reservation_id)
+                await budget_manager.release(reservation.reservation_id)
+                safe_set_attribute(b_rel_span, "budget.released", True)
         raise
     except ProviderException as pe:
         if reservation and reservation.allowed:
-            await budget_manager.release(reservation.reservation_id)
+            with tracer.start_as_current_span("budget.release") as b_rel_span:
+                safe_set_attribute(b_rel_span, "reservation_id", reservation.reservation_id)
+                await budget_manager.release(reservation.reservation_id)
+                safe_set_attribute(b_rel_span, "budget.released", True)
         return JSONResponse(
             status_code=pe.status_code,
             headers=headers,
@@ -442,7 +567,10 @@ async def create_chat_completion(
         )
     except Exception:
         if reservation and reservation.allowed:
-            await budget_manager.release(reservation.reservation_id)
+            with tracer.start_as_current_span("budget.release") as b_rel_span:
+                safe_set_attribute(b_rel_span, "reservation_id", reservation.reservation_id)
+                await budget_manager.release(reservation.reservation_id)
+                safe_set_attribute(b_rel_span, "budget.released", True)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             headers=headers,

@@ -19,12 +19,18 @@ import redis.asyncio as aioredis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from tollgate_core.config import settings
+from tollgate_core.observability import init_tracer, setup_logging
 
 from apps.worker.src.consumer import UsageWorkerConsumer
 
-logging.basicConfig(
-    level=settings.log_level,
-    format="%(asctime)s [%(levelname)s] [UsageWorker] %(message)s",
+setup_logging(service_name="tollgate-worker", log_level=settings.log_level)
+init_tracer(
+    service_name="tollgate-worker",
+    enabled=settings.otel_enabled,
+    endpoint=settings.otel_endpoint,
+    sample_rate=settings.otel_trace_sample_rate,
+    environment=settings.environment,
+    timeout_seconds=settings.otel_export_timeout_seconds,
 )
 logger = logging.getLogger("tollgate.worker")
 
