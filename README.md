@@ -29,6 +29,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - ✓ Exact response caching
 - ✓ Semantic response caching
 - ✓ Learned model routing
+- ✓ Production dashboard & tenant analytics
 
 ## Implemented Phases
 
@@ -42,6 +43,7 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 - **Phase 7 — Exact Response Cache**: High-performance, tenant-isolated exact-match response caching in Redis with SHA-256 canonicalization, O(1) project cache invalidation via generation counters, fail-open resilience, zero budget/usage overhead on hit, and `X-Tollgate-Cache` observability headers.
 - **Phase 8 — Semantic Response Cache**: Conservative, tenant-isolated vector response caching using PostgreSQL + pgvector (HNSW cosine index) and decoupled Redis response storage, tiered lookup (Exact L1 -> Semantic L2 -> Upstream L3), deterministic message representation, strict safety bypasses (`stream=true`, `tools`), shadow evaluation mode, offline evaluation harness, and zero budget/usage overhead on hit.
 - **Phase 9 — Learned Model Router**: Data-driven, cost-aware model-selection layer predicting whether incoming requests can be satisfied by a fast, cost-efficient model tier (`mock-fast`, `gpt-4o-mini`) or require a strong reasoning model tier (`mock-model`, `gpt-4o`). Features 15 structural/lexical prompt signals, calibrated logistic regression classification, fail-open resilience, shadow evaluation mode, benchmark evaluation suite, and full microdollar cost-quality tradeoff analysis.
+- **Phase 10 — Production Dashboard & Tenant Analytics**: Production-grade web interface for tenant owners, admins, and viewers. Features interactive time-series charts (Requests, Tokens, Cost), three-way cost breakdowns, Phase 5 atomic budget monitoring gauges, model and provider reliability telemetry, exact vs semantic cache hit rates & cost avoided, learned model router distribution vs offline evaluation reports, server-side paginated request explorer with safe telemetry detail modals, and project/API-key management.
 
 ---
 
@@ -343,6 +345,22 @@ See [`docs/gateway.md`](docs/gateway.md) for full endpoint specifications, strea
 ### Response Cache (Phases 7 & 8)
 - `DELETE /api/v1/projects/{project_id}/cache` — Invalidate project cache (O(1) generation counter increment for exact cache, and purges semantic cache entries)
 - `GET /api/v1/projects/{project_id}/cache/semantic` — List semantic cache entry metadata for project (entry ID, model, provider, expiration, hit count)
+
+### Dashboard & Analytics (Phase 10)
+- `GET /api/v1/dashboard/overview` — High-level telemetry summary KPIs (requests, tokens, cost, cache, router)
+- `GET /api/v1/dashboard/usage` — Time-series aggregation buckets for requests, tokens, and cost
+- `GET /api/v1/dashboard/costs` — Cost distribution across models, providers, and projects
+- `GET /api/v1/dashboard/budgets` — Phase 5 atomic budget status, spent microdollars, utilization
+- `GET /api/v1/dashboard/models` — Model throughput, token consumption, latency, and error rates
+- `GET /api/v1/dashboard/providers` — Upstream provider reliability, retries, fallbacks, and latency
+- `GET /api/v1/dashboard/cache` — Exact vs semantic cache performance, hit rates, and estimated cost avoided
+- `GET /api/v1/dashboard/router` — Production routing distribution vs offline benchmark evaluation reports
+- `GET /api/v1/dashboard/requests` — Server-side paginated request explorer with filters and sorting
+- `GET /api/v1/dashboard/requests/{id}` — Safe request metadata and telemetry inspection modal
+- `POST /api/v1/auth/login` — Email/password credential verification returning active token
+- `GET /api/v1/auth/me` — Current authenticated user profile, tenant identity, and projects
+
+See [`docs/dashboard.md`](docs/dashboard.md) for full dashboard architecture, security guarantees, and RBAC policies.
 
 ---
 

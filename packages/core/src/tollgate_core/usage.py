@@ -69,6 +69,9 @@ class UsageEventPayload(BaseModel):
     original_model: Optional[str] = Field(
         default=None, description="Original model requested before routing"
     )
+    cache_status: Optional[str] = Field(
+        default=None, description="Cache status (MISS, BYPASS, HIT, SEMANTIC_HIT)"
+    )
 
     @field_validator("event_version")
     @classmethod

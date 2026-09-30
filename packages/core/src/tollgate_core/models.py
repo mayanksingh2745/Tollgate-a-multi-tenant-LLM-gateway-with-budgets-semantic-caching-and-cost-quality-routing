@@ -216,6 +216,17 @@ class UsageEvent(Base):
     attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     fallback_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+    # Phase 9/10 Analytics & Routing fields
+    cache_status: Mapped[Optional[str]] = mapped_column(
+        String(32), nullable=True
+    )  # "HIT" | "SEMANTIC_HIT" | "MISS" | "BYPASS"
+    router_mode: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    router_route: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    router_confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    router_model_version: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    router_fallback: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True, default=False)
+    original_model: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     processed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

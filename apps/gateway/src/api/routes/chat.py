@@ -225,6 +225,7 @@ async def create_chat_completion(
                             if (routing_decision and routing_decision.original_model)
                             else request.model
                         ),
+                        cache_status=headers.get("X-Tollgate-Cache", "MISS"),
                     )
                     await usage_publisher.publish(usage_event)
                 except Exception as e:
@@ -281,6 +282,7 @@ async def create_chat_completion(
                                 if (routing_decision and routing_decision.original_model)
                                 else request.model
                             ),
+                            cache_status=headers.get("X-Tollgate-Cache", "MISS"),
                         )
                         await usage_publisher.publish(usage_event)
                     raise
@@ -406,6 +408,7 @@ async def create_chat_completion(
                     if (routing_decision and routing_decision.original_model)
                     else request.model
                 ),
+                cache_status=headers.get("X-Tollgate-Cache", "MISS"),
             )
             await usage_publisher.publish(usage_event)
 
