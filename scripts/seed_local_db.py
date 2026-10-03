@@ -15,10 +15,11 @@ for p in [str(root_dir), str(apps_dir), str(core_src), str(gateway_dir)]:
         sys.path.insert(0, p)
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from tollgate_core.models import APIKey, Base, Project, Tenant, User, UsageEvent
-from tollgate_core.security import hash_password, generate_api_key
+from tollgate_core.models import APIKey, Base, Project, Tenant, UsageEvent, User
+from tollgate_core.security import hash_password
 
 DATABASE_URL = "sqlite+aiosqlite:///tollgate_local.db"
+
 
 async def seed():
     engine = create_async_engine(
@@ -33,6 +34,7 @@ async def seed():
     async with SessionLocal() as session:
         # Check if already seeded
         from sqlalchemy import select
+
         res = await session.execute(select(User).where(User.email == "admin@tollgate.io"))
         if res.scalar_one_or_none():
             print("Local database already seeded.")
@@ -150,6 +152,7 @@ async def seed():
 
         await session.commit()
         print("Database seeded successfully with users, projects, api keys, and usage events!")
+
 
 if __name__ == "__main__":
     asyncio.run(seed())
