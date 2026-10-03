@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1.75rem;
-  background: rgba(11, 15, 25, 0.85);
+  background: rgba(34, 34, 34, 0.90);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
 }
@@ -42,7 +42,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  background: linear-gradient(180deg, #ffffff, #cbd5e1);
+  background: linear-gradient(180deg, var(--sustainable-linen), var(--recycled-cotton));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -51,7 +51,7 @@
   font-size: 0.7rem;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(255, 109, 31, 0.16);
   color: var(--accent-cyan);
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -116,7 +116,7 @@
 }
 
 .header-select option {
-  background: #0f172a;
+  background: #1c1c1c; border-color: rgba(245, 231, 198, 0.15);
   color: var(--text-primary);
 }
 
@@ -146,7 +146,7 @@
 
 .time-range-btn.active {
   background: var(--accent-cyan);
-  color: #0b0f19;
+  color: var(--black-hole);
 }
 
 .btn-refresh {
@@ -197,15 +197,15 @@
 }
 
 .role-badge-owner {
-  background: rgba(168, 85, 247, 0.2);
+  background: rgba(245, 231, 198, 0.18);
   color: var(--accent-purple);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  border: 1px solid rgba(245, 231, 198, 0.35);
 }
 
 .role-badge-admin {
-  background: rgba(56, 189, 248, 0.2);
+  background: rgba(255, 109, 31, 0.2);
   color: var(--accent-cyan);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  border: 1px solid rgba(255, 109, 31, 0.4);
 }
 
 .role-badge-viewer {
@@ -239,7 +239,7 @@
 
 .app-sidebar {
   width: 240px;
-  background: rgba(11, 15, 25, 0.65);
+  background: rgba(26, 26, 26, 0.80);
   border-right: 1px solid var(--border-color);
   padding: 1.5rem 0.75rem;
   display: flex;
@@ -283,7 +283,7 @@
 }
 
 .nav-item.active {
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(255, 109, 31, 0.14);
   color: var(--accent-cyan);
   font-weight: 600;
   border-left: 3px solid var(--accent-cyan);
@@ -446,7 +446,7 @@
 }
 
 .badge-accent {
-  background: rgba(168, 85, 247, 0.15);
+  background: rgba(245, 231, 198, 0.15);
   color: var(--accent-purple);
 }
 
@@ -558,8 +558,8 @@
 }
 
 .primary-budget {
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.05);
+  border-color: rgba(255, 109, 31, 0.35);
+  box-shadow: 0 0 15px rgba(255, 109, 31, 0.12);
 }
 
 .budget-card-header {
@@ -626,7 +626,7 @@
 }
 
 .fill-normal {
-  background: linear-gradient(90deg, var(--accent-cyan), #3b82f6);
+  background: linear-gradient(90deg, var(--electric-tangerine), #FFA066);
 }
 
 .fill-warning {
@@ -859,7 +859,7 @@
 }
 
 .clickable-tr:hover td {
-  background: rgba(56, 189, 248, 0.04) !important;
+  background: rgba(255, 109, 31, 0.08) !important;
 }
 
 .cell-subtext {
@@ -869,7 +869,7 @@
 }
 
 .highlight-row td {
-  background: rgba(56, 189, 248, 0.06);
+  background: rgba(255, 109, 31, 0.1);
 }
 
 .sortable-th {
@@ -959,7 +959,7 @@
 }
 
 .cache-hit {
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(255, 109, 31, 0.16);
   color: var(--accent-cyan);
 }
 
@@ -973,7 +973,7 @@
   font-weight: 600;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
-  background: rgba(168, 85, 247, 0.15);
+  background: rgba(245, 231, 198, 0.15);
   color: var(--accent-purple);
   text-transform: uppercase;
 }
@@ -984,8 +984,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
-  color: #0b0f19;
+  background: linear-gradient(135deg, var(--electric-tangerine), #E65A0D);
+  color: var(--black-hole);
   font-weight: 700;
   font-size: 0.85rem;
   padding: 0.5rem 1rem;
@@ -1102,7 +1102,7 @@
 }
 
 .filter-select option {
-  background: #0f172a;
+  background: #1c1c1c; border-color: rgba(245, 231, 198, 0.15);
 }
 
 /* Pagination Bar */
@@ -1169,7 +1169,7 @@
 }
 
 .modal-container {
-  background: #0f172a;
+  background: #1c1c1c; border-color: rgba(245, 231, 198, 0.15);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   width: 100%;
@@ -1219,8 +1219,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  background: rgba(255, 109, 31, 0.12);
+  border: 1px solid rgba(255, 109, 31, 0.3);
   color: var(--accent-cyan);
   font-size: 0.8rem;
   padding: 0.75rem 1rem;
@@ -1438,14 +1438,14 @@
 .brand-icon-large {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  background: linear-gradient(135deg, var(--electric-tangerine), var(--recycled-cotton));
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   margin-bottom: 0.5rem;
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 30px rgba(255, 109, 31, 0.45);
 }
 
 .login-title {
@@ -1622,3 +1622,57 @@
 
 .mt-8 { margin-top: 2rem; }
 .mb-8 { margin-bottom: 2rem; }
+
+/* Brand Palette Theme Swatches & Pill Display */
+.palette-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(34, 34, 34, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  margin-left: 0.5rem;
+}
+
+.palette-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.palette-dot:hover {
+  transform: scale(1.3);
+}
+
+.demo-preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(90deg, rgba(255, 109, 31, 0.15), rgba(245, 231, 198, 0.08));
+  border: 1px dashed rgba(255, 109, 31, 0.4);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--sustainable-linen);
+}
+
+.btn-demo {
+  background: var(--electric-tangerine);
+  color: var(--black-hole);
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-demo:hover {
+  box-shadow: 0 0 12px rgba(255, 109, 31, 0.5);
+  transform: translateY(-1px);
+}

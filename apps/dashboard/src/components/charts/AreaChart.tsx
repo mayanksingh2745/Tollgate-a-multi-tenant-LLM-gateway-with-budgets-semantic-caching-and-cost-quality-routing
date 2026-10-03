@@ -21,7 +21,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   height = 240,
   valuePrefix = '',
   valueSuffix = '',
-  color = '#38bdf8', // var(--accent-cyan)
+  color = '#FF6D1F', // var(--electric-tangerine)
   title,
   emptyMessage = 'No usage data for this period.',
 }) => {

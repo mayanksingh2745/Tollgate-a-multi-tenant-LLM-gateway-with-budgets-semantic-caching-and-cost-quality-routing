@@ -222,6 +222,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SignupRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+    email: str
+    password: str = Field(..., min_length=8, max_length=128)
+    tenant_name: str = Field(..., min_length=1, max_length=128)
+
+
 class LoginResponse(BaseModel):
     token: str
     token_type: str = "bearer"
