@@ -16,6 +16,7 @@ import {
 } from '../types/dashboard';
 import {
   mockProfile,
+  mockProjects,
   mockOverview,
   mockUsage,
   mockCosts,
@@ -28,7 +29,8 @@ import {
   mockApiKeys,
 } from './mockData';
 
-const API_BASE = '/api/v1';
+import { buildApiUrl, getApiBaseUrl } from './config';
+
 const TOKEN_KEY = 'tollgate_token';
 
 class ApiClient {
@@ -60,6 +62,10 @@ class ApiClient {
     return this.getToken() === 'demo-token';
   }
 
+  getBaseUrl(): string {
+    return getApiBaseUrl();
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = this.getToken();
     const headers: Record<string, string> = {
@@ -71,14 +77,31 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    const url = buildApiUrl(endpoint);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        ...options,
+        headers,
+      });
+    } catch (networkErr: any) {
+      throw new Error(
+        `Unable to connect to Tollgate Gateway at ${url}. ` +
+        `Please check network connectivity or backend availability. (${networkErr?.message || 'NetworkError'})`
+      );
+    }
 
     if (res.status === 401) {
       this.clearToken();
       throw new Error('Session expired or unauthorized. Please log in.');
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      throw new Error(
+        `Received unexpected HTML response from ${url} (HTTP ${res.status}). ` +
+        `The API gateway endpoint is not routed correctly. Please ensure the backend gateway is active and Vercel rewrites or VITE_API_BASE_URL are properly configured.`
+      );
     }
 
     if (!res.ok) {
@@ -94,6 +117,18 @@ class ApiClient {
       throw new Error(errorMsg);
     }
 
+    return res.json();
+  }
+
+  async checkHealth(): Promise<{ status: string }> {
+    if (this.isDemo()) {
+      return { status: 'healthy (demo)' };
+    }
+    const healthUrl = buildApiUrl('/healthz');
+    const res = await fetch(healthUrl);
+    if (!res.ok) {
+      throw new Error(`Health check probe failed with HTTP ${res.status}`);
+    }
     return res.json();
   }
 
@@ -248,64 +283,31 @@ class ApiClient {
   async getRequestDetail(requestId: string): Promise<RequestDetail> {
     if (this.isDemo()) {
       const match = mockRequests.items.find(
-        (r) => r.request_id === requestId || r.id === requestId
+        (r) => r.request_id === requestId
       );
       return {
-        id: match?.id || requestId,
         request_id: match?.request_id || requestId,
-        timestamp: match?.timestamp || new Date().toISOString(),
+        event_id: 'evt_' + (match?.request_id || requestId),
+        created_at: match?.created_at || new Date().toISOString(),
+        processed_at: match?.created_at || new Date().toISOString(),
         tenant_id: 'ten_tollgate_demo',
-        tenant_name: 'Acme AI Systems',
-        project_id: 'proj_prod',
-        project_name: 'Production Gateway',
-        model: match?.model || 'gpt-4o-mini',
+        project_id: match?.project_id || 'proj_prod',
+        project_name: match?.project_name || 'Production Gateway',
         provider: match?.provider || 'OpenAI',
-        endpoint: '/v1/chat/completions',
+        model: match?.model || 'gpt-4o-mini',
+        stream: false,
         status: match?.status || 'success',
-        status_code: 200,
-        latency_ms: match?.latency_ms || 278.4,
-        prompt_tokens: match?.prompt_tokens || 142,
-        completion_tokens: match?.completion_tokens || 88,
+        input_tokens: 142,
+        output_tokens: 88,
         total_tokens: match?.total_tokens || 230,
-        cost_microdollars: 35,
-        cost_usd: match?.cost_usd || 0.000035,
-        cache_status: match?.cache_status || 'exact_hit',
+        estimated_cost_microdollars: 35,
+        actual_cost_microdollars: match?.actual_cost_microdollars || 35,
+        latency_ms: match?.latency_ms || 278.4,
+        attempt_count: 1,
+        fallback_used: false,
+        router_fallback: false,
+        cache_status: match?.cache_status || 'HIT',
         router_route: match?.router_route || 'cheap',
-        request_payload: JSON.stringify(
-          {
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'user',
-                content: 'How does semantic caching optimize multi-tenant LLM gateways?',
-              },
-            ],
-            temperature: 0.2,
-          },
-          null,
-          2
-        ),
-        response_payload: JSON.stringify(
-          {
-            id: 'chatcmpl_mock_exact99',
-            object: 'chat.completion',
-            model: 'gpt-4o-mini',
-            choices: [
-              {
-                index: 0,
-                message: {
-                  role: 'assistant',
-                  content:
-                    'Semantic caching clusters semantically identical queries using embedding vector distance, serving cached responses in <10ms and reducing downstream model inference costs.',
-                },
-                finish_reason: 'stop',
-              },
-            ],
-            usage: { prompt_tokens: 142, completion_tokens: 88, total_tokens: 230 },
-          },
-          null,
-          2
-        ),
       };
     }
     return this.request<RequestDetail>(`/dashboard/requests/${requestId}`);
@@ -313,7 +315,7 @@ class ApiClient {
 
   async getProjects(): Promise<ProjectItem[]> {
     if (this.isDemo()) {
-      return mockProfile.projects;
+      return mockProjects;
     }
     return this.request<ProjectItem[]>('/dashboard/projects');
   }
