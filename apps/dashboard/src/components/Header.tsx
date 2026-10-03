@@ -48,20 +48,6 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="pulse-dot"></span>
           <span className="status-text">OPERATIONAL</span>
         </div>
-
-        <div
-          className="palette-pill"
-          title="Active Theme: Sustainable Linen (#FAF3E1), Recycled Cotton (#F5E7C6), Electric Tangerine (#FF6D1F), Black Hole (#222222)"
-        >
-          <span className="palette-dot" style={{ backgroundColor: '#FAF3E1' }} title="Sustainable Linen #FAF3E1" />
-          <span className="palette-dot" style={{ backgroundColor: '#F5E7C6' }} title="Recycled Cotton #F5E7C6" />
-          <span className="palette-dot" style={{ backgroundColor: '#FF6D1F' }} title="Electric Tangerine #FF6D1F" />
-          <span
-            className="palette-dot"
-            style={{ backgroundColor: '#222222', border: '1px solid rgba(245, 231, 198, 0.35)' }}
-            title="Black Hole #222222"
-          />
-        </div>
       </div>
 
       <div className="header-controls">

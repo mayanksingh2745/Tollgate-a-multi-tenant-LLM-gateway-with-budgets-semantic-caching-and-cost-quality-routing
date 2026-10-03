@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Key, Lock, Mail, User, Building2, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { ShieldCheck, Key, Lock, Mail, User, Building2, AlertCircle, ArrowRight } from 'lucide-react';
 import { api } from '../api/client';
 
 interface LoginPageProps {
@@ -75,11 +75,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleLaunchDemo = () => {
-    api.setToken('demo-token');
-    onLoginSuccess();
-  };
-
   return (
     <div className="login-wrapper">
       <div className="login-card">
@@ -91,38 +86,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <p className="login-subtitle">
             Tenant Analytics & LLM Infrastructure Dashboard
           </p>
-
-          <div
-            className="palette-pill"
-            style={{ margin: '0.85rem auto 0', justifyContent: 'center' }}
-            aria-label="Color Palette"
-          >
-            <span className="palette-dot dot-linen" title="Sustainable Linen: #FAF3E1" />
-            <span className="palette-dot dot-cotton" title="Recycled Cotton: #F5E7C6" />
-            <span className="palette-dot dot-tangerine" title="Electric Tangerine: #FF6D1F" />
-            <span className="palette-dot dot-blackhole" title="Black Hole: #222222" />
-            <span style={{ fontSize: '0.75rem', color: 'var(--recycled-cotton)', opacity: 0.85, marginLeft: '0.35rem' }}>
-              Sustainable Linen &bull; Electric Tangerine &bull; Black Hole
-            </span>
-          </div>
-        </div>
-
-        {/* Live Demo Banner for Localhost Verification */}
-        <div className="demo-preview-banner">
-          <div className="demo-preview-info">
-            <span className="demo-badge">
-              <Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} />
-              Live UI Preview
-            </span>
-            <p>Explore all 9 dashboard pages, interactive metrics, and latency charts with the active brand palette.</p>
-          </div>
-          <button
-            type="button"
-            className="btn-demo"
-            onClick={handleLaunchDemo}
-          >
-            Launch Demo Preview
-          </button>
         </div>
 
         {/* Login / Signup Toggle */}
