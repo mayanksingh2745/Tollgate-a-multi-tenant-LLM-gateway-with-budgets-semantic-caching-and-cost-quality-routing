@@ -7,7 +7,9 @@
 
 Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent runaway costs, enforce per-project monthly budgets, provide automatic provider failover, enable high-performance semantic caching, and maintain token accounting precision across streaming and concurrent workloads.
 
----
+🔗 **Live Project**: [https://tollgate-a-multi-tenant-llm-gateway.vercel.app/](https://tollgate-a-multi-tenant-llm-gateway.vercel.app/)
+
+[![Tollgate Executive Operations Overview](docs/assets/dashboard-overview.png)](https://tollgate-a-multi-tenant-llm-gateway.vercel.app/)
 
 ---
 
