@@ -8,7 +8,6 @@ import {
   PaginatedRequests,
   ProjectItem,
   ProviderAnalyticsItem,
-  RequestDetail,
   RouterAnalyticsData,
   UsageSeriesData,
   APIKeyItem,
@@ -28,6 +27,34 @@ export const mockProfile: CurrentUserProfile = {
     { id: 'proj_internal', name: 'Internal Tools', slug: 'internal' },
   ],
 };
+
+export const mockProjects: ProjectItem[] = [
+  {
+    id: 'proj_prod',
+    name: 'Production Gateway',
+    slug: 'prod',
+    status: 'active',
+    created_at: '2026-09-01T00:00:00Z',
+    monthly_budget_microdollars: 150000000,
+    daily_budget_microdollars: 10000000,
+  },
+  {
+    id: 'proj_staging',
+    name: 'Staging Environment',
+    slug: 'staging',
+    status: 'active',
+    created_at: '2026-09-10T00:00:00Z',
+    monthly_budget_microdollars: 50000000,
+    daily_budget_microdollars: 3000000,
+  },
+  {
+    id: 'proj_internal',
+    name: 'Internal Tools',
+    slug: 'internal',
+    status: 'active',
+    created_at: '2026-09-20T00:00:00Z',
+  },
+];
 
 export const mockOverview: OverviewData = {
   period: { start: '2026-10-02T00:00:00Z', end: '2026-10-03T00:00:00Z' },
@@ -58,22 +85,22 @@ export const mockUsage: UsageSeriesData = {
     { timestamp: '02:00', requests: 950, tokens: 142000, input_tokens: 88000, output_tokens: 54000, cost_microdollars: 850000, cost_usd: 0.85, success_count: 950, failure_count: 0 },
     { timestamp: '04:00', requests: 720, tokens: 108000, input_tokens: 65000, output_tokens: 43000, cost_microdollars: 680000, cost_usd: 0.68, success_count: 719, failure_count: 1 },
     { timestamp: '06:00', requests: 1450, tokens: 215000, input_tokens: 130000, output_tokens: 85000, cost_microdollars: 1350000, cost_usd: 1.35, success_count: 1448, failure_count: 2 },
-    { timestamp: '08:00', requests: 3100, tokens: 465000, input_tokens: 280000, output_tokens: 185000, cost_microdollars: 2900000, cost_usd: 2.9, success_count: 3095, failure_count: 5 },
-    { timestamp: '10:00', requests: 4800, tokens: 720000, input_tokens: 440000, output_tokens: 280000, cost_microdollars: 4450000, cost_usd: 4.45, success_count: 4796, failure_count: 4 },
-    { timestamp: '12:00', requests: 5200, tokens: 790000, input_tokens: 480000, output_tokens: 310000, cost_microdollars: 4900000, cost_usd: 4.9, success_count: 5195, failure_count: 5 },
-    { timestamp: '14:00', requests: 4950, tokens: 745000, input_tokens: 450000, output_tokens: 295000, cost_microdollars: 4600000, cost_usd: 4.6, success_count: 4946, failure_count: 4 },
-    { timestamp: '16:00', requests: 4300, tokens: 650000, input_tokens: 395000, output_tokens: 255000, cost_microdollars: 4050000, cost_usd: 4.05, success_count: 4296, failure_count: 4 },
-    { timestamp: '18:00', requests: 3800, tokens: 570000, input_tokens: 345000, output_tokens: 225000, cost_microdollars: 3550000, cost_usd: 3.55, success_count: 3798, failure_count: 2 },
-    { timestamp: '20:00', requests: 2900, tokens: 435000, input_tokens: 260000, output_tokens: 175000, cost_microdollars: 2700000, cost_usd: 2.7, success_count: 2898, failure_count: 2 },
-    { timestamp: '22:00', requests: 1850, tokens: 278000, input_tokens: 170000, output_tokens: 108000, cost_microdollars: 1720000, cost_usd: 1.72, success_count: 1849, failure_count: 1 },
+    { timestamp: '08:00', requests: 2900, tokens: 410000, input_tokens: 245000, output_tokens: 165000, cost_microdollars: 2600000, cost_usd: 2.6, success_count: 2894, failure_count: 6 },
+    { timestamp: '10:00', requests: 4800, tokens: 690000, input_tokens: 415000, output_tokens: 275000, cost_microdollars: 4300000, cost_usd: 4.3, success_count: 4797, failure_count: 3 },
+    { timestamp: '12:00', requests: 5600, tokens: 780000, input_tokens: 470000, output_tokens: 310000, cost_microdollars: 4900000, cost_usd: 4.9, success_count: 5600, failure_count: 0 },
+    { timestamp: '14:00', requests: 5200, tokens: 730000, input_tokens: 440000, output_tokens: 290000, cost_microdollars: 4600000, cost_usd: 4.6, success_count: 5198, failure_count: 2 },
+    { timestamp: '16:00', requests: 4600, tokens: 650000, input_tokens: 390000, output_tokens: 260000, cost_microdollars: 4100000, cost_usd: 4.1, success_count: 4596, failure_count: 4 },
+    { timestamp: '18:00', requests: 3800, tokens: 530000, input_tokens: 320000, output_tokens: 210000, cost_microdollars: 3300000, cost_usd: 3.3, success_count: 3798, failure_count: 2 },
+    { timestamp: '20:00', requests: 2700, tokens: 380000, input_tokens: 230000, output_tokens: 150000, cost_microdollars: 2400000, cost_usd: 2.4, success_count: 2700, failure_count: 0 },
+    { timestamp: '22:00', requests: 1900, tokens: 270000, input_tokens: 165000, output_tokens: 105000, cost_microdollars: 1700000, cost_usd: 1.7, success_count: 1898, failure_count: 2 },
   ],
 };
 
 export const mockCosts: CostAnalyticsData = {
   total_cost_microdollars: 42150000,
   total_cost_usd: 42.15,
-  input_cost_microdollars: 24200000,
-  output_cost_microdollars: 17950000,
+  input_cost_microdollars: 23180000,
+  output_cost_microdollars: 18970000,
   by_model: [
     { name: 'gpt-4o', cost_microdollars: 18500000, cost_usd: 18.5, percentage: 43.9, request_count: 6200, total_tokens: 1240000 },
     { name: 'claude-3-5-sonnet', cost_microdollars: 14200000, cost_usd: 14.2, percentage: 33.7, request_count: 4800, total_tokens: 980000 },
@@ -93,7 +120,7 @@ export const mockCosts: CostAnalyticsData = {
 };
 
 export const mockBudgets: BudgetsOverviewData = {
-  tenant: {
+  tenant_budget: {
     monthly_budget_microdollars: 250000000,
     daily_budget_microdollars: 15000000,
     monthly_spent_microdollars: 42150000,
@@ -128,54 +155,56 @@ export const mockBudgets: BudgetsOverviewData = {
 };
 
 export const mockModels: ModelAnalyticsItem[] = [
-  { model: 'gpt-4o', provider: 'OpenAI', total_requests: 6200, total_tokens: 1240000, actual_cost_usd: 18.5, avg_latency_ms: 640.2, p95_latency_ms: 1120.0, error_rate: 0.008, cache_hit_rate: 0.28 },
-  { model: 'claude-3-5-sonnet', provider: 'Anthropic', total_requests: 4800, total_tokens: 980000, actual_cost_usd: 14.2, avg_latency_ms: 590.4, p95_latency_ms: 980.5, error_rate: 0.004, cache_hit_rate: 0.31 },
-  { model: 'gpt-4o-mini', provider: 'OpenAI', total_requests: 28400, total_tokens: 3850000, actual_cost_usd: 6.8, avg_latency_ms: 280.1, p95_latency_ms: 480.0, error_rate: 0.002, cache_hit_rate: 0.42 },
-  { model: 'mistral-large', provider: 'Mistral AI', total_requests: 1920, total_tokens: 390000, actual_cost_usd: 2.65, avg_latency_ms: 510.6, p95_latency_ms: 890.0, error_rate: 0.015, cache_hit_rate: 0.22 },
+  { model: 'gpt-4o', requests: 6200, input_tokens: 620000, output_tokens: 620000, total_tokens: 1240000, cost_microdollars: 18500000, cost_usd: 18.5, avg_latency_ms: 640.2, error_rate: 0.008 },
+  { model: 'claude-3-5-sonnet', requests: 4800, input_tokens: 480000, output_tokens: 500000, total_tokens: 980000, cost_microdollars: 14200000, cost_usd: 14.2, avg_latency_ms: 590.4, error_rate: 0.004 },
+  { model: 'gpt-4o-mini', requests: 28400, input_tokens: 1900000, output_tokens: 1950000, total_tokens: 3850000, cost_microdollars: 6800000, cost_usd: 6.8, avg_latency_ms: 280.1, error_rate: 0.002 },
+  { model: 'mistral-large', requests: 1920, input_tokens: 200000, output_tokens: 190000, total_tokens: 390000, cost_microdollars: 2650000, cost_usd: 2.65, avg_latency_ms: 510.6, error_rate: 0.015 },
 ];
 
 export const mockProviders: ProviderAnalyticsItem[] = [
-  { provider: 'openai_compatible', total_requests: 34600, total_tokens: 5090000, actual_cost_usd: 25.3, avg_latency_ms: 340.5, error_rate: 0.003, fallback_count: 12, health_status: 'healthy' },
-  { provider: 'anthropic', total_requests: 4800, total_tokens: 980000, actual_cost_usd: 14.2, avg_latency_ms: 590.4, error_rate: 0.004, fallback_count: 2, health_status: 'healthy' },
-  { provider: 'mistral', total_requests: 1920, total_tokens: 390000, actual_cost_usd: 2.65, avg_latency_ms: 510.6, error_rate: 0.015, fallback_count: 0, health_status: 'healthy' },
+  { provider: 'openai', requests: 34600, failures: 14, retries: 22, fallbacks: 12, avg_latency_ms: 340.5, error_rate: 0.003, fallback_rate: 0.0003 },
+  { provider: 'anthropic', requests: 4800, failures: 2, retries: 3, fallbacks: 2, avg_latency_ms: 590.4, error_rate: 0.004, fallback_rate: 0.0004 },
+  { provider: 'mistral', requests: 1920, failures: 0, retries: 1, fallbacks: 0, avg_latency_ms: 510.6, error_rate: 0.015, fallback_rate: 0.0 },
 ];
 
 export const mockCache: CacheAnalyticsData = {
-  exact_cache_hits: 11200,
-  exact_cache_misses: 22100,
-  exact_cache_hit_rate: 0.336,
-  semantic_cache_hits: 5220,
-  semantic_cache_misses: 9780,
-  semantic_cache_hit_rate: 0.348,
-  total_hits: 16420,
-  total_lookups: 48320,
-  combined_hit_rate: 0.34,
-  cost_saved_usd: 36.35,
-  latency_saved_seconds: 9840,
-  carbon_saved_kg: 8.42,
-  cache_size_bytes: 48290000,
-  cache_entries_count: 18450,
-  last_invalidated_at: '2026-10-02T18:00:00Z',
+  exact_hits: 11200,
+  exact_misses: 22100,
+  exact_hit_rate: 0.336,
+  semantic_hits: 5220,
+  semantic_misses: 9780,
+  semantic_hit_rate: 0.348,
+  overall_hit_rate: 0.34,
+  total_cache_hits: 16420,
+  estimated_calls_avoided: 16420,
+  estimated_cost_avoided_microdollars: 36350000,
+  estimated_cost_avoided_usd: 36.35,
+  cache_lookup_errors: 0,
+  cache_write_errors: 0,
+  semantic_cache_errors: 0,
+  semantic_entries_count: 18450,
 };
 
 export const mockRouter: RouterAnalyticsData = {
-  total_routed_requests: 33200,
-  cheap_route_count: 22410,
-  strong_route_count: 10790,
-  cheap_route_percentage: 67.5,
-  strong_route_percentage: 32.5,
-  cost_savings_usd: 48.6,
-  cost_reduction_percentage: 53.6,
-  average_confidence_score: 0.89,
+  router_mode: 'active',
+  cheap_selections: 22410,
+  strong_selections: 10790,
+  passthrough_selections: 0,
+  fallbacks: 12,
+  errors: 0,
+  cheap_percentage: 67.5,
+  strong_percentage: 32.5,
+  avg_confidence: 0.89,
+  router_cheap_provider_strong: 0,
 };
 
 export const mockRequests: PaginatedRequests = {
   items: [
-    { id: 'req_01', request_id: 'req_a9f1b2c3', timestamp: '2026-10-03T13:20:12Z', project_name: 'Production Gateway', model: 'gpt-4o-mini', provider: 'OpenAI', status: 'success', latency_ms: 278.4, prompt_tokens: 142, completion_tokens: 88, total_tokens: 230, cost_usd: 0.000035, cache_status: 'exact_hit', router_route: 'cheap' },
-    { id: 'req_02', request_id: 'req_e8c4d7f1', timestamp: '2026-10-03T13:19:44Z', project_name: 'Production Gateway', model: 'gpt-4o', provider: 'OpenAI', status: 'success', latency_ms: 612.0, prompt_tokens: 512, completion_tokens: 340, total_tokens: 852, cost_usd: 0.00426, cache_status: 'miss', router_route: 'strong' },
-    { id: 'req_03', request_id: 'req_f3b5a1c9', timestamp: '2026-10-03T13:18:22Z', project_name: 'Staging Environment', model: 'claude-3-5-sonnet', provider: 'Anthropic', status: 'success', latency_ms: 540.2, prompt_tokens: 380, completion_tokens: 210, total_tokens: 590, cost_usd: 0.00315, cache_status: 'semantic_hit', router_route: 'strong' },
-    { id: 'req_04', request_id: 'req_b7e2d9a4', timestamp: '2026-10-03T13:17:05Z', project_name: 'Production Gateway', model: 'gpt-4o-mini', provider: 'OpenAI', status: 'success', latency_ms: 245.8, prompt_tokens: 95, completion_tokens: 42, total_tokens: 137, cost_usd: 0.000021, cache_status: 'exact_hit', router_route: 'cheap' },
-    { id: 'req_05', request_id: 'req_c1a9f4e8', timestamp: '2026-10-03T13:16:30Z', project_name: 'Production Gateway', model: 'mistral-large', provider: 'Mistral AI', status: 'success', latency_ms: 489.1, prompt_tokens: 620, completion_tokens: 180, total_tokens: 800, cost_usd: 0.0016, cache_status: 'miss', router_route: 'strong' },
+    { request_id: 'req_a9f1b2c3', created_at: '2026-10-03T13:20:12Z', project_id: 'proj_prod', project_name: 'Production Gateway', model: 'gpt-4o-mini', provider: 'OpenAI', status: 'success', latency_ms: 278.4, total_tokens: 230, actual_cost_microdollars: 35, actual_cost_usd: 0.000035, cache_status: 'HIT', router_route: 'cheap' },
+    { request_id: 'req_e8c4d7f1', created_at: '2026-10-03T13:19:44Z', project_id: 'proj_prod', project_name: 'Production Gateway', model: 'gpt-4o', provider: 'OpenAI', status: 'success', latency_ms: 612.0, total_tokens: 852, actual_cost_microdollars: 4260, actual_cost_usd: 0.00426, cache_status: 'MISS', router_route: 'strong' },
+    { request_id: 'req_f3b5a1c9', created_at: '2026-10-03T13:18:22Z', project_id: 'proj_staging', project_name: 'Staging Environment', model: 'claude-3-5-sonnet', provider: 'Anthropic', status: 'success', latency_ms: 540.2, total_tokens: 590, actual_cost_microdollars: 3150, actual_cost_usd: 0.00315, cache_status: 'SEMANTIC_HIT', router_route: 'strong' },
+    { request_id: 'req_b7e2d9a4', created_at: '2026-10-03T13:17:05Z', project_id: 'proj_prod', project_name: 'Production Gateway', model: 'gpt-4o-mini', provider: 'OpenAI', status: 'success', latency_ms: 245.8, total_tokens: 137, actual_cost_microdollars: 21, actual_cost_usd: 0.000021, cache_status: 'HIT', router_route: 'cheap' },
+    { request_id: 'req_c1a9f4e8', created_at: '2026-10-03T13:16:30Z', project_id: 'Production Gateway', project_name: 'Production Gateway', model: 'mistral-large', provider: 'Mistral AI', status: 'success', latency_ms: 489.1, total_tokens: 800, actual_cost_microdollars: 1600, actual_cost_usd: 0.0016, cache_status: 'MISS', router_route: 'strong' },
   ],
   total: 48320,
   page: 1,

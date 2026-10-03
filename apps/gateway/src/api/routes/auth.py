@@ -9,8 +9,8 @@ from gateway.src.db import get_db
 from gateway.src.schemas.dashboard import (
     CurrentUserProfile,
     LoginRequest,
-    SignupRequest,
     LoginResponse,
+    SignupRequest,
 )
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -18,11 +18,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tollgate_core.models import APIKey, Project, Tenant, User
 from tollgate_core.security import generate_api_key, hash_password, verify_password
 
+
 def _tenant_slug(name: str) -> str:
     """Create a safe, compact tenant slug from the tenant name."""
     slug = re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
     slug = slug[:46].rstrip("-")
     return slug or "tenant"
+
 
 logger = logging.getLogger("tollgate.auth")
 
@@ -43,9 +45,7 @@ async def signup_endpoint(data: SignupRequest, db: AsyncSession = Depends(get_db
     """Create a new tenant and its first owner user."""
     email = data.email.strip().lower()
 
-    existing_user = await db.execute(
-        select(User).where(User.email == email).limit(1)
-    )
+    existing_user = await db.execute(select(User).where(User.email == email).limit(1))
     if existing_user.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -54,11 +54,10 @@ async def signup_endpoint(data: SignupRequest, db: AsyncSession = Depends(get_db
 
     tenant_slug = _tenant_slug(data.tenant_name)
 
-    slug_result = await db.execute(
-        select(Tenant.slug).where(Tenant.slug == tenant_slug).limit(1)
-    )
+    slug_result = await db.execute(select(Tenant.slug).where(Tenant.slug == tenant_slug).limit(1))
     if slug_result.scalar_one_or_none():
         from uuid import uuid4
+
         tenant_slug = f"{tenant_slug[:37].rstrip('-')}-{uuid4().hex[:8]}"
 
     tenant = Tenant(
@@ -103,17 +102,15 @@ async def signup_endpoint(data: SignupRequest, db: AsyncSession = Depends(get_db
 
     try:
         await db.commit()
-    except IntegrityError:
+    except IntegrityError as err:
         await db.rollback()
         logger.exception("Signup failed due to a database integrity error.")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Unable to create the account because the requested details already exist.",
-        )
+        ) from err
 
-    logger.info(
-        f"Tenant signup successful: user_id={user.id} tenant_id={tenant.id}"
-    )
+    logger.info(f"Tenant signup successful: user_id={user.id} tenant_id={tenant.id}")
 
     return LoginResponse(
         token=raw_key,
@@ -135,6 +132,7 @@ async def signup_endpoint(data: SignupRequest, db: AsyncSession = Depends(get_db
             ],
         ),
     )
+
 
 @router.post(
     "/login",
@@ -234,7 +232,3 @@ async def login_endpoint(data: LoginRequest, db: AsyncSession = Depends(get_db))
             projects=[{"id": p.id, "name": p.name, "slug": p.slug} for p in projects],
         ),
     )
-
-
-
-
