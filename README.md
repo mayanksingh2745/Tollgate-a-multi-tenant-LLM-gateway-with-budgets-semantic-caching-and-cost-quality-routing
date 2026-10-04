@@ -16,7 +16,8 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 
 Explore the interactive architecture diagram for Tollgate:
 
-[![Architecture diagram of mayanksingh2745/tollgate-a-multi-tenant-llm-gateway-with-budgets-semantic-caching-and-cost-quality-routing](https://gitdiagram.com/mayanksingh2745/tollgate-a-multi-tenant-llm-gateway-with-budgets-semantic-caching-and-cost-quality-routing/diagram.png)](https://gitdiagram.com/mayanksingh2745/tollgate-a-multi-tenant-llm-gateway-with-budgets-semantic-caching-and-cost-quality-routing?utm_source=readme&utm_medium=picture)
+<img width="8590" height="6381" alt="diagram" src="https://github.com/user-attachments/assets/5849852b-964f-493a-be8b-8b2b57d7555a" />
+
 
 ---
 ## Feature Status
