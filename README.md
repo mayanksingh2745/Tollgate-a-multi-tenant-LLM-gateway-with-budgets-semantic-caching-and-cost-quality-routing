@@ -12,7 +12,13 @@ Tollgate is an enterprise-grade multi-tenant LLM gateway designed to prevent run
 [![Tollgate Executive Operations Overview](docs/assets/dashboard-overview.png)](https://tollgate-a-multi-tenant-llm-gateway.vercel.app/)
 
 ---
+## Architecture
 
+Explore the interactive architecture diagram for Tollgate:
+
+[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/mayanksingh2745/tollgate-a-multi-tenant-llm-gateway-with-budgets-semantic-caching-and-cost-quality-routing?utm_source=readme&utm_medium=badge)
+
+---
 ## Feature Status
 
 - ✓ Multi-tenancy
